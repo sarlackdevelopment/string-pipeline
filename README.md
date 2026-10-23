@@ -36,6 +36,22 @@ result.output(); // Optional[Real Python!]
 
 Every step's result is `Executed`, `NotConfigured`, `InvalidParameters`, `Failed` or `NotRun`: problems come back as data, never as exceptions.
 
+## Web API
+
+| Endpoint           | What it does                                                                   |
+| ------------------ | ------------------------------------------------------------------------------ |
+| `GET /api/catalog` | Limits, categories and every transformation with its parameters as JSON Schema |
+| `POST /api/runs`   | Runs a chain and returns a result for every step                               |
+
+With the server running (`./gradlew :server:bootRun`), Swagger UI at http://localhost:8080/swagger-ui.html lets you try both endpoints. From the command line:
+
+```sh
+curl -H 'Content-Type: application/json' \
+  --data-binary @contract/examples/brief-chain.request.json http://localhost:8080/api/runs
+```
+
+A problem inside a step comes back as that step's `status` with HTTP 200; a malformed request is a 400 with Problem Details (RFC 9457) and JSON pointers. Every example request and response is in [contract/](contract/README.md).
+
 ## Prerequisites
 
 - Any JDK 17+ to start Gradle. The modules compile with JDK 25: Gradle uses an installed JDK 25 or downloads one.
@@ -47,11 +63,11 @@ Every step's result is `Executed`, `NotConfigured`, `InvalidParameters`, `Failed
 
 From the repository root (`gradlew.bat` instead of `./gradlew` in cmd or PowerShell):
 
-| Command                     | What it does                                                              |
-| --------------------------- | ------------------------------------------------------------------------- |
-| `./gradlew build`           | Compiles with Error Prone and NullAway, checks formatting, runs all tests |
-| `./gradlew :server:bootRun` | Starts the API on http://localhost:8080                                   |
-| `./gradlew spotlessApply`   | Formats the Java sources                                                  |
+| Command                     | What it does                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------ |
+| `./gradlew build`           | Compiles with Error Prone and NullAway, checks formatting, runs all tests      |
+| `./gradlew :server:bootRun` | Starts the API on http://localhost:8080, with Swagger UI at `/swagger-ui.html` |
+| `./gradlew spotlessApply`   | Formats the Java sources                                                       |
 
 ### Frontend
 

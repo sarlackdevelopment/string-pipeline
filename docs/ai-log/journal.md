@@ -122,4 +122,23 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** `./gradlew build`: 135 library tests and the server's 1 green, formatting clean, Error Prone and NullAway clean.
 
-**Commit.** `feat(library): transformations, parameters and the pipeline with tests`
+**Commit.** `dcd495d feat(library): transformations, parameters and the pipeline with tests`
+
+## Step 10. The web API (2026-10-23)
+
+**Asked.** Build step 10, the web API.
+
+**AI did.**
+
+- Added springdoc-openapi 3.1.1, which is built against Spring Boot 4.1, and ArchUnit 1.5.1, after checking both on Maven Central.
+- Wrote `GET /api/catalog` and `POST /api/runs` as designed. `ParameterSchemas` maps every parameter kind to JSON Schema with an exhaustive switch, `RunRequestReader` collects every request error with its JSON pointer, and `RunResponse` maps every step result with an exhaustive switch. The request checks are plain code rather than Bean Validation annotations, because the rules need the catalog or several fields at once.
+- Looked up the Spring Boot 4 and Jackson 3 names in the jars instead of guessing them: `@WebMvcTest` moved to `org.springframework.boot.webmvc.test.autoconfigure`, and Jackson 3 says `isString()` and `propertyNames()` where Jackson 2 said `isTextual()` and `fieldNames()`.
+- Two tests failed at first, both on Problem Details: Spring 7 leaves out `"type": "about:blank"`, which RFC 9457 defines as the default when `type` is missing. The contract and the design now follow the RFC. A third assertion compared a JSON path value (a map) with a record; it now converts the value first.
+- Found the cause of the JVM's class-data-sharing warning in the server tests: Spring's test support attaches Mockito's agent at runtime when Mockito is on the classpath. The server tests mock nothing, so Mockito is excluded from their classpath, and the warning is gone.
+- Started the real server with `bootRun` and called it with curl: the catalog, both run examples and the 400 example answer as the contract says, Swagger UI loads, and the OpenAPI document carries the `status` discriminator.
+
+**Decided.** D23 and D41 refined.
+
+**Checked.** `./gradlew build`: 161 tests green, 135 in the library and 26 in the server.
+
+**Commit.** `feat(server): catalog and run endpoints with Problem Details and OpenAPI`

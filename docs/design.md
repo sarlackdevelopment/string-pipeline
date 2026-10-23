@@ -84,7 +84,6 @@ Problems inside a step (its values or its execution) are step results with HTTP 
 
 ```json
 {
-  "type": "about:blank",
   "title": "Bad Request",
   "status": 400,
   "detail": "Invalid request content.",
@@ -98,7 +97,7 @@ Problems inside a step (its values or its execution) are step results with HTTP 
 }
 ```
 
-The frontend shows an error at the field its pointer names (`#/input` at the input, `#/steps/1/...` at that step) and anything else as a banner. Unexpected failures are a generic 500 Problem Details without internals.
+There is no `type` member: RFC 9457 defines a missing `type` as `about:blank`, and Spring leaves it out. The frontend shows an error at the field its pointer names (`#/input` at the input, `#/steps/1/...` at that step) and anything else as a banner. Unexpected failures are a generic 500 Problem Details without internals.
 
 ## 3. Parameters
 
@@ -203,14 +202,15 @@ Limits (D21, D45). `Pipeline` takes a `Limits` value with production defaults; t
 
 ## 6. Server
 
-- `CatalogController` (`GET /api/catalog`) maps each `Parameter` to JSON Schema with an exhaustive `switch` (D30). A new parameter kind does not compile until the mapping handles it.
-- `RunController` (`POST /api/runs`) does the following:
-  - checks request errors with Bean Validation and a few explicit rules;
-  - maps JSON values to `ArgumentValue`: string to text, number to number, boolean to boolean, `null` to absent, object or array to 400;
-  - calls `Pipeline` and maps every `StepResult` to the response with an exhaustive `switch`.
-- Request and response records live in the server; the library has no Jackson annotations.
-- A `@RestControllerAdvice` turns request errors into Problem Details with `errors[].pointer`. Anything unexpected becomes a 500 without internals.
-- springdoc-openapi serves the OpenAPI document and Swagger UI (D17); the `status` union is documented with a discriminator.
+- `CatalogController` (`GET /api/catalog`) builds its response once at startup. It maps each `Parameter` to JSON Schema with an exhaustive `switch` (D30), so a new parameter kind does not compile until the mapping handles it.
+- `RunController` (`POST /api/runs`) hands the request to `RunRequestReader`, then calls `Pipeline` and maps every `StepResult` to the response with an exhaustive `switch`. The reader:
+  - collects every request error with its JSON pointer before it answers. The rules need the catalog or several fields at once, so they are plain code rather than Bean Validation annotations;
+  - maps JSON values to `ArgumentValue`: string to text, number to number, boolean to boolean, `null` to absent, object or array to 400.
+- Wire types live in the server, and the library has no Jackson annotations. The parts of a request end in `Request`, the parts of a response in `Response`.
+- `InvalidRequestException` is a Spring `ErrorResponseException`, so Spring renders it as Problem Details. `ApiExceptionHandler` adds a clearer message for unreadable JSON, with the pointer Jackson reports but not its message, which names Java types; and a generic 500 that shows nothing of the server.
+- springdoc-openapi 3.1 serves the OpenAPI document at `/v3/api-docs` and Swagger UI at `/swagger-ui.html` (D17); the `status` union is documented with a discriminator.
+- ArchUnit checks that the server uses only the library's API package and `BuiltIns`, and that the library depends on nothing but the JDK and JSpecify (D31).
+- The server tests run the real library and mock nothing. Mockito is off the test classpath, so Spring's test support does not attach Mockito's agent at runtime, which the JVM would warn about.
 - There is no CORS configuration. In development Vite proxies `/api` to the server; in Docker the server serves the frontend (D22).
 
 ## 7. Frontend

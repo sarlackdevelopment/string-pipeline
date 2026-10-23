@@ -1,4 +1,5 @@
 [versions]
+archunit = "1.5.1"
 # JUnit and AssertJ match the versions Spring Boot manages, so both modules test with the same libraries.
 assertj = "3.27.7"
 errorprone = "2.51.0"
@@ -7,8 +8,11 @@ junit = "6.0.3"
 nullaway = "0.14.3"
 palantir-java-format = "2.102.0"
 spring-boot = "4.1.2"
+# Built against Spring Boot 4.1.
+springdoc = "3.1.1"
 
 [libraries]
+archunit = { module = "com.tngtech.archunit:archunit", version.ref = "archunit" }
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
@@ -18,6 +22,7 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
 spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test" }
+springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
 
 # Gradle plugins that buildSrc/java-conventions applies; buildSrc depends on them as libraries.
 errorprone-gradle-plugin = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version = "5.1.1" }

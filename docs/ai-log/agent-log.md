@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: library done. Next: step 10, the web API.
-- Last commit: `feat(library): transformations, parameters and the pipeline with tests`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
+- Phase: backend done (library and web API). Next: step 11, the frontend model.
+- Last commit: `feat(server): catalog and run endpoints with Problem Details and OpenAPI`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green.
-- Tests: Java 136 in 14 classes (library 135, server 1), frontend 1 (the app heading renders).
+- Tests: Java 161 in 19 classes (library 135, server 26), frontend 1 (the app heading renders).
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+.
-- Next step: the web API as in `docs/design.md` sections 2 and 6: `GET /api/catalog` and `POST /api/runs`, the JSON Schema mapping, Problem Details with JSON pointers, request limits, OpenAPI with Swagger UI; tests that compare against `contract/`, and an ArchUnit test that the server uses only the library's API package and `BuiltIns`.
+- Next step: the frontend model as in `docs/design.md` section 7: zod schemas for the catalog, run results and Problem Details, tested on the files of `contract/`; pure functions for the chain (add, remove, move, edit, step ids), the run request and the results by step id; unit tests. zod arrives with this step (D38).
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -119,6 +119,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: Java 25 regex behaviour on known catastrophic patterns, through jshell probes.
 - Changed: `library/src/main`, `library/src/test`, `buildSrc` (UTF-8 sources), `docs/design.md`, `docs/decisions.md`, README, both journals.
 - Verified: `./gradlew build` green: 135 library tests in 13 classes and the server's 1; Spotless, Error Prone and NullAway clean.
-- Commit: `feat(library): transformations, parameters and the pipeline with tests`.
+- Commit: `dcd495d`.
 - Open: the Turkish i trap waits for the case transformation (step 17); the JVM class-data-sharing warning in server tests is still open.
 - Next: S10, the web API.
+
+### S10 The web API (2026-10-23)
+
+- Goal: the web API of design sections 2 and 6, tested against `contract/`.
+- Requirements: R2.1, R3.3.
+- Decisions: D17, D18, D40, D41, D43, D46 implemented; D31 enforced by ArchUnit; D23 and D41 refined.
+- Read: Maven Central metadata (springdoc 3.1.1, ArchUnit 1.5.1); class names in the Spring Boot 4.1 and Jackson 3.1 jars.
+- Changed: `server/` (build file, `LibraryConfiguration`, `OpenApiConfiguration`, package `api`, tests), `gradle/libs.versions.toml`, `contract/examples/unknown-transformation.response.json` (no `type`), `docs/design.md`, `docs/decisions.md`, README, both journals.
+- Verified: `./gradlew build` green with 161 tests; the running server answered the contract examples through curl; Swagger UI and the OpenAPI document load.
+- Commit: `feat(server): catalog and run endpoints with Problem Details and OpenAPI`.
+- Open: the Turkish i trap (step 17). The class-data-sharing warning is fixed.
+- Next: S11, the frontend model.
