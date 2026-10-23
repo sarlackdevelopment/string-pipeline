@@ -1,0 +1,28 @@
+[versions]
+# JUnit and AssertJ match the versions Spring Boot manages, so both modules test with the same libraries.
+assertj = "3.27.7"
+errorprone = "2.51.0"
+jspecify = "1.0.1"
+junit = "6.0.3"
+nullaway = "0.14.3"
+palantir-java-format = "2.102.0"
+spring-boot = "4.1.2"
+
+[libraries]
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
+spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
+spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test" }
+
+# Gradle plugins that buildSrc/java-conventions applies; buildSrc depends on them as libraries.
+errorprone-gradle-plugin = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version = "5.1.1" }
+spotless-gradle-plugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "8.10.4" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.7" }

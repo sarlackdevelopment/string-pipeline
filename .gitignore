@@ -1,0 +1,18 @@
+# Gradle and Java
+.gradle/
+.kotlin/
+build/
+out/
+
+# IDEs
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
