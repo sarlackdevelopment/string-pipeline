@@ -1,0 +1,64 @@
+{
+  "name": "string-pipeline-frontend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --build && vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --build",
+    "lint": "run-s lint:*",
+    "lint:oxlint": "oxlint --deny-warnings",
+    "lint:eslint": "eslint . --max-warnings 0 --cache",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "vue": "^3.5.44"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/user-event": "^14.6.8",
+    "@testing-library/vue": "^8.1.0",
+    "@tsconfig/node24": "^24.0.5",
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^24.19.2",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "@vitest/coverage-v8": "^5.0.5",
+    "@vitest/eslint-plugin": "^1.6.28",
+    "@vue/eslint-config-typescript": "^14.9.0",
+    "@vue/tsconfig": "^0.9.1",
+    "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-oxlint": "~1.89.0",
+    "eslint-plugin-vue": "~10.11.1",
+    "eslint-plugin-vuejs-accessibility": "^2.6.3",
+    "globals": "^17.13.0",
+    "jiti": "^2.7.0",
+    "jsdom": "^30.1.3",
+    "npm-run-all2": "^9.0.4",
+    "oxlint": "~1.89.0",
+    "prettier": "3.9.10",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5",
+    "vue-eslint-parser": "^10.4.1",
+    "vue-tsc": "^3.3.13"
+  },
+  "overrides": {
+    "@testing-library/vue": {
+      "@testing-library/dom": "$@testing-library/dom"
+    }
+  }
+}

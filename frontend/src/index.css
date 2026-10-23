@@ -1,0 +1,4 @@
+/*
+ * Tailwind entry point. Design tokens arrive with the UI components (D28).
+ */
+@import 'tailwindcss';
