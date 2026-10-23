@@ -1,0 +1,22 @@
+{
+  "steps": [
+    { "id": "s1", "status": "executed", "output": "Price: €5" },
+    {
+      "id": "s2",
+      "status": "notConfigured",
+      "issues": [{ "parameter": "old", "message": "Enter a value" }]
+    },
+    {
+      "id": "s3",
+      "status": "invalidParameters",
+      "issues": [
+        {
+          "parameter": "replacement",
+          "message": "The pattern has no group 5. Write \\$ for a dollar sign."
+        }
+      ]
+    },
+    { "id": "s4", "status": "notRun" }
+  ],
+  "output": null
+}

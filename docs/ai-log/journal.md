@@ -86,4 +86,21 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** Prettier over all Markdown; every relative link resolves.
 
-**Commit.** This one: `docs: requirements, decisions and the AI usage log`.
+**Commit.** `7db207e docs: requirements, decisions and the AI usage log`
+
+## Step 8. Design (2026-10-23)
+
+**Asked.** The next step, a design to approve before any feature code. The developer chose to continue in the same session instead of starting a separate one.
+
+**AI did.**
+
+- Wrote [design.md](../design.md): the API (`GET /api/catalog`, `POST /api/runs`), the step statuses and run rules, request errors as Problem Details with JSON pointers, four parameter kinds as a JSON Schema subset, the first six transformations with their exact parameters, the library's packages and types, the server's mappings, the frontend's component tree and data flow, and the test plan.
+- Wrote the contract in `contract/`: the catalog and three request and response examples, which the Java and the TypeScript tests will both read.
+- Probed Java 25 before relying on it. `BreakIterator` counted 👍🏽🇩🇪, an e with a combining accent, and x as 4 characters. `Pattern.namedGroups()` exists. The replacement `$5 off` threw "No group 5" on a text with a match but returned `abc` unchanged on a text without one, so the library will check group references itself. The example outputs were recomputed in Java.
+- Added D40–D46 and refined D12 and D25.
+
+**Decided.** The developer approved the three open points: `GET /api/catalog` with limits, checking every step's parameters even after a step that cannot run, and the size caps of 10,000 characters per text parameter and 1,000,000 per step output.
+
+**Checked.** Every contract file parses as JSON; Prettier; every relative link resolves.
+
+**Commit.** `docs(design): API contract, transformations, library and frontend design`

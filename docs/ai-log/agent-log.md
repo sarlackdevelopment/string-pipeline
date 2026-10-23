@@ -4,18 +4,14 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: planning and scaffold done. Next: design.
-- Last commit: `docs: requirements, decisions and the AI usage log`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
+- Phase: design approved. Next: step 9, the library.
+- Last commit: `docs(design): API contract, transformations, library and frontend design`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green.
 - Tests: Java 1 (the server context starts), frontend 1 (the app heading renders).
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+.
-- Next step: a design for the developer to approve before any code:
-  1. the API contract, `GET` catalog and `POST` run, with JSON examples that both Java and TypeScript tests read (D20);
-  2. the first set of transformations (D10) with their parameter types;
-  3. the Java types for parameters, steps and results (D30);
-  4. the frontend component tree and stores (D26–D29).
+- Next step: the library as in `docs/design.md` sections 4 and 5: parameters, values, results, pipeline, catalog, limits, and the six transformations; tests per transformation and per trap, and the run examples of `contract/` reproduced through the Java API.
 - Open questions: none.
-- Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts.
+- Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
 ## Steps
 
@@ -99,6 +95,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: the planning transcript (decision tables), the brief.
 - Changed: `docs/requirements.md`, `docs/decisions.md`, `docs/ai-log/`, README.
 - Verified: Prettier over all Markdown; relative links resolve.
-- Commit: this one.
+- Commit: `7db207e`.
 - Open: none.
-- Next: design (see Current state).
+- Next: S8.
+
+### S8 Design (2026-10-23)
+
+- Goal: an approved design before any feature code.
+- Requirements: R1.1, R1.2, R2.1, R3.2, R3.3.
+- Decisions: D40–D46 added; D12 and D25 refined. The developer approved `GET /api/catalog`, checking all steps, and the size caps.
+- Read: Java 25 behaviour through jshell probes: grapheme boundaries, `Pattern.namedGroups()`, replacement errors with and without a match.
+- Changed: `docs/design.md`, `contract/`, `docs/decisions.md`, README, both journals.
+- Verified: every contract file parses; example outputs recomputed in Java; Prettier; relative links.
+- Commit: `docs(design): API contract, transformations, library and frontend design`.
+- Open: none.
+- Next: S9, the library.

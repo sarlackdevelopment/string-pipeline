@@ -6,6 +6,8 @@ A no-code web app for chaining string transformations: pick transformations, con
 
 - [Requirements](docs/requirements.md): the brief as numbered requirements, R1.1–R4.4
 - [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D39
+- [Design](docs/design.md): the API, the transformations, the library, the server and the frontend
+- [API contract](contract/README.md): example requests and responses that the Java and TypeScript tests share
 - [AI usage log](docs/ai-log/README.md): every step taken with the AI assistant, for people and for agents
 
 ## Repository layout

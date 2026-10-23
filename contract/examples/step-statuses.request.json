@@ -1,0 +1,21 @@
+{
+  "input": "Price: 5 EUR",
+  "steps": [
+    {
+      "id": "s1",
+      "transformation": "regexReplace",
+      "parameters": { "pattern": "(\\d+) EUR", "replacement": "€$1" }
+    },
+    {
+      "id": "s2",
+      "transformation": "replace",
+      "parameters": { "old": "", "new": "x" }
+    },
+    {
+      "id": "s3",
+      "transformation": "regexReplace",
+      "parameters": { "pattern": "\\d+", "replacement": "$5 off" }
+    },
+    { "id": "s4", "transformation": "append", "parameters": { "text": "!" } }
+  ]
+}

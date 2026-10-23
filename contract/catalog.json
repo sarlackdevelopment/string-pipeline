@@ -1,0 +1,203 @@
+{
+  "limits": {
+    "maxInputLength": 100000,
+    "maxSteps": 50
+  },
+  "categories": [
+    { "id": "text", "name": "Text" },
+    { "id": "regex", "name": "Regular expressions" }
+  ],
+  "transformations": [
+    {
+      "id": "replace",
+      "name": "Replace",
+      "category": "text",
+      "description": "Replaces every occurrence of a text with another text. The match is exact, including upper and lower case.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "old": {
+            "type": "string",
+            "title": "Find",
+            "description": "The text to look for.",
+            "minLength": 1,
+            "maxLength": 10000
+          },
+          "new": {
+            "type": "string",
+            "title": "Replace with",
+            "description": "Leave empty to delete every match.",
+            "default": "",
+            "maxLength": 10000
+          }
+        },
+        "required": ["old"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "append",
+      "name": "Append",
+      "category": "text",
+      "description": "Adds text to the end.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "Added after the last character. Spaces are kept.",
+            "default": "",
+            "maxLength": 10000
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "prepend",
+      "name": "Prepend",
+      "category": "text",
+      "description": "Adds text to the beginning.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "Added before the first character. Spaces are kept.",
+            "default": "",
+            "maxLength": 10000
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "substring",
+      "name": "Substring",
+      "category": "text",
+      "description": "Keeps part of the text, counting characters as you see them. Works like a Python slice: text[start:end].",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "integer",
+            "title": "Start",
+            "description": "Position of the first character to keep, counting from 0. Negative numbers count from the end: -1 is the last character.",
+            "default": 0
+          },
+          "end": {
+            "type": "integer",
+            "title": "End",
+            "description": "Position of the first character to leave out. Leave empty to keep everything up to the end."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "regexExtract",
+      "name": "Regex extract",
+      "category": "regex",
+      "description": "Finds the matches of a regular expression and outputs them one per line. Outputs empty text when nothing matches.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "title": "Pattern",
+            "description": "A Java regular expression, for example \\d+ for numbers.",
+            "minLength": 1,
+            "maxLength": 10000
+          },
+          "group": {
+            "type": "integer",
+            "title": "Group",
+            "description": "0 outputs the whole match; 1 and up output what that pair of parentheses matched.",
+            "default": 0,
+            "minimum": 0
+          },
+          "matches": {
+            "type": "string",
+            "title": "Matches",
+            "description": "Output the first match only, or all of them.",
+            "default": "all",
+            "oneOf": [
+              { "const": "first", "title": "First match" },
+              { "const": "all", "title": "All matches" }
+            ]
+          },
+          "ignoreCase": {
+            "type": "boolean",
+            "title": "Ignore case",
+            "description": "Treats upper and lower case as the same, also for letters such as Ä and ä.",
+            "default": false
+          },
+          "multiline": {
+            "type": "boolean",
+            "title": "Multiline",
+            "description": "^ and $ match at the start and end of every line, not only of the whole text.",
+            "default": false
+          },
+          "dotAll": {
+            "type": "boolean",
+            "title": "Dot matches line breaks",
+            "description": "Lets . match line breaks too.",
+            "default": false
+          }
+        },
+        "required": ["pattern"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "regexReplace",
+      "name": "Regex replace",
+      "category": "regex",
+      "description": "Replaces every match of a regular expression. The replacement can insert parts of the match.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "title": "Pattern",
+            "description": "A Java regular expression, for example \\d+ for numbers.",
+            "minLength": 1,
+            "maxLength": 10000
+          },
+          "replacement": {
+            "type": "string",
+            "title": "Replace with",
+            "description": "Use $1 or ${name} to insert a group and \\$ for a dollar sign. Leave empty to delete every match.",
+            "default": "",
+            "maxLength": 10000
+          },
+          "ignoreCase": {
+            "type": "boolean",
+            "title": "Ignore case",
+            "description": "Treats upper and lower case as the same, also for letters such as Ä and ä.",
+            "default": false
+          },
+          "multiline": {
+            "type": "boolean",
+            "title": "Multiline",
+            "description": "^ and $ match at the start and end of every line, not only of the whole text.",
+            "default": false
+          },
+          "dotAll": {
+            "type": "boolean",
+            "title": "Dot matches line breaks",
+            "description": "Lets . match line breaks too.",
+            "default": false
+          }
+        },
+        "required": ["pattern"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

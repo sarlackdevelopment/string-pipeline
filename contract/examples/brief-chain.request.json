@@ -1,0 +1,20 @@
+{
+  "input": "Fake Python",
+  "steps": [
+    {
+      "id": "s1",
+      "transformation": "replace",
+      "parameters": { "old": "Fake", "new": "Real" }
+    },
+    {
+      "id": "s2",
+      "transformation": "append",
+      "parameters": { "text": " rocks!" }
+    },
+    {
+      "id": "s3",
+      "transformation": "substring",
+      "parameters": { "start": 5, "end": null }
+    }
+  ]
+}

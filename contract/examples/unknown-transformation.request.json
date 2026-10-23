@@ -1,0 +1,4 @@
+{
+  "input": "abc",
+  "steps": [{ "id": "s1", "transformation": "reverse", "parameters": {} }]
+}

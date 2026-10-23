@@ -6,7 +6,7 @@ The brief asks for the AI logs "so we can understand what goes on under the hood
 | ---------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | [journal.md](journal.md)     | People                        | One entry per step: what was asked, what the assistant did, what was decided and why, how it was checked, which commit |
 | [agent-log.md](agent-log.md) | Agents                        | A "Current state" block, then the same steps in a fixed template. A new session reads it first to pick up the work     |
-| `sessions/`                  | Anyone who wants every detail | Raw exports of the development sessions, added as they finish                                                          |
+| `sessions/`                  | Anyone who wants every detail | Raw exports of sessions without private content; none so far                                                           |
 
 How the log is kept:
 
@@ -14,4 +14,4 @@ How the log is kept:
 - Both journals are updated at the end of every step, in the same commit as the code.
 - They record only what actually happened, including dead ends and fixes.
 - The developer and the assistant talk in Russian, so the raw sessions are mostly in Russian; the journals are in English.
-- The planning session (steps 1–7) is summarised here but not exported, because it also contains private correspondence (D25).
+- The session the work happens in also contains private correspondence, so it is summarised here instead of exported (D25).

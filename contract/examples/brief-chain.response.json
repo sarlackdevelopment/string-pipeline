@@ -1,0 +1,8 @@
+{
+  "steps": [
+    { "id": "s1", "status": "executed", "output": "Real Python" },
+    { "id": "s2", "status": "executed", "output": "Real Python rocks!" },
+    { "id": "s3", "status": "executed", "output": "Python rocks!" }
+  ],
+  "output": "Python rocks!"
+}
