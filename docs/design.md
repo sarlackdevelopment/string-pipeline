@@ -119,13 +119,16 @@ Four kinds, each mapped to a small subset of JSON Schema 2020-12 (D43). The fron
 
 Messages from the generic checks:
 
-| Problem                              | Message                                                       |
-| ------------------------------------ | ------------------------------------------------------------- |
-| a required value is missing or empty | Enter a value                                                 |
-| an integer is text or has a fraction | Enter a whole number                                          |
-| outside `minimum` or `maximum`       | Enter a number from {min} / up to {max} / from {min} to {max} |
-| text longer than the limit           | Use at most 10,000 characters                                 |
-| a choice outside the list            | Choose one of the options                                     |
+| Problem                                           | Message                                                                        |
+| ------------------------------------------------- | ------------------------------------------------------------------------------ |
+| a required value is missing or empty              | Enter a value                                                                  |
+| a text field gets a number or a boolean           | Enter text                                                                     |
+| an integer is text or has a fraction              | Enter a whole number                                                           |
+| below `minimum`, above `maximum`, or outside both | Enter {min} or more / Enter {max} or less / Enter a number from {min} to {max} |
+| an integer without bounds outside Java's `int`    | Enter a number from -2,147,483,648 to 2,147,483,647                            |
+| text longer than the limit                        | Use at most 10,000 characters                                                  |
+| a boolean field gets anything else                | Enter true or false                                                            |
+| a choice outside the list                         | Choose one of the options                                                      |
 
 ## 4. Transformations
 
@@ -161,7 +164,7 @@ Later candidates for step 17, each showing something new:
 | `dev.stringpipeline.library`                 | public API                                  | `Catalog`, `Pipeline`, `Transformation`, parameters, values, results          |
 | `dev.stringpipeline.library.transformations` | package-private, plus one public `BuiltIns` | the transformations and their text helpers (graphemes, lines, regex deadline) |
 
-The server may use only the API package, and an ArchUnit test checks it (D31). The transformation classes are package-private, so the compiler already prevents direct use.
+The server may use only the API package and `BuiltIns`, and an ArchUnit test checks it (D31). The transformation classes are package-private, so the compiler already prevents direct use. `BuiltIns.catalog()` is the one way in, which also keeps the API package free of references to the implementations.
 
 ```java
 public interface Transformation {
@@ -173,7 +176,8 @@ public interface Transformation {
 public sealed interface Parameter permits TextParameter, IntegerParameter, BooleanParameter, ChoiceParameter {}
 public sealed interface ArgumentValue permits TextValue, NumberValue, BooleanValue {}  // what callers pass in
 public sealed interface Configuration permits Ready, Invalid {}                        // Ready can run on a text
-public sealed interface StepResult permits Executed, NotConfigured, InvalidParameters, Failed, NotRun {}
+public sealed interface StepResult permits Outcome, NotConfigured, InvalidParameters, NotRun {}
+public sealed interface Outcome extends StepResult permits Executed, Failed {}         // what running a step gives
 
 public record PipelineResult(List<StepResult> steps, Optional<String> output) {}
 ```
@@ -194,8 +198,8 @@ Text rules:
 
 Limits (D21, D45). `Pipeline` takes a `Limits` value with production defaults; tests pass smaller ones.
 
-- **Regex time.** The matcher reads the text through a `CharSequence` that checks a deadline in `charAt` and stops after 2 s. The step is then `failed`.
-- **Output size.** No step may produce more than 1,000,000 characters. Replace and Regex replace check this while building the result, so a chain such as "a" → "aa" repeated 50 times cannot exhaust memory.
+- **Regex time.** The matcher reads the text through a `CharSequence` that checks a deadline in `charAt` and stops after 2 s. The step is then `failed`. Java 25 already answers the textbook ReDoS shapes such as `(a+)+$` at once, because its engine remembers failed positions in nested loops. A counted repeat of a wildcard such as `(.*a){30}` still runs for more than 8 seconds on a 129-character text (probe), so the limit stays.
+- **Output size.** No step may produce more than 1,000,000 characters, and all steps of a run together no more than 10,000,000, which also bounds the size of the response. Every transformation that can grow its text checks the cap while it builds the result, so a chain such as "a" → "aa" repeated 50 times cannot exhaust memory.
 
 ## 6. Server
 

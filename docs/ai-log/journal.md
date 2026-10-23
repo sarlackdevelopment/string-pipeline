@@ -103,4 +103,23 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** Every contract file parses as JSON; Prettier; every relative link resolves.
 
-**Commit.** `docs(design): API contract, transformations, library and frontend design`
+**Commit.** `5561057 docs(design): API contract, transformations, library and frontend design`
+
+## Step 9. The library (2026-10-23)
+
+**Asked.** Commit the approved design, then build step 9, the library.
+
+**AI did.**
+
+- Wrote the API package as designed: the parameter kinds, the raw values, the results as sealed interfaces with records, `Pipeline` with its three stages, `Catalog` and `Limits`. The six transformations live in a package of their own behind `BuiltIns`, and their classes are package-private.
+- Parsed Regex replace's replacement itself instead of handing it to `Matcher.appendReplacement`. Every group reference is then checked before the step runs, and the output cap is checked before a long group is copied. A parity test runs 21 replacements through both our parser and Java's and expects the same ones accepted and the same output.
+- Made `javac` read sources as UTF-8 explicitly, since the code and tests contain Ä, € and emoji.
+- Error Prone stopped the build three times, and each fix improved the code: `BadInstanceof` for `x instanceof Integer` used as a null check, `MissingSummary` for doc comments that started with `@throws`, and `AvoidCommonTypeNames` for nested test classes called `Integer` and `Boolean`.
+- The first backtracking test failed: Java 25 answered `(a+)+$` at once. A jshell probe showed that its regex engine also handles `(a|aa)+$`, `(x+x+)+y` and `(a?){n}a{n}` instantly, because it remembers failed positions in nested loops, while a counted repeat of a wildcard, `(.*a){30}`, ran for more than 8 seconds on 129 characters. The tests use that pattern now, and the time limit stays.
+- While writing the per-step output cap, noticed that 50 steps of up to 1,000,000 characters each would still make a huge response, and added a cap for a whole run: 10,000,000 characters.
+
+**Decided.** D21, D31 and D45 refined; the design's message table now lists the exact texts.
+
+**Checked.** `./gradlew build`: 135 library tests and the server's 1 green, formatting clean, Error Prone and NullAway clean.
+
+**Commit.** `feat(library): transformations, parameters and the pipeline with tests`

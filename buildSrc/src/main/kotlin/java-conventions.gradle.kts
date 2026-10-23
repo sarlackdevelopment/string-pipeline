@@ -31,6 +31,8 @@ dependencies {
 }
 
 tasks.withType<JavaCompile>().configureEach {
+    // Sources contain non-ASCII text (Ä, €, emoji); never depend on the platform's default encoding.
+    options.encoding = "UTF-8"
     // Every javac and Error Prone warning fails the build.
     options.compilerArgs.addAll(listOf("-Xlint:all", "-Werror"))
     options.errorprone {

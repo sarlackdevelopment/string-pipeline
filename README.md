@@ -19,6 +19,23 @@ A no-code web app for chaining string transformations: pick transformations, con
 | `buildSrc/` | Build conventions shared by the Java modules: JDK 25, compiler checks, formatting, JUnit  |
 | `frontend/` | Vue 3 + TypeScript single-page app, built with Vite                                       |
 
+## Using the library
+
+The library is plain Java 25 and runs without the web API ([design](docs/design.md), section 5):
+
+```java
+Catalog catalog = BuiltIns.catalog();
+Step replace = new Step(
+        catalog.find("replace").orElseThrow(),
+        Map.of("old", ArgumentValue.text("Fake"), "new", ArgumentValue.text("Real")));
+Step append = new Step(catalog.find("append").orElseThrow(), Map.of("text", ArgumentValue.text("!")));
+
+PipelineResult result = new Pipeline(Limits.DEFAULT).run("Fake Python", List.of(replace, append));
+result.output(); // Optional[Real Python!]
+```
+
+Every step's result is `Executed`, `NotConfigured`, `InvalidParameters`, `Failed` or `NotRun`: problems come back as data, never as exceptions.
+
 ## Prerequisites
 
 - Any JDK 17+ to start Gradle. The modules compile with JDK 25: Gradle uses an installed JDK 25 or downloads one.
