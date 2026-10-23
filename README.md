@@ -2,6 +2,12 @@
 
 A no-code web app for chaining string transformations: pick transformations, configure each one in a form, see the result of every step. Built as a take-home assignment for the Full-Stack Software Engineer position at KNIME.
 
+## Documentation
+
+- [Requirements](docs/requirements.md): the brief as numbered requirements, R1.1–R4.4
+- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D39
+- [AI usage log](docs/ai-log/README.md): every step taken with the AI assistant, for people and for agents
+
 ## Repository layout
 
 | Path        | What                                                                                      |
