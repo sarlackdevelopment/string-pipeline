@@ -29,6 +29,12 @@ export interface Chain {
   readonly steps: readonly Step[]
 }
 
+/** A chain without step ids, as a link holds it (D49); the store gives its steps new ids. */
+export interface ChainContent {
+  readonly input: string
+  readonly steps: readonly Omit<Step, 'id'>[]
+}
+
 export const Direction = { up: -1, down: 1 } as const
 export type Direction = (typeof Direction)[keyof typeof Direction]
 
@@ -41,6 +47,14 @@ export function defaultValues(fields: readonly Field[]): StepValues {
       field.kind === FieldKind.unsupported ? [] : [[field.name, field.defaultValue] as const],
     ),
   )
+}
+
+/** The chain of `content`, with ids from `nextId`, which must never return the same id twice (D40). */
+export function withIds(content: ChainContent, nextId: () => string): Chain {
+  return {
+    input: content.input,
+    steps: content.steps.map((step) => ({ ...step, id: nextId() })),
+  }
 }
 
 export function setInput(chain: Chain, input: string): Chain {

@@ -4,8 +4,10 @@
  */
 import { computed, shallowRef } from 'vue'
 import { ApiErrorKind } from '@/api/client'
+import { useChainLink } from '@/composables/useChainLink'
 import { findTransformation, type Catalog, type Transformation } from '@/model/catalog'
 import type { Direction } from '@/model/chain'
+import { toFragment } from '@/model/link'
 import { locateErrors, type LocatedErrors } from '@/model/problem'
 import { toRunRequest } from '@/model/run'
 import { useCatalog } from '@/queries/catalog'
@@ -27,6 +29,17 @@ export function usePipelineEditorController() {
   const store = usePipelineStore()
   const catalogQuery = useCatalog()
   const run = usePipelineRun(() => toRunRequest(store.chain))
+  const link = useChainLink({
+    chain: () => store.chain,
+    catalog: () => catalogQuery.data.value,
+    load: store.load,
+  })
+
+  // Built from the chain itself, so a copy right after an edit does not miss it while the address waits (D49).
+  const shareLink = computed<string | null>(() => {
+    const fragment = toFragment(store.chain)
+    return fragment === '' ? null : new URL(fragment, window.location.href).href
+  })
 
   const catalogState = computed<CatalogState>(() => {
     const catalog = catalogQuery.data.value
@@ -113,6 +126,8 @@ export function usePipelineEditorController() {
     runAlert,
     summary,
     focusTarget,
+    shareLink,
+    linkProblem: link.problem,
     retryCatalog: () => {
       void catalogQuery.refetch()
     },

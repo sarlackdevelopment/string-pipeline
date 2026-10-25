@@ -63,6 +63,22 @@ describe('the pipeline store (D29)', () => {
     })
   })
 
+  it('replaces the chain with one from a link, giving its steps new ids (D40, D49)', () => {
+    const store = usePipelineStore()
+    const before = store.addStep(append)
+
+    store.load({
+      input: 'Hi',
+      steps: [{ transformationId: 'append', values: { text: '?' }, enabled: false }],
+    })
+
+    expect(store.chain.input).toBe('Hi')
+    expect(store.chain.steps).toHaveLength(1)
+    expect(store.chain.steps[0]).toMatchObject({ values: { text: '?' }, enabled: false })
+    expect(store.chain.steps[0]?.id).not.toBe(before)
+    expect(store.addStep(append)).not.toBe(store.chain.steps[0]?.id)
+  })
+
   it('keeps the same chain object when an edit changes nothing', () => {
     const store = usePipelineStore()
     const before = store.chain

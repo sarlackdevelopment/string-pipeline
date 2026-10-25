@@ -50,6 +50,6 @@ Not asked for and left out on purpose; the reasons are in [decisions](decisions.
 
 Candidates for after the brief is done, each in its own commit:
 
-- the chain in the URL, so it can be shared;
+- the chain in the URL, so it can be shared: built in step 19 (D49);
 - example chains to start from;
 - disabling a step without removing it: built in step 19 (D48).

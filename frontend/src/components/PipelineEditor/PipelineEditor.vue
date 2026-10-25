@@ -16,6 +16,8 @@ const {
   runAlert,
   summary,
   focusTarget,
+  shareLink,
+  linkProblem,
   retryCatalog,
   retryRun,
   setInput,
@@ -38,6 +40,8 @@ const {
     :run-alert="runAlert"
     :summary="summary"
     :focus-target="focusTarget"
+    :share-link="shareLink"
+    :link-problem="linkProblem"
     @retry-catalog="retryCatalog"
     @retry-run="retryRun"
     @set-input="setInput"

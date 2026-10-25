@@ -14,14 +14,18 @@ export const usePipelineStore = defineStore('pipeline', () => {
   const chain = shallowRef<chains.Chain>(chains.emptyChain)
   let stepCount = 0
 
+  function nextId(): string {
+    stepCount += 1
+    return `step-${String(stepCount)}`
+  }
+
   function setInput(input: string): void {
     chain.value = chains.setInput(chain.value, input)
   }
 
   /** Adds a step at the end, with every field at its default, and returns the step's id. */
   function addStep(transformation: Transformation): string {
-    stepCount += 1
-    const id = `step-${String(stepCount)}`
+    const id = nextId()
     chain.value = chains.addStep(chain.value, transformation, id)
     return id
   }
@@ -42,5 +46,10 @@ export const usePipelineStore = defineStore('pipeline', () => {
     chain.value = chains.setEnabled(chain.value, id, enabled)
   }
 
-  return { chain, setInput, addStep, removeStep, moveStep, setValue, setEnabled }
+  /** Replaces the whole chain, as a link does (D49); its steps get new ids. */
+  function load(content: chains.ChainContent): void {
+    chain.value = chains.withIds(content, nextId)
+  }
+
+  return { chain, setInput, addStep, removeStep, moveStep, setValue, setEnabled, load }
 })

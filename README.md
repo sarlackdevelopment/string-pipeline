@@ -33,7 +33,7 @@ The app then runs on http://localhost:5173, and Vite's dev server forwards `/api
 ## Documentation
 
 - [Requirements](docs/requirements.md): the brief as numbered requirements, R1.1–R4.4
-- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D48
+- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D49
 - [Design](docs/design.md): the API, the transformations, the library, the server and the frontend
 - [API contract](contract/README.md): example requests and responses that the Java and TypeScript tests share
 - [AI usage log](docs/ai-log/README.md): every step taken with the AI assistant, for people and for agents
@@ -74,6 +74,7 @@ Text rules:
 Added after the brief was done, each in commits of its own ([decisions](docs/decisions.md), section J):
 
 - A step can be turned off with the switch in its header. It keeps its place and its values, and the text passes through it unchanged (D48).
+- The address holds the chain, so a link opens the same chain anywhere, and Copy link copies it. Edits change the address in place, and Back returns to the chain before a followed link (D49).
 
 ## Using the library
 

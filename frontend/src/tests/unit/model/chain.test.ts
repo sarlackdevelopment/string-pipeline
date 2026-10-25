@@ -11,6 +11,7 @@ import {
   setEnabled,
   setInput,
   setValue,
+  withIds,
   type Chain,
 } from '@/model/chain'
 import { FieldKind, type Field } from '@/model/fields'
@@ -73,6 +74,22 @@ describe('adding steps (R1.2)', () => {
     ]
 
     expect(defaultValues(fields)).toEqual({ kept: '' })
+  })
+})
+
+describe('a chain from a link (D49)', () => {
+  it('gets ids from the caller, one for each step', () => {
+    let count = 0
+    const nextId = () => {
+      count += 1
+      return `n${String(count)}`
+    }
+    const step = { transformationId: 'append', values: {}, enabled: true }
+
+    const chain = withIds({ input: 'a', steps: [step, { ...step, enabled: false }] }, nextId)
+
+    expect(ids(chain)).toEqual(['n1', 'n2'])
+    expect(chain.steps.map((each) => each.enabled)).toEqual([true, false])
   })
 })
 

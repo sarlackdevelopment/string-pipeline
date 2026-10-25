@@ -1,8 +1,9 @@
 import userEvent from '@testing-library/user-event'
 import { render, screen, waitFor, within } from '@testing-library/vue'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import OutputPanel from '@/components/OutputPanel.vue'
 import type { RunResult } from '@/model/run'
+import { grantClipboardWrite } from '@/tests/helpers/clipboard'
 
 const result = (output: string | null): RunResult => ({ steps: new Map(), output })
 
@@ -15,39 +16,6 @@ function renderPanel(props: { result?: RunResult; isUpdating?: boolean; summary?
     },
   })
   return screen.getByRole('region', { name: 'Output' })
-}
-
-/** jsdom's stand-in for the browser's ClipboardItem, read back by user-event's clipboard. */
-class ClipboardItemStub {
-  readonly #data: Readonly<Record<string, string>>
-
-  constructor(data: Readonly<Record<string, string>>) {
-    this.#data = data
-  }
-
-  get types(): string[] {
-    return Object.keys(this.#data)
-  }
-
-  getType(type: string): Promise<Blob> {
-    return Promise.resolve(new Blob([this.#data[type] ?? ''], { type }))
-  }
-}
-
-// VueUse copies through the Clipboard API only where `clipboard-write` is granted, and falls back to
-// `document.execCommand` elsewhere. jsdom has neither the Permissions API nor ClipboardItem nor execCommand, so the
-// test grants the permission and provides ClipboardItem; user-event provides the clipboard.
-function grantClipboardWrite(): void {
-  vi.stubGlobal('ClipboardItem', ClipboardItemStub)
-  const granted = Object.assign(new EventTarget(), { state: 'granted' })
-  Object.defineProperty(navigator, 'permissions', {
-    configurable: true,
-    value: { query: () => Promise.resolve(granted) },
-  })
-  onTestFinished(() => {
-    vi.unstubAllGlobals()
-    Reflect.deleteProperty(navigator, 'permissions')
-  })
 }
 
 describe('OutputPanel (D13, D32)', () => {

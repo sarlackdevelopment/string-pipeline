@@ -29,6 +29,10 @@ beforeAll(() => {
 afterEach(() => {
   cleanup()
   server.resetHandlers()
+  // Every test starts at the app's own address, without a link in it (D49).
+  if (typeof window !== 'undefined') {
+    window.history.replaceState(null, '', '/')
+  }
 })
 
 afterAll(() => {

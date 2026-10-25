@@ -235,6 +235,7 @@ model/                             the domain, pure functions and types, no Vue 
   chain.ts                         input and steps: add, remove, move, edit, turn off (D1, D48)
   run.ts                           chain → run request without the steps that are off; results by step id (D40, D42)
   problem.ts                       request errors placed at the input, a step, or a field (D41)
+  link.ts                          the chain in the address's fragment: written, read, checked against the catalog (D49)
 api/                               the network (step 11)
   contract.ts                      zod schemas of the wire format, turned into the domain in one pass (D20)
   client.ts                        fetchCatalog and postRun; every outcome is data, cancellation rejects
@@ -244,9 +245,11 @@ queries/                           TanStack Query (D29)
   run.ts                           usePipelineRun: runs the chain 300 ms after the last edit (D11)
 stores/pipeline.ts                 Pinia setup store: the chain being edited (D29)
 composables/useFocusRequest.ts     focuses the part a container asks for, after the DOM updated (D15)
+composables/useChainLink.ts        opens the chain of a link, and writes the chain back into the address (D49)
 App.vue                            shell: header, error boundary, PipelineEditor
 components/
   PipelineEditor/                  the editor: controller, view, container, types; model/: messages, focus, summary
+  CopyLinkButton.vue               copies a link to the chain (D49)
   InputPanel.vue                   input text, maxlength from the catalog limits
   StepCard/StepCard.vue            fieldset, legend "Step 2: Replace", status, on/off switch, move and remove, form, output
   StepCard/model/status.ts         status → label and tone (pure)
@@ -289,6 +292,14 @@ Accessibility (D15, built in step 16):
 - The end-to-end tests run axe on the editor with an error and the list open, walk every stop of the Tab key and check that each one shows the focus, and check the focus outline in a contrast theme.
 
 Turning a step off (D48, step 19). Each step has a switch named "Run step 2". A step that is off keeps its place and its values, and `model/run` leaves it out of the request, so the text passes through it unchanged; an older result for its id is not shown. Its card says Off, gets a dashed border instead of a lighter colour, which would push its text below 4.5:1, and says that the text passes through. The live region counts it: "1 of 2 steps ran; 1 is off." The kit's switch was changed in two ways. Off, shadcn-vue draws a light grey track, 1.26:1 against the card, below the 3:1 that WCAG 1.4.11 asks of a control; ours is outlined in the muted text colour, 4.75:1. In a Windows contrast theme, system colours paint the thumb and the track that is on, which the theme would otherwise paint in the card's colour: an end-to-end test checks the thumb.
+
+The chain in a link (D49, step 19). `model/link` writes a chain as `#chain=` and its JSON in UTF-8 and URL-safe Base64; the JSON is a run request without step ids, and a step that is off says `"enabled": false`. Reading a link checks it with zod, then against the catalog: an unknown transformation stops it with a message, values without a field are dropped, and a value that does not fit its field, by type or as a choice, gets the field's default. The store's `load` gives the steps new ids (D40). `useChainLink`, called by the editor's controller:
+
+- reads the address once the catalog is there, and again on `hashchange`, as when another link is followed in the same page or Back returns to one; an address without a chain then means an empty one;
+- writes the chain back with `history.replaceState` 300 ms after the last edit, so typing adds no history entries and stays under Safari's limit of 100 changes in 10 seconds; a write still waiting when the editor goes away is cancelled;
+- leaves an empty chain without a fragment, so the plain address stays plain.
+
+Copy link copies a link built from the chain itself, not from the address, which may still be waiting for its pause. A link that cannot be read shows an alert above the editor, which goes away with the next edit.
 
 Proof of R2.1 (D19): an integration test serves a catalog with a transformation the frontend has never seen, with an unfamiliar mix of parameters, and checks that its form renders and runs.
 

@@ -323,4 +323,22 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** 175 Vitest tests, 10 of them new; 10 end-to-end scenarios, 2 of them new: a step that is off lets the text through, and its switch stays visible in a contrast theme. Screenshots of a step that is off on a desktop, at phone width and in a contrast theme, looked at and not kept. `format:check`, `lint`, `typecheck`, `build`; the Java side did not change.
 
-**Commit.** `feat(ui): turn a step off without removing it`
+**Commit.** `a5940ee feat(ui): turn a step off without removing it`
+
+## Step 19.2. The chain in the URL, beyond the brief (2026-10-25)
+
+**Asked.** The second candidate of step 19: the chain in the URL, so it can be shared.
+
+**AI did.**
+
+- The address's fragment holds the chain: `#chain=` and the chain's JSON in UTF-8 and URL-safe Base64. The JSON is a run request without step ids, and a step that is off says `"enabled": false` (D49). A fragment never reaches the server and does not reload the page when it changes; CyberChef, a similar tool, keeps its recipes in the fragment too.
+- A link is input from outside, so reading one checks it: zod for its shape, the catalog for its transformations. An unknown transformation stops the link, and the editor says so in an alert; a value that no longer fits its field, as from an older version, gets the field's default, and values without a field are dropped.
+- The editor opens the chain of a link once the catalog is there, and again when the fragment changes. After an edit it rewrites the fragment in place, 300 ms after the last change, so typing adds no history entries and stays under Safari's limit of 100 address changes in 10 seconds.
+- VueUse's `watchDebounced` keeps a waiting call alive after the component is gone, which would let one test change the address of the next. The write now goes through `useDebounceFn`, whose `cancel` runs when the editor goes away, and the test setup returns to the plain address after every test.
+- A Copy link button above the input copies a link built from the chain itself, so a copy right after an edit does not miss it. The clipboard stand-in of the output panel's tests moved to a helper that both buttons' tests use.
+
+**Decided.** D49, with the rejected alternatives: the query string, compression, short links stored on the server.
+
+**Checked.** 197 Vitest tests, 22 of them new, among them five integration tests that open, follow and rewrite links in jsdom; 12 end-to-end scenarios, 2 of them new, in a third feature: a copied link opens the same chain in a fresh page, with a step that is off, and a link that was cut off says so. Screenshots of the button and of a broken link, looked at and not kept. `format:check`, `lint`, `typecheck`, `build`; the Java side did not change.
+
+**Commit.** `feat(ui): keep the chain in the URL, so a link can share it`

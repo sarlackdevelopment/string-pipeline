@@ -5,6 +5,7 @@
  */
 import { LoaderCircleIcon, TriangleAlertIcon } from '@lucide/vue'
 import { computed, useId } from 'vue'
+import CopyLinkButton from '@/components/CopyLinkButton.vue'
 import InputPanel from '@/components/InputPanel.vue'
 import OutputPanel from '@/components/OutputPanel.vue'
 import StepCard from '@/components/StepCard/StepCard.vue'
@@ -36,6 +37,10 @@ const props = defineProps<{
   summary: string
   /** Where the focus goes after the latest edit (D15). */
   focusTarget: FocusTarget | null
+  /** A link to the chain as it is now; `null` while the chain is empty (D49). */
+  shareLink: string | null
+  /** Why the link the editor was opened with could not be opened (D49). */
+  linkProblem: string | null
 }>()
 
 const emit = defineEmits<{
@@ -80,6 +85,16 @@ const searchFocus = computed(() => (props.focusTarget?.part === SEARCH ? props.f
   </Alert>
 
   <div v-else class="flex flex-col gap-4">
+    <Alert v-if="linkProblem !== null" variant="destructive">
+      <TriangleAlertIcon />
+      <AlertTitle>This link could not be opened</AlertTitle>
+      <AlertDescription>{{ linkProblem }}</AlertDescription>
+    </Alert>
+
+    <div class="flex items-center justify-end">
+      <CopyLinkButton :link="shareLink" />
+    </div>
+
     <InputPanel
       :model-value="input"
       :max-length="catalogState.catalog.limits.maxInputLength"

@@ -40,6 +40,8 @@ interface ViewOptions {
   readonly catalogState?: CatalogState
   readonly steps?: readonly StepItem[]
   readonly runAlert?: RunAlert | null
+  readonly shareLink?: string | null
+  readonly linkProblem?: string | null
 }
 
 function renderView(options: ViewOptions = {}) {
@@ -65,6 +67,8 @@ function renderView(options: ViewOptions = {}) {
       runAlert: options.runAlert ?? null,
       summary: 'All 2 steps ran.',
       focusTarget: null,
+      shareLink: options.shareLink ?? null,
+      linkProblem: options.linkProblem ?? null,
       ...events,
     },
   })
@@ -182,6 +186,28 @@ describe('PipelineEditorView (D2, D26)', () => {
       const alert = screen.getByRole('alert')
       expect(alert).toHaveTextContent('Invalid request content.')
       expect(within(alert).queryByRole('button')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('links (D49)', () => {
+    it('offers to copy a link to the chain once there is one', async () => {
+      const { view } = renderView()
+      const copy = screen.getByRole('button', { name: 'Copy link' })
+      expect(copy).toBeDisabled()
+
+      await view.rerender({ shareLink: 'http://localhost:3000/#chain=e30' })
+
+      expect(copy).toBeEnabled()
+    })
+
+    it('says why the link it was opened with could not be opened', () => {
+      renderView({
+        linkProblem: 'It uses a transformation that this app does not have: "reverse".',
+      })
+
+      const alert = screen.getByRole('alert')
+      expect(alert).toHaveTextContent('This link could not be opened')
+      expect(alert).toHaveTextContent('"reverse"')
     })
   })
 
