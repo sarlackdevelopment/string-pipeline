@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: backend done (library and web API). Next: step 11, the frontend model.
-- Last commit: `feat(server): catalog and run endpoints with Problem Details and OpenAPI`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
+- Phase: backend done; frontend model done. Next: step 12, choosing the UI primitive.
+- Last commit: `feat(model): catalog, chain and run models with contract-checked parsing`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green.
-- Tests: Java 161 in 19 classes (library 135, server 26), frontend 1 (the app heading renders).
+- Tests: Java 161 in 19 classes (library 135, server 26); frontend 45 in 7 files.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+.
-- Next step: the frontend model as in `docs/design.md` section 7: zod schemas for the catalog, run results and Problem Details, tested on the files of `contract/`; pure functions for the chain (add, remove, move, edit, step ids), the run request and the results by step id; unit tests. zod arrives with this step (D38).
+- Next step: step 12, the UI primitive (D28): read the sources of Reka UI's combobox, write probe tests and delete them, then set up shadcn-vue. Step 13 builds the UI on `src/model/` and `src/api/`.
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -131,6 +131,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: Maven Central metadata (springdoc 3.1.1, ArchUnit 1.5.1); class names in the Spring Boot 4.1 and Jackson 3.1 jars.
 - Changed: `server/` (build file, `LibraryConfiguration`, `OpenApiConfiguration`, package `api`, tests), `gradle/libs.versions.toml`, `contract/examples/unknown-transformation.response.json` (no `type`), `docs/design.md`, `docs/decisions.md`, README, both journals.
 - Verified: `./gradlew build` green with 161 tests; the running server answered the contract examples through curl; Swagger UI and the OpenAPI document load.
-- Commit: `feat(server): catalog and run endpoints with Problem Details and OpenAPI`.
+- Commit: `aacb5a6`.
 - Open: the Turkish i trap (step 17). The class-data-sharing warning is fixed.
 - Next: S11, the frontend model.
+
+### S11 The frontend model (2026-10-25)
+
+- Goal: the frontend's domain and API layer of design section 7, tested on `contract/`.
+- Requirements: R1.2, R2.1.
+- Decisions: D20, D33, D38, D40–D43, D46 implemented; D26 refined (domain in `src/model/`); D39 notes the withdrawn advisory.
+- Read: npm registry (zod 4.6.7, MSW 3.0.3); MSW 3's type definitions; GitHub's advisory API (GHSA-vfj7-8cjw-p6xm withdrawn 2026-10-23).
+- Changed: `frontend/src/model/`, `frontend/src/api/`, `frontend/src/tests/` (helpers and unit tests), `frontend/package.json` and lockfile, `docs/design.md`, `docs/decisions.md`, README, both journals.
+- Verified: format:check, lint, typecheck, 45 tests, build; a deleted probe confirmed that an unprepared request never leaves the test process.
+- Commit: `feat(model): catalog, chain and run models with contract-checked parsing`.
+- Open: the Turkish i trap (step 17).
+- Next: S12, the UI primitive.

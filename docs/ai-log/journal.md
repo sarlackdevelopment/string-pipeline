@@ -141,4 +141,22 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** `./gradlew build`: 161 tests green, 135 in the library and 26 in the server.
 
-**Commit.** `feat(server): catalog and run endpoints with Problem Details and OpenAPI`
+**Commit.** `aacb5a6 feat(server): catalog and run endpoints with Problem Details and OpenAPI`
+
+## Step 11. The frontend model (2026-10-25)
+
+**Asked.** After trying the API in Swagger UI, continue with the frontend, starting with its model.
+
+**AI did.**
+
+- Added zod 4.6.7 and MSW 3.0.3, after checking both on the npm registry.
+- Wrote the domain in `src/model/`: the catalog; form fields from JSON Schema, where an unknown kind becomes `unsupported`; the chain as pure functions that return the same object when nothing changes; the run request and the results by step id; and request errors placed at the input, a step or a field.
+- Wrote `src/api/`: zod schemas of the wire format that turn into the domain in one pass, with a strict envelope but open parameter schemas and Problem Details; and a client whose every outcome is data, except a cancellation, which rejects as `fetch` does.
+- Moved the chain model from the editor's folder to `src/model/`, because the store uses it too (D26 refined).
+- Fixed three things the checks found. MSW 3 renamed `onUnhandledRequest` to `onUnhandledFrame`. Vite rewrites ``new URL(`…${name}`, import.meta.url)`` into asset imports of a whole folder, which failed for `contract/` outside the frontend's root, so the test helper builds the path with `node:path`. Oxlint asked the cancellation test to name the error it expects.
+- Probed MSW with a request no test had prepared: it never reached the network; MSW logged an error and the client returned a network error. The setup comment had claimed such a test would fail; it now says what actually happens.
+- `npm audit` came back clean: GitHub withdrew GHSA-vfj7-8cjw-p6xm on 2026-10-23, a few hours after step 6 recorded it, so the README's Known issues section is gone.
+
+**Checked.** `format:check`, `lint`, `typecheck`, 45 tests in 7 files (44 new), `build`; `npm audit` clean.
+
+**Commit.** `feat(model): catalog, chain and run models with contract-checked parsing`

@@ -215,39 +215,39 @@ Limits (D21, D45). `Pipeline` takes a `Limits` value with production defaults; t
 
 ## 7. Frontend
 
-Components with behaviour get model, controller, view and container (D26). Purely presentational ones are a single view.
+Components with behaviour get model, controller, view and container (D26). Purely presentational ones are a single view. Domain rules that several components and the store share live in `src/model/`; only the helpers of one component stay in its own `model/` folder.
 
 ```
+model/                             the domain, pure functions and types, no Vue (step 11)
+  catalog.ts                       limits, categories, transformations with their fields
+  fields.ts                        JSON Schema → field descriptors; unknown kinds become `unsupported` (D43)
+  chain.ts                         input and steps: add, remove, move, edit (D1)
+  run.ts                           chain → run request; step results by step id (D40, D42)
+  problem.ts                       request errors placed at the input, a step, or a field (D41)
+api/                               the network (step 11)
+  contract.ts                      zod schemas of the wire format, turned into the domain in one pass (D20)
+  client.ts                        fetchCatalog and postRun; every outcome is data, cancellation rejects
 App.vue                            shell: header, error boundary, PipelineEditor
 components/
-  PipelineEditor/                  the editor
-    model/chain.ts                 add, remove, move and edit steps; step ids (pure)
-    model/request.ts               chain → run request
-    model/results.ts               run response → state per step, matched by step id
-    usePipelineEditorController.ts
-    PipelineEditorView.vue
-    PipelineEditor.vue
-    types.ts
+  PipelineEditor/                  the editor: controller, view, container, types
   InputPanel.vue                   input text, maxlength from the catalog limits
   StepCard/StepCard.vue            fieldset, legend "Step 2: Replace", status, move and remove, form, output
   StepCard/model/status.ts         status → label and tone (pure)
   ParameterForm/ParameterForm.vue  fields from the schema (D27)
-  ParameterForm/model/fields.ts    JSON Schema → field descriptors (pure)
   ParameterForm/registry.ts        field kind → component
   ParameterForm/fields/            TextField, IntegerField, BooleanField, ChoiceField, UnsupportedField
   TransformationPicker/            combobox with search, groups and descriptions (D28)
   OutputPanel.vue                  final output and a copy button (D32)
   ui/                              shadcn-vue components (D28)
 stores/pipeline.ts                 Pinia setup store: input and steps (D29)
-api/                               fetch and zod for the catalog, runs and Problem Details (D20)
 queries/                           useCatalog and usePipelineRun (TanStack Query)
 ```
 
 Data flow:
 
-1. `useCatalog` loads the catalog once. zod validates it, and `model/fields` turns each parameter schema into field descriptors.
+1. `useCatalog` loads the catalog once. `api/contract` validates it, and `model/fields` turns each parameter schema into field descriptors.
 2. The store holds the chain. Every edit goes through a pure function from `model/chain`.
-3. `model/request` builds the run request. After a 300 ms debounce (D11), `usePipelineRun` posts it with the query's `AbortSignal`, so a newer request cancels the older one.
+3. `model/run` builds the run request. After a 300 ms debounce (D11), `usePipelineRun` posts it with the query's `AbortSignal`, so a newer request cancels the older one.
 4. While a run is pending, the previous results stay visible, matched by step id. A removed step has no result; a new one shows that it is running.
 5. Problem Details pointers go to the matching field (section 2); anything else is a banner with Retry.
 

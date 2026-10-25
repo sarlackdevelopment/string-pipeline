@@ -78,6 +78,7 @@ From `frontend/`, after `npm ci`:
 | `npm run dev`       | Starts the dev server on http://localhost:5173                                          |
 | `npm run build`     | Type-checks and builds the production bundle into `frontend/dist`                       |
 | `npm test`          | Runs the Vitest suites; `npm run test:coverage` adds a V8 coverage report               |
+| `npm run test:unit` | Runs only the unit tests: the model, the API client and the contract parsing            |
 | `npm run lint`      | Runs oxlint, then ESLint for Vue templates, template accessibility and type-aware rules |
 | `npm run typecheck` | Type-checks the app, the tests and the config files with `vue-tsc`                      |
 | `npm run format`    | Formats with Prettier; `npm run format:check` only checks                               |
@@ -88,7 +89,3 @@ From `frontend/`, after `npm ci`:
 ./gradlew build
 cd frontend && npm run format:check && npm run lint && npm run typecheck && npm test && npm run build
 ```
-
-## Known issues
-
-- `npm audit` reports [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) (`braces`, denial of service through deeply nested glob patterns) via `@vue/eslint-config-typescript`. The package runs only at lint time and reads globs from our own config, and no fixed `braces` release exists. `npm audit --omit=dev` is clean.
