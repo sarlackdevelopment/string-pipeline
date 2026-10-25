@@ -33,7 +33,7 @@ The app then runs on http://localhost:5173, and Vite's dev server forwards `/api
 ## Documentation
 
 - [Requirements](docs/requirements.md): the brief as numbered requirements, R1.1–R4.4
-- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D47
+- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D48
 - [Design](docs/design.md): the API, the transformations, the library, the server and the frontend
 - [API contract](contract/README.md): example requests and responses that the Java and TypeScript tests share
 - [AI usage log](docs/ai-log/README.md): every step taken with the AI assistant, for people and for agents
@@ -68,6 +68,12 @@ Text rules:
 - Case changes follow no particular language unless a step picks Turkish or Azerbaijani, where i becomes İ and I becomes ı. Without a language, ß becomes SS, and İ becomes i followed by a combining dot.
 - Line-based steps read `\n`, `\r\n` and `\r`, and write `\n`.
 - Encode and Decode read and write text as UTF-8; month and day names in dates are English.
+
+## Beyond the brief
+
+Added after the brief was done, each in commits of its own ([decisions](docs/decisions.md), section J):
+
+- A step can be turned off with the switch in its header. It keeps its place and its values, and the text passes through it unchanged (D48).
 
 ## Using the library
 

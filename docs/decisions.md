@@ -2,7 +2,7 @@
 
 How we read the brief, and what we chose where it leaves room. IDs are stable: code, tests, commits and the AI log refer to them. A revised decision keeps its ID and says what changed.
 
-D1–D33 were made in the planning session on 2026-10-22 and 2026-10-23, D34–D39 while scaffolding, D40–D46 in the [design](design.md), D47 while building the UI. Requirement IDs (R…) are in [requirements](requirements.md).
+D1–D33 were made in the planning session on 2026-10-22 and 2026-10-23, D34–D39 while scaffolding, D40–D46 in the [design](design.md), D47 while building the UI, D48 on beyond the brief. Requirement IDs (R…) are in [requirements](requirements.md).
 
 ## A. Reading the brief
 
@@ -103,6 +103,14 @@ Decided from step 12 on.
 | ID  | Question            | Decision                                                                                                        | Why                                                                                                                                                                       |
 | --- | ------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | D47 | Requests at runtime | The app loads nothing but its own files and its own API: no web fonts, no CDNs. Text uses the system font stack | A font from Google Fonts sends every visitor's IP address to Google, which a German court held to breach the GDPR in 2022; the app also keeps working in a closed network |
+
+## J. Beyond the brief
+
+Decided in step 19, once the brief was done. Each one is built in commits of its own.
+
+| ID  | Question           | Decision                                                                                                                                                                                                           | Why                                                                                                           |
+| --- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| D48 | Turning a step off | A switch in the step's header. A step that is off keeps its place and its values; runs leave it out, so the text passes through it unchanged. Only the frontend knows: the run request holds the steps that are on | Trying a chain with and without a step, without losing its settings. The API and the library stay as they are |
 
 ## Traps
 

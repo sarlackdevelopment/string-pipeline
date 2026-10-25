@@ -232,8 +232,8 @@ Components with behaviour get model, controller, view and container (D26). Purel
 model/                             the domain, pure functions and types, no Vue (step 11)
   catalog.ts                       limits, categories, transformations with their fields
   fields.ts                        JSON Schema → field descriptors; unknown kinds become `unsupported` (D43)
-  chain.ts                         input and steps: add, remove, move, edit (D1)
-  run.ts                           chain → run request; step results by step id (D40, D42)
+  chain.ts                         input and steps: add, remove, move, edit, turn off (D1, D48)
+  run.ts                           chain → run request without the steps that are off; results by step id (D40, D42)
   problem.ts                       request errors placed at the input, a step, or a field (D41)
 api/                               the network (step 11)
   contract.ts                      zod schemas of the wire format, turned into the domain in one pass (D20)
@@ -248,7 +248,7 @@ App.vue                            shell: header, error boundary, PipelineEditor
 components/
   PipelineEditor/                  the editor: controller, view, container, types; model/: messages, focus, summary
   InputPanel.vue                   input text, maxlength from the catalog limits
-  StepCard/StepCard.vue            fieldset, legend "Step 2: Replace", status, move and remove, form, output
+  StepCard/StepCard.vue            fieldset, legend "Step 2: Replace", status, on/off switch, move and remove, form, output
   StepCard/model/status.ts         status → label and tone (pure)
   StepCard/model/issues.ts         result and request errors → the message at each field (pure)
   StepCard/types.ts                the parts of a card that can take the focus (D15)
@@ -287,6 +287,8 @@ Accessibility (D15, built in step 16):
 - The picker's list opens next to its search field, inside the page's landmarks, instead of in a portal at the end of the body.
 - Windows contrast themes drop box shadows, which carry the focus rings here; outlines in system colours take their place. The search field of the picker shows a focus ring too, which the copied combobox lacked.
 - The end-to-end tests run axe on the editor with an error and the list open, walk every stop of the Tab key and check that each one shows the focus, and check the focus outline in a contrast theme.
+
+Turning a step off (D48, step 19). Each step has a switch named "Run step 2". A step that is off keeps its place and its values, and `model/run` leaves it out of the request, so the text passes through it unchanged; an older result for its id is not shown. Its card says Off, gets a dashed border instead of a lighter colour, which would push its text below 4.5:1, and says that the text passes through. The live region counts it: "1 of 2 steps ran; 1 is off." The kit's switch was changed in two ways. Off, shadcn-vue draws a light grey track, 1.26:1 against the card, below the 3:1 that WCAG 1.4.11 asks of a control; ours is outlined in the muted text colour, 4.75:1. In a Windows contrast theme, system colours paint the thumb and the track that is on, which the theme would otherwise paint in the card's colour: an end-to-end test checks the thumb.
 
 Proof of R2.1 (D19): an integration test serves a catalog with a transformation the frontend has never seen, with an unfamiliar mix of parameters, and checks that its form renders and runs.
 

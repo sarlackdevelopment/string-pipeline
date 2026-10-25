@@ -17,9 +17,13 @@ const step = (name: string, result: StepResult | undefined): StepItem => ({
   id: name,
   transformation: transformation(name),
   values: {},
+  enabled: true,
   result,
   errors: undefined,
 })
+
+// A step that is off has no result (D48).
+const off = (name: string): StepItem => ({ ...step(name, undefined), enabled: false })
 
 const executed: StepResult = { status: StepStatus.executed, output: 'x' }
 
@@ -50,6 +54,23 @@ describe('the summary of a run for the live region (D15)', () => {
 
   it('says nothing about a step that has no result, while a run is on its way or after it failed', () => {
     expect(runSummary([step('Replace', undefined)])).toBe('')
+  })
+
+  it('counts the steps that are off, and says when every step is off (D48)', () => {
+    expect(runSummary([step('Replace', executed), off('Append')])).toBe(
+      '1 of 2 steps ran; 1 is off.',
+    )
+    expect(runSummary([off('Replace'), step('Append', executed), off('Prepend')])).toBe(
+      '1 of 3 steps ran; 2 are off.',
+    )
+    expect(runSummary([off('Replace')])).toBe('The step is off.')
+    expect(runSummary([off('Replace'), off('Append')])).toBe('All 2 steps are off.')
+  })
+
+  it('names a step that stopped the chain by its place in the whole chain, steps that are off included', () => {
+    const steps = [off('Replace'), step('Append', { status: StepStatus.notConfigured, issues: {} })]
+
+    expect(runSummary(steps)).toBe('Step 2, Append, needs a value.')
   })
 
   it('leaves the output out, so typing into the input does not change the sentence', () => {

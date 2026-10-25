@@ -17,6 +17,10 @@ export const field = (page: Page, position: number, title: string): Locator =>
     .getByRole('textbox', { name: title, exact: true })
     .or(step(page, position).getByRole('spinbutton', { name: title, exact: true }))
 
+/** The switch that turns a step on and off (D48). */
+export const runSwitch = (page: Page, position: number): Locator =>
+  step(page, position).getByRole('switch', { name: `Run step ${String(position)}`, exact: true })
+
 export const output = (page: Page): Locator => page.getByRole('region', { name: 'Output' })
 
 export const runSummary = (page: Page): Locator => page.getByRole('status', { name: 'Run summary' })

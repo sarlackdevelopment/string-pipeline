@@ -1,19 +1,20 @@
 <script setup lang="ts">
 /**
- * One step of the chain (D2, D12, D13, D15): a fieldset named after the step, its status, buttons to move or remove
- * it, the form of its parameters, and the step's own output.
+ * One step of the chain (D2, D12, D13, D15): a fieldset named after the step, its status, a switch that turns it off
+ * (D48), buttons to move or remove it, the form of its parameters, and the step's own output.
  */
 import { ArrowDownIcon, ArrowUpIcon, LoaderCircleIcon, Trash2Icon } from '@lucide/vue'
 import { computed, useTemplateRef } from 'vue'
 import ParameterForm from '@/components/ParameterForm/ParameterForm.vue'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { useFocusRequest, type FocusRequest } from '@/composables/useFocusRequest'
 import type { Transformation } from '@/model/catalog'
 import { Direction, type ParameterValue, type StepValues } from '@/model/chain'
 import type { StepErrors } from '@/model/problem'
 import { StepStatus, type StepResult } from '@/model/run'
 import { fieldIssues } from './model/issues'
-import { statusDisplay, Tone } from './model/status'
+import { offStatus, statusDisplay, Tone } from './model/status'
 import { StepPart } from './types'
 
 const props = defineProps<{
@@ -21,6 +22,8 @@ const props = defineProps<{
   number: number
   transformation: Transformation
   values: StepValues
+  /** False while the step is off: runs leave it out (D48). */
+  enabled: boolean
   result: StepResult | undefined
   errors: StepErrors | undefined
   isUpdating: boolean
@@ -34,9 +37,12 @@ const emit = defineEmits<{
   move: [direction: Direction]
   remove: []
   change: [name: string, value: ParameterValue]
+  setEnabled: [enabled: boolean]
 }>()
 
-const status = computed(() => statusDisplay(props.result, props.isUpdating))
+const status = computed(() =>
+  props.enabled ? statusDisplay(props.result, props.isUpdating) : offStatus,
+)
 const issues = computed(() => fieldIssues(props.result, props.errors))
 
 const card = useTemplateRef<HTMLFieldSetElement>('card')
@@ -74,10 +80,14 @@ const toneClasses: Record<Tone, string> = {
 <template>
   <!-- tabindex="-1": the card takes the focus only from code, after the step before it was removed or after it moved
        to an end of the chain. -->
+  <!-- A step that is off gets a dashed border: a lighter card would push its text below a 4.5:1 contrast. -->
   <fieldset
     ref="card"
     tabindex="-1"
-    class="min-w-0 rounded-xl border bg-card p-4 text-card-foreground shadow-xs outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+    :class="[
+      'min-w-0 rounded-xl border bg-card p-4 text-card-foreground shadow-xs outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+      { 'border-dashed': !enabled },
+    ]"
   >
     <!-- Floated, so the legend sits inside the card instead of on its border. -->
     <legend class="float-left text-sm leading-7 font-semibold">
@@ -94,6 +104,12 @@ const toneClasses: Record<Tone, string> = {
         <span v-else class="size-1.5 rounded-full bg-current" />
         {{ status.label }}
       </span>
+      <Switch
+        class="mx-1.5"
+        :model-value="enabled"
+        :aria-label="`Run step ${number}`"
+        @update:model-value="emit('setEnabled', $event)"
+      />
       <Button
         variant="ghost"
         size="icon-sm"
@@ -136,7 +152,10 @@ const toneClasses: Record<Tone, string> = {
         :issues="issues"
         @change="(name, value) => emit('change', name, value)"
       />
-      <div v-if="result?.status === StepStatus.executed" class="grid gap-1.5">
+      <p v-if="!enabled" class="text-sm text-muted-foreground">
+        This step is off, so the text passes through it unchanged.
+      </p>
+      <div v-else-if="result?.status === StepStatus.executed" class="grid gap-1.5">
         <p class="text-xs font-medium text-muted-foreground">Output of this step</p>
         <pre
           class="max-h-48 overflow-auto rounded-lg bg-muted px-3 py-2 font-mono text-sm break-words whitespace-pre-wrap"

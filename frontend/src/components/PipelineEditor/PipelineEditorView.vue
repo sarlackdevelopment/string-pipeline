@@ -46,6 +46,7 @@ const emit = defineEmits<{
   removeStep: [id: string]
   moveStep: [id: string, direction: Direction]
   setValue: [id: string, name: string, value: ParameterValue]
+  setEnabled: [id: string, enabled: boolean]
 }>()
 
 const stepsHeadingId = useId()
@@ -105,6 +106,7 @@ const searchFocus = computed(() => (props.focusTarget?.part === SEARCH ? props.f
             :number="index + 1"
             :transformation="step.transformation"
             :values="step.values"
+            :enabled="step.enabled"
             :result="step.result"
             :errors="step.errors"
             :is-updating="isUpdating"
@@ -114,6 +116,7 @@ const searchFocus = computed(() => (props.focusTarget?.part === SEARCH ? props.f
             @move="emit('moveStep', step.id, $event)"
             @remove="emit('removeStep', step.id)"
             @change="(name, value) => emit('setValue', step.id, name, value)"
+            @set-enabled="emit('setEnabled', step.id, $event)"
           />
         </li>
       </ol>

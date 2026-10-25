@@ -1,4 +1,4 @@
-# R1.1, R1.2, R1.3, R2.1; D7, D9, D10, D12, D42
+# R1.1, R1.2, R1.3, R2.1; D7, D9, D10, D12, D42, D48
 Feature: Chain text transformations
   As a person who edits text but does not write code
   I want to chain transformations and set each one up in a form
@@ -17,6 +17,17 @@ Feature: Chain text transformations
     And I set "Text" to "!" in step 2
     Then step 1 shows "Real Python"
     And the output is "Real Python!"
+
+  Scenario: A step that is off lets the text pass through unchanged
+    When I type "Fake Python" as the input
+    And I add the step "Replace"
+    And I set "Find" to "Fake" in step 1
+    And I set "Replace with" to "Real" in step 1
+    And I add the step "Append"
+    And I set "Text" to "!" in step 2
+    And I turn off step 1
+    Then step 1 shows "Off"
+    And the output is "Fake Python!"
 
   Scenario: A pattern that Java cannot read is shown at its field
     When I type "Price: 5 EUR" as the input

@@ -21,7 +21,12 @@ export interface StepItem {
   readonly id: string
   readonly transformation: Transformation
   readonly values: StepValues
-  /** The latest result for this step's id; while the next run is on its way, the previous one. */
+  /** False for a step that is off: it stays in the chain, but runs leave it out (D48). */
+  readonly enabled: boolean
+  /**
+   * The latest result for this step's id; while the next run is on its way, the previous one. A step that is off has
+   * none.
+   */
   readonly result: StepResult | undefined
   /** What a rejected request said about this step (D41). */
   readonly errors: StepErrors | undefined

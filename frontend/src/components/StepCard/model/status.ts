@@ -1,5 +1,6 @@
 /**
- * The status badge of a step: a label and a tone for each state of D12, which the API names as in D42.
+ * The status badge of a step: a label and a tone for each state of D12, which the API names as in D42, and Off for a
+ * step that is off (D48).
  */
 import { StepStatus, type StepResult } from '@/model/run'
 
@@ -17,6 +18,9 @@ export interface StatusDisplay {
   /** The step has no result yet, and a run is on its way. */
   readonly busy: boolean
 }
+
+/** A step that is off has no result: runs leave it out (D48). */
+export const offStatus: StatusDisplay = { label: 'Off', tone: Tone.muted, busy: false }
 
 /**
  * A step without a result is running while a run is on its way. Otherwise it did not run, because the run as a

@@ -65,12 +65,14 @@ export function usePipelineEditorController() {
     if (catalog === undefined) {
       return []
     }
+    // A step that is off is not in the request, so what an earlier run said about its id no longer applies.
     return store.chain.steps.map((step) => ({
       id: step.id,
       transformation: transformationOf(catalog, step.transformationId),
       values: step.values,
-      result: run.result.value?.steps.get(step.id),
-      errors: requestErrors.value?.steps.get(step.id),
+      enabled: step.enabled,
+      result: step.enabled ? run.result.value?.steps.get(step.id) : undefined,
+      errors: step.enabled ? requestErrors.value?.steps.get(step.id) : undefined,
     }))
   })
 
@@ -121,6 +123,7 @@ export function usePipelineEditorController() {
     removeStep,
     moveStep,
     setValue: store.setValue,
+    setEnabled: store.setEnabled,
   }
 }
 

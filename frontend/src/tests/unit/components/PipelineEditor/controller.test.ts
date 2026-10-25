@@ -117,6 +117,37 @@ describe('the editor controller (D26)', () => {
     })
   })
 
+  describe('a step that is off (D48)', () => {
+    it('is left out of the run, and has no result even while an older one is still shown', async () => {
+      const held = gate()
+      serveCatalog()
+      const received = serveRuns(fakeRun, (body) =>
+        body.steps.length === 1 ? held.opened : Promise.resolve(),
+      )
+      onTestFinished(held.open)
+      const editor = setup()
+      await ready(editor)
+      editor.setInput('a')
+      editor.addStep('append')
+      editor.addStep('append')
+      const [first, second] = editor.steps.value.map((step) => step.id)
+      if (first === undefined || second === undefined) {
+        throw new Error('Two steps were added.')
+      }
+      await vi.waitFor(() => expect(editor.result.value?.steps.size).toBe(2))
+
+      editor.setEnabled(first, false)
+
+      expect(editor.steps.value.map((step) => [step.enabled, step.result?.status])).toEqual([
+        [false, undefined],
+        [true, StepStatus.executed],
+      ])
+      await vi.waitFor(() =>
+        expect(received.at(-1)?.steps.map((step) => step.id)).toEqual([second]),
+      )
+    })
+  })
+
   describe('a run that fails as a whole (D41)', () => {
     it('offers another try when the server cannot be reached', async () => {
       serveCatalog()

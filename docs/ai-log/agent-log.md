@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: the brief is done end to end, with the harder transformations of D10 and a one-command start. Next: step 19 (optional, beyond the brief) or step 20, the final check.
-- Last commit: `chore: Docker image and compose file for a one-command start`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
+- Phase: the brief is done end to end, with the harder transformations of D10 and a one-command start. Step 19, beyond the brief, is under way: 19.1, turning a step off, is done; 19.2, the chain in the URL, and 19.3, example chains, follow.
+- Last commit: `feat(ui): turn a step off without removing it`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once). `docker compose up --build` serves the app on 8080, or on `PORT`; `E2E_BASE_URL=http://localhost:<port> npm run test:e2e` runs the features against it.
-- Tests: Java 235 (library 209, server 26); frontend 165 in 24 files (unit 101, component 54, integration 10); end to end 8 scenarios in 2 features.
+- Tests: Java 235 (library 209, server 26); frontend 175 in 24 files (unit 107, component 57, integration 11); end to end 10 scenarios in 2 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+. Docker Desktop with Compose for the image.
-- Next step: the developer chooses. Step 19 is optional and beyond the brief, in commits of their own, marked as such: the chain in the URL, example chains, turning a step off. Step 20 is the final check: a fresh clone, every check including `docker compose up --build` and the end-to-end features against the container (`E2E_BASE_URL`), the README read through, and a zip of the clone with `.git` (D24). Docker Desktop is installed but stopped: `docker desktop start` starts it, `docker desktop stop` stops it again afterwards.
+- Next step: 19.2, the chain in the URL: the fragment `#chain=` holds the chain as base64url JSON (input, steps with transformation, parameters, and `enabled: false` for a step that is off); on load it is checked with zod and against the catalog; edits write it back with `history.replaceState` after a pause, since Safari limits how often it may be called; `hashchange` loads another link; a Copy link button. Then 19.3, example chains: served by the server in the catalog, defined and tested by running them in the library (`BuiltIns`), shown by the frontend as links to `#chain=`, so it still knows no transformation by name. Each is a commit of its own, marked beyond the brief. Then step 20, the final check.
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -227,6 +227,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: Docker Hub tags (node 24.22.1-slim, eclipse-temurin 25.0.4.1_1 jdk and jre on noble); the lockfile's Linux native packages (x64 and arm64, gnu and musl, all present); `docker buildx imagetools inspect` shows linux/arm64/v8 for all three base images. An ARM64 build was not tried.
 - Changed: `Dockerfile`, `compose.yaml`, `.dockerignore`; `frontend/playwright.config.ts` (`E2E_BASE_URL` skips the web servers); README (prerequisites and running, with and without Docker, moved up to right after the screenshots; e2e against a running app); `docs/design.md` (section 6, packaging); `docs/decisions.md`; both journals, where three references to a plan outside the repository became plain words.
 - Verified: `docker compose build` (2.5 min cold, 4 s warm); the container on port 8095 served `/`, an asset, `/api/catalog` and Swagger UI and ran as `pipeline` (uid 999, no other groups); `E2E_BASE_URL=http://localhost:8095 npm run test:e2e` passed 8 of 8; the build context, exported with `docker build --output type=local` from `FROM scratch` + `COPY . /`, equals `git ls-files` of the included paths (227 files) once `frontend/.eslintcache` is ignored; the full e2e suite passed again against the final image. Container and throwaway images removed; Docker Desktop, started for this step, stopped again with `docker desktop stop`.
-- Commit: `chore: Docker image and compose file for a one-command start`.
+- Commit: `f51c3a3`.
 - Open: none.
 - Next: S19 (optional, beyond the brief) or S20, the final check.
+
+### S19.1 Turning a step off (2026-10-25)
+
+- Goal: D48, beyond the brief: a step can be off without being removed.
+- Requirements: beyond the brief (requirements, last section).
+- Decisions: D48, in the new section J of decisions.
+- Read: Reka UI 2.11 `SwitchRoot` (button with role switch, `aria-checked`, `data-state`, `aria-label` taken from the attributes, Enter toggles); the custom variants in `src/index.css` (`data-checked` matches `data-state='checked'`).
+- Changed: `model/chain.ts` (`enabled`, `setEnabled`), `model/run.ts` (leaves steps that are off out), the store (`setEnabled`), the editor's types, controller (no result and no errors for a step that is off), view and container; `StepCard.vue` (switch, Off, dashed border, note) and `StepCard/model/status.ts` (`offStatus`); `PipelineEditor/model/summary.ts` (counts steps that are off); `components/ui/switch/`, added with `npx shadcn-vue@2.8.2 add switch`, then outlined when off and given system colours for forced colours; unit, component and integration tests; the e2e features and steps (`runSwitch` helper, "I turn off step N", the contrast check); README (new section "Beyond the brief"), requirements, decisions, design (section 7), both journals.
+- Verified: 175 Vitest tests (unit 107, component 57, integration 11); 10 e2e scenarios. The contrast scenario fails while the thumb's class is `forced-colors:bg-[CanvasText]`, which Tailwind sorts before `data-unchecked:bg-muted-foreground`; as `forced-colors:data-unchecked:bg-[CanvasText]` it sorts after, and passes. Screenshots taken with a temporary spec in `e2e/screenshots`, deleted afterwards; ports 8091 and 4191 free; the developer's server on 8080 untouched.
+- Commit: `feat(ui): turn a step off without removing it`.
+- Open: none.
+- Next: S19.2, the chain in the URL.

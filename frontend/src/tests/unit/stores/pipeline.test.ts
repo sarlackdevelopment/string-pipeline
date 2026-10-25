@@ -52,12 +52,13 @@ describe('the pipeline store (D29)', () => {
     const second = store.addStep(append)
     store.setValue(second, 'text', '?')
     store.moveStep(second, Direction.up)
+    store.setEnabled(first, false)
 
     expect(store.chain).toEqual({
       input: 'Hello',
       steps: [
-        { id: second, transformationId: 'append', values: { text: '?' } },
-        { id: first, transformationId: 'append', values: { text: '!' } },
+        { id: second, transformationId: 'append', values: { text: '?' }, enabled: true },
+        { id: first, transformationId: 'append', values: { text: '!' }, enabled: false },
       ],
     })
   })

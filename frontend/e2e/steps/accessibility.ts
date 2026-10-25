@@ -4,7 +4,7 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect } from '@playwright/test'
 import { createBdd } from 'playwright-bdd'
-import { addStepWithKeyboard, field, runSummary, search } from '../support/editor'
+import { addStepWithKeyboard, field, runSummary, runSwitch, search } from '../support/editor'
 
 const { Given, When, Then } = createBdd()
 
@@ -34,6 +34,25 @@ Then(
 
 Then('the run summary says {string}', async ({ page }, text: string) => {
   await expect(runSummary(page)).toHaveText(text)
+})
+
+// A contrast theme paints every background in the colour of the page, unless it is a system colour. The thumb of the
+// switch carries its state, so it must not vanish into the card behind it.
+Then('the switch of step {int} shows that the step is off', async ({ page }, position: number) => {
+  const toggle = runSwitch(page, position)
+  await expect(toggle).not.toBeChecked()
+  const colours = await toggle.evaluate((element) => {
+    const thumb = element.querySelector('[data-slot="switch-thumb"]')
+    const card = element.closest('fieldset')
+    return thumb === null || card === null
+      ? null
+      : {
+          thumb: getComputedStyle(thumb).backgroundColor,
+          card: getComputedStyle(card).backgroundColor,
+        }
+  })
+  expect(colours).not.toBeNull()
+  expect(colours?.thumb).not.toBe(colours?.card)
 })
 
 Then('axe finds no accessibility violations', async ({ page }) => {

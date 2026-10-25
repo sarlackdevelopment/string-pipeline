@@ -15,14 +15,17 @@ export interface RunRequest {
   readonly steps: readonly RunRequestStep[]
 }
 
+/** Steps that are off are left out, so the text passes through them unchanged (D48). */
 export function toRunRequest(chain: Chain): RunRequest {
   return {
     input: chain.input,
-    steps: chain.steps.map((step) => ({
-      id: step.id,
-      transformation: step.transformationId,
-      parameters: step.values,
-    })),
+    steps: chain.steps
+      .filter((step) => step.enabled)
+      .map((step) => ({
+        id: step.id,
+        transformation: step.transformationId,
+        parameters: step.values,
+      })),
   }
 }
 

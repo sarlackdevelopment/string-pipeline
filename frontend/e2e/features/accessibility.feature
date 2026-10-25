@@ -1,4 +1,4 @@
-# R1.3; D15
+# R1.3; D15, D48
 Feature: Use the editor with a keyboard and a screen reader
   As a person who uses a keyboard or a screen reader
   I want the editor to keep my place and tell me what happened
@@ -24,6 +24,13 @@ Feature: Use the editor with a keyboard and a screen reader
     Given the page uses forced colours
     When I press Tab
     Then "Input" has the focus and a visible outline
+
+  Scenario: The switch of a step that is off stays visible in a Windows contrast theme
+    Given the page uses forced colours
+    When I type "Fake Python" as the input
+    And I add the step "Append"
+    And I turn off step 1
+    Then the switch of step 1 shows that the step is off
 
   Scenario: Every stop of the Tab key shows where the focus is
     When I type "Fake Python" as the input

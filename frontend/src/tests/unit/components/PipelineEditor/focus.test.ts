@@ -12,7 +12,12 @@ import { Direction, type Chain } from '@/model/chain'
 // Three steps with the ids a, b and c.
 const chain: Chain = {
   input: '',
-  steps: ['a', 'b', 'c'].map((id) => ({ id, transformationId: 'append', values: {} })),
+  steps: ['a', 'b', 'c'].map((id) => ({
+    id,
+    transformationId: 'append',
+    values: {},
+    enabled: true,
+  })),
 }
 
 describe('where the focus goes after an edit (D15)', () => {

@@ -12,6 +12,7 @@ import { contractTransformation } from '@/tests/helpers/contract'
 const replace = contractTransformation('replace')
 
 interface CardOptions {
+  readonly enabled?: boolean
   readonly result?: StepResult
   readonly errors?: StepErrors
   readonly isUpdating?: boolean
@@ -27,12 +28,14 @@ function renderCard(options: CardOptions = {}) {
     onMove: vi.fn<(direction: Direction) => void>(),
     onRemove: vi.fn<() => void>(),
     onChange: vi.fn<(name: string, value: ParameterValue) => void>(),
+    onSetEnabled: vi.fn<(enabled: boolean) => void>(),
   }
   const view = render(StepCard, {
     props: {
       number: 2,
       transformation: options.transformation ?? replace,
       values: { old: 'Fake', new: 'Real' },
+      enabled: options.enabled ?? true,
       result: options.result,
       errors: options.errors,
       isUpdating: options.isUpdating ?? false,
@@ -78,6 +81,30 @@ describe('StepCard', () => {
 
     expect(screen.getByRole('button', { name: 'Move step 2 up' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Move step 2 down' })).toBeDisabled()
+  })
+
+  describe('turning it off (D48)', () => {
+    it('turns itself off and on with a switch named after its position', async () => {
+      const { user, view, onSetEnabled } = renderCard()
+      const run = screen.getByRole('switch', { name: 'Run step 2' })
+      expect(run).toBeChecked()
+
+      await user.click(run)
+      expect(onSetEnabled).toHaveBeenLastCalledWith(false)
+
+      await view.rerender({ enabled: false })
+      expect(run).not.toBeChecked()
+      await user.click(run)
+      expect(onSetEnabled).toHaveBeenLastCalledWith(true)
+    })
+
+    it('says that the text passes through it while it is off, and keeps its form', () => {
+      const { card } = renderCard({ enabled: false })
+
+      expect(card).toHaveTextContent('Off')
+      expect(card).toHaveTextContent('This step is off, so the text passes through it unchanged.')
+      expect(within(card).getByRole('textbox', { name: 'Find' })).toHaveValue('Fake')
+    })
   })
 
   describe('its result (D12, D13)', () => {

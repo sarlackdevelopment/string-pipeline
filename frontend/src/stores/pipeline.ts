@@ -38,5 +38,9 @@ export const usePipelineStore = defineStore('pipeline', () => {
     chain.value = chains.setValue(chain.value, id, name, value)
   }
 
-  return { chain, setInput, addStep, removeStep, moveStep, setValue }
+  function setEnabled(id: string, enabled: boolean): void {
+    chain.value = chains.setEnabled(chain.value, id, enabled)
+  }
+
+  return { chain, setInput, addStep, removeStep, moveStep, setValue, setEnabled }
 })

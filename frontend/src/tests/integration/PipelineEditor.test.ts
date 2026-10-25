@@ -138,13 +138,17 @@ describe('the pipeline editor', () => {
       within(screen.getByRole('group', { name: 'Step 2: Replace' })).getByText('Real Python!'),
     ).toBeInTheDocument()
 
-    // Removing a step takes the focus to the step that took its place, and after the last one to the search.
+    // Removing a step takes the focus to the step that took its place, and after the last one to the search. The
+    // way there passes the switch of the step and skips its disabled "Move step 1 up".
+    await user.tab()
+    expect(within(first).getByRole('switch', { name: 'Run step 1' })).toHaveFocus()
     await user.tab()
     await user.tab()
     expect(within(first).getByRole('button', { name: 'Remove step 1' })).toHaveFocus()
     await user.keyboard('{Enter}')
     const remaining = await screen.findByRole('group', { name: 'Step 1: Replace' })
     await waitFor(() => expect(remaining).toHaveFocus())
+    await user.tab()
     await user.tab()
     expect(within(remaining).getByRole('button', { name: 'Remove step 1' })).toHaveFocus()
     await user.keyboard('{Enter}')
@@ -163,6 +167,33 @@ describe('the pipeline editor', () => {
     await user.keyboard('Fake')
 
     await waitFor(() => expect(summary).toHaveTextContent('The step ran.'))
+  })
+
+  it('lets the text pass through a step that is off, and runs the step again once it is on (D48)', async () => {
+    serveCatalog()
+    serveRuns()
+    const { user, search } = await renderEditor()
+    await user.type(screen.getByRole('textbox', { name: 'Input' }), 'Fake Python')
+    await user.type(search, 'replace{Enter}')
+    const replace = await screen.findByRole('group', { name: 'Step 1: Replace' })
+    await user.type(within(replace).getByRole('textbox', { name: 'Find' }), 'Fake')
+    await user.type(within(replace).getByRole('textbox', { name: 'Replace with' }), 'Real')
+    await user.type(search, 'append{Enter}')
+    const append = await screen.findByRole('group', { name: 'Step 2: Append' })
+    await user.type(within(append).getByRole('textbox', { name: 'Text' }), '!')
+    await waitFor(() => expect(output()).toHaveTextContent('Real Python!'))
+    const run = within(replace).getByRole('switch', { name: 'Run step 1' })
+
+    await user.click(run)
+
+    await waitFor(() => expect(output()).toHaveTextContent('Fake Python!'))
+    expect(replace).toHaveTextContent('Off')
+    expect(within(replace).getByRole('textbox', { name: 'Find' })).toHaveValue('Fake')
+    expect(screen.getByRole('status', { name: 'Run summary' })).toHaveTextContent(
+      '1 of 2 steps ran; 1 is off.',
+    )
+    await user.click(run)
+    await waitFor(() => expect(output()).toHaveTextContent('Real Python!'))
   })
 
   it('builds the form of a transformation it has never seen, and runs it (R2.1, D19)', async () => {

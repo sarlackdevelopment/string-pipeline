@@ -2,9 +2,9 @@
 import { describe, expect, it } from 'vitest'
 import { parseCatalog } from '@/api/contract'
 import { findTransformation } from '@/model/catalog'
-import { addStep, emptyChain, setInput, setValue } from '@/model/chain'
+import { addStep, emptyChain, setEnabled, setInput, setValue } from '@/model/chain'
 import { toRunRequest } from '@/model/run'
-import { readContract } from '@/tests/helpers/contract'
+import { contractTransformation, readContract } from '@/tests/helpers/contract'
 
 describe('the run request (D40)', () => {
   it('builds exactly the brief-chain example of the contract', () => {
@@ -27,6 +27,15 @@ describe('the run request (D40)', () => {
     chain = setValue(addStep(chain, transformation('substring'), 's3'), 's3', 'start', 5)
 
     expect(toRunRequest(chain)).toEqual(readContract('examples/brief-chain.request.json'))
+  })
+
+  it('leaves out the steps that are off, so the text passes through them (D48)', () => {
+    const append = contractTransformation('append')
+    const chain = addStep(addStep(addStep(emptyChain, append, 's1'), append, 's2'), append, 's3')
+
+    const request = toRunRequest(setEnabled(chain, 's2', false))
+
+    expect(request.steps.map((step) => step.id)).toEqual(['s1', 's3'])
   })
 
   it('sends an empty chain as the input alone', () => {

@@ -8,6 +8,7 @@ import {
   emptyChain,
   moveStep,
   removeStep,
+  setEnabled,
   setInput,
   setValue,
   type Chain,
@@ -49,7 +50,7 @@ describe('adding steps (R1.2)', () => {
     )
 
     expect(chain.steps).toEqual([
-      { id: 's1', transformationId: 'replace', values: { old: '', new: '-' } },
+      { id: 's1', transformationId: 'replace', values: { old: '', new: '-' }, enabled: true },
     ])
   })
 
@@ -92,6 +93,23 @@ describe('removing and moving steps', () => {
     expect(moveStep(chain, 'c', Direction.down)).toBe(chain)
     expect(moveStep(chain, 'missing', Direction.down)).toBe(chain)
     expect(removeStep(chain, 'missing')).toBe(chain)
+  })
+})
+
+describe('turning steps off (D48)', () => {
+  it('turns a step off and on again, keeping its values', () => {
+    const off = setEnabled(setValue(threeSteps(), 'b', 'text', '!'), 'b', false)
+
+    expect(off.steps.map((step) => step.enabled)).toEqual([true, false, true])
+    expect(off.steps[1]?.values).toEqual({ text: '!' })
+    expect(setEnabled(off, 'b', true).steps.map((step) => step.enabled)).toEqual([true, true, true])
+  })
+
+  it('returns the same chain when nothing changes', () => {
+    const chain = threeSteps()
+
+    expect(setEnabled(chain, 'a', true)).toBe(chain)
+    expect(setEnabled(chain, 'missing', false)).toBe(chain)
   })
 })
 

@@ -9,6 +9,7 @@ import {
   field,
   openEditor,
   output,
+  runSwitch,
   setField,
   step,
   typeInput,
@@ -43,6 +44,10 @@ When(
       .selectOption({ label: option })
   },
 )
+
+When('I turn off step {int}', async ({ page }, position: number) => {
+  await runSwitch(page, position).uncheck()
+})
 
 Then('step {int} shows {string}', async ({ page }, position: number, text: string) => {
   await expect(step(page, position).getByText(text, { exact: true })).toBeVisible()

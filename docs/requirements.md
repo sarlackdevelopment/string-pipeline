@@ -52,4 +52,4 @@ Candidates for after the brief is done, each in its own commit:
 
 - the chain in the URL, so it can be shared;
 - example chains to start from;
-- disabling a step without removing it.
+- disabling a step without removing it: built in step 19 (D48).

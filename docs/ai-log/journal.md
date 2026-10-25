@@ -305,4 +305,22 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** The image builds; `/`, a built asset, `/api/catalog` and Swagger UI answer from the container; it runs as the new user; eight end-to-end scenarios pass against the final image. `./gradlew build`; `format:check`, `lint`, `typecheck`, 165 Vitest tests, `build`.
 
-**Commit.** `chore: Docker image and compose file for a one-command start`
+**Commit.** `f51c3a3 chore: Docker image and compose file for a one-command start`
+
+## Step 19.1. Turning a step off, beyond the brief (2026-10-25)
+
+**Asked.** Step 19: the three candidates beyond the brief, each in commits of its own: the chain in the URL, example chains, and turning a step off. They are built in the order off, URL, examples, because a link has to carry a step that is off, and the examples are links.
+
+**AI did.**
+
+- A step has an `enabled` flag. `model/run` leaves the steps that are off out of the request, so the text passes through them unchanged, and the API and the library stay as they are (D48).
+- Each step's header has a switch named "Run step 2". A step that is off keeps its values and its place. Its card says Off, has a dashed border and says that the text passes through it. An older result for its id is no longer shown.
+- The live region counts the steps that are off: "1 of 2 steps ran; 1 is off."
+- The switch comes from shadcn-vue 2.8.2 and was changed twice. Off, it was a light grey track at 1.26:1 against the card, and WCAG 1.4.11 asks 3:1 of a control, so it is now outlined in the muted text colour, 4.75:1. In a Windows contrast theme its thumb took the card's colour, because the theme repaints every background that is not a system colour; the thumb and the track that is on now use system colours. The first try still failed: Tailwind sorted the thumb's contrast rule before the rule for the off state, which then won. The order of the rules in the built CSS showed it, and an end-to-end test that compares the thumb's colour with the card's failed on that try and passes now.
+- The keyboard journey of the integration tests now passes the switch on its way to "Remove step 1".
+
+**Decided.** D48, in a new section J of the decisions, "Beyond the brief".
+
+**Checked.** 175 Vitest tests, 10 of them new; 10 end-to-end scenarios, 2 of them new: a step that is off lets the text through, and its switch stays visible in a contrast theme. Screenshots of a step that is off on a desktop, at phone width and in a contrast theme, looked at and not kept. `format:check`, `lint`, `typecheck`, `build`; the Java side did not change.
+
+**Commit.** `feat(ui): turn a step off without removing it`

@@ -22,6 +22,7 @@ const steps: readonly StepItem[] = [
     id: 's1',
     transformation: contractTransformation('replace'),
     values: { old: 'Fake', new: 'Real' },
+    enabled: true,
     result: { status: StepStatus.executed, output: 'Real Python' },
     errors: undefined,
   },
@@ -29,6 +30,7 @@ const steps: readonly StepItem[] = [
     id: 's2',
     transformation: contractTransformation('append'),
     values: { text: '!' },
+    enabled: true,
     result: { status: StepStatus.executed, output: 'Real Python!' },
     errors: undefined,
   },
@@ -50,6 +52,7 @@ function renderView(options: ViewOptions = {}) {
     onRemoveStep: vi.fn<(id: string) => void>(),
     onMoveStep: vi.fn<(id: string, direction: Direction) => void>(),
     onSetValue: vi.fn<(id: string, name: string, value: ParameterValue) => void>(),
+    onSetEnabled: vi.fn<(id: string, enabled: boolean) => void>(),
   }
   const view = render(PipelineEditorView, {
     props: {
@@ -125,6 +128,14 @@ describe('PipelineEditorView (D2, D26)', () => {
       expect(onAddStep).toHaveBeenCalledExactlyOnceWith('prepend')
       expect(onMoveStep).toHaveBeenCalledExactlyOnceWith('s1', Direction.down)
       expect(onRemoveStep).toHaveBeenCalledExactlyOnceWith('s2')
+    })
+
+    it('reports turning a step off, with the id of the step (D48)', async () => {
+      const { user, onSetEnabled } = renderView()
+
+      await user.click(screen.getByRole('switch', { name: 'Run step 2' }))
+
+      expect(onSetEnabled).toHaveBeenCalledExactlyOnceWith('s2', false)
     })
 
     it('lets the first step move only down, and the last one only up', () => {
