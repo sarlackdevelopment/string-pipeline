@@ -13,7 +13,7 @@ describe('fetchCatalog', () => {
 
     const result = await fetchCatalog()
 
-    expect(result.ok && result.value.transformations).toHaveLength(6)
+    expect(result.ok && result.value.transformations).toHaveLength(11)
   })
 
   it('reports a response that breaks the contract', async () => {

@@ -14,6 +14,16 @@ public final class BuiltIns {
     /// A catalog of every built-in transformation.
     public static Catalog catalog() {
         return new Catalog(List.of(
-                new Replace(), new Append(), new Prepend(), new Substring(), new RegexExtract(), new RegexReplace()));
+                new Replace(),
+                new Append(),
+                new Prepend(),
+                new Substring(),
+                new ChangeCase(),
+                new LineOperations(),
+                new Encode(),
+                new Decode(),
+                new ReformatDates(),
+                new RegexExtract(),
+                new RegexReplace()));
     }
 }

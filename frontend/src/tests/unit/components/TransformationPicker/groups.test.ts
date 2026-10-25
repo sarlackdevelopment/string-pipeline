@@ -20,7 +20,9 @@ describe('the groups of the transformation picker (D28)', () => {
     ])
 
     expect(groups).toEqual([
-      ['Text', ['Replace', 'Append', 'Prepend', 'Substring']],
+      ['Text', ['Replace', 'Append', 'Prepend', 'Substring', 'Change case']],
+      ['Lines', ['Line operations']],
+      ['Conversions', ['Encode', 'Decode', 'Reformat dates']],
       ['Regular expressions', ['Regex extract', 'Regex replace']],
     ])
   })

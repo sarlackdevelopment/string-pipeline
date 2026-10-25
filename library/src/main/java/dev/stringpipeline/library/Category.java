@@ -3,6 +3,8 @@ package dev.stringpipeline.library;
 /// The groups of the transformation picker, in display order (D28, D40).
 public enum Category {
     TEXT("text", "Text"),
+    LINES("lines", "Lines"),
+    CONVERSIONS("conversions", "Conversions"),
     REGEX("regex", "Regular expressions");
 
     private final String id;

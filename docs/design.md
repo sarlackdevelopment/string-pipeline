@@ -149,12 +149,21 @@ Regex checks (D9):
 - A pattern that does not compile is `invalidParameters` at `pattern`, with the description and position from Java: "Unclosed group at character 4".
 - Group references are checked before running: `group` against the pattern's group count, and `$n` and `${name}` in `replacement` against the group count and `Pattern.namedGroups()` (Java 20+). Java itself reports a bad reference only when something matches: in a probe, `"abc".replaceAll("[0-9]+", "$5 off")` returned `abc`, while `"5"` threw "No group 5". Checking up front makes "$5 off" an error at the field for every input: "The pattern has no group 5. Write \$ for a dollar sign."
 
-Later candidates for step 17, each showing something new:
+Second set, built in step 17 (D10), each showing something new:
 
-- **Change case**: upper, lower, title, camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE. `Locale.ROOT` by default, with a locale option that shows the Turkish dotted i.
-- **Encode and Decode**: Base64, URL-safe Base64, URL encoding, hex; always UTF-8; undecodable input is `failed`.
-- **Reformat dates**: each line parsed with one pattern and printed with another, strictly; the first bad line is `failed` with its line number.
-- **Line operations**: sort, unique, remove empty lines, keep or drop lines matching a pattern, join, split.
+| Id               | Name            | Parameters                                                                                                                                                                                       | Behaviour                                                                                                                                                                                                                                                                                |
+| ---------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `changeCase`     | Change case     | `to` choice of UPPER CASE, lower case, Title Case, camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, default upper; `language` choice of any or Turkish and Azerbaijani, default any | the case rules of the language: `Locale.ROOT`, or Turkish, where i becomes İ and I becomes ı; the identifier styles turn each line into one name, splitting words at punctuation, at camelCase and after acronyms (HTTPResponse)                                                         |
+| `lineOperations` | Line operations | `operation` choice of sort A to Z, sort Z to A, remove duplicates, remove blank lines, reverse, default sort; `ignoreCase` boolean                                                               | sorting compares numbers by value and text by the collation of `Locale.ROOT`, and keeps equal lines in their order; duplicates are exact copies, or copies apart from case                                                                                                               |
+| `encode`         | Encode          | `format` choice of Base64, URL-safe Base64, URL and hexadecimal, default Base64                                                                                                                  | the UTF-8 bytes of the text; URL-safe Base64 has no padding; URL encoding follows RFC 3986, so a space is %20                                                                                                                                                                            |
+| `decode`         | Decode          | `format` as for Encode                                                                                                                                                                           | ignores spaces and line breaks in Base64 and hexadecimal, keeps + in URL encoding; a text not in the format, or bytes that are not UTF-8, make the step `failed` with the reason                                                                                                         |
+| `reformatDates`  | Reformat dates  | `from` text, default `yyyy-MM-dd`; `to` text, default `dd.MM.yyyy`                                                                                                                               | each line read strictly with `DateTimeFormatter` letters, as a date, a time or both; English month names in any case; `yyyy` works because the era defaults to ours; empty lines stay empty; the first line that is not a date makes the step `failed` with its number and Java's reason |
+
+Checks of the second set:
+
+- A pattern that Java cannot read is `invalidParameters` at its field, with Java's words: "Unknown pattern letter: b". Both date patterns are checked at once.
+- An output pattern that needs a field the input does not have, such as the hour for dates, is `failed`: "The output pattern needs more than the input pattern reads (Unsupported field: HourOfDay)."
+- A case change can make a text longer (ß becomes SS), and so can encoding; both check the output cap (D45).
 
 ## 5. Library
 
@@ -192,8 +201,8 @@ Exceptions remain only for programmer errors. Adding a transformation means one 
 Text rules:
 
 - A character is a grapheme cluster. `java.text.BreakIterator` follows Unicode's extended grapheme clusters since Java 20; a probe on Java 25 counted 👍🏽🇩🇪, e with a combining accent, and x as 4 characters (11 UTF-16 units).
-- Case changes use `Locale.ROOT`. There is no Unicode normalisation.
-- Line-based steps split on `\r\n`, `\r` and `\n`, and write `\n`.
+- Case changes use `Locale.ROOT` unless a step asks for Turkish or Azerbaijani. There is no Unicode normalisation.
+- Line-based steps split on `\r\n`, `\r` and `\n`, and write `\n`. A line break at the very end closes the last line and is written again; it does not make an empty line.
 
 Limits (D21, D45). `Pipeline` takes a `Limits` value with production defaults; tests pass smaller ones.
 

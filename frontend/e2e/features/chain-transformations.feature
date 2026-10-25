@@ -1,4 +1,4 @@
-# R1.1, R1.2, R1.3, R2.1; D7, D9, D12, D42
+# R1.1, R1.2, R1.3, R2.1; D7, D9, D10, D12, D42
 Feature: Chain text transformations
   As a person who edits text but does not write code
   I want to chain transformations and set each one up in a form
@@ -30,3 +30,9 @@ Feature: Chain text transformations
     And I add the step "Substring"
     And I set "End" to "1" in step 1
     Then the output is "👍🏽"
+
+  Scenario: Turkish turns i into İ, with a transformation the frontend has no code for
+    When I type "istanbul" as the input
+    And I add the step "Change case"
+    And I choose "Turkish or Azerbaijani" as "Language" in step 1
+    Then the output is "İSTANBUL"

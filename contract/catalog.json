@@ -5,6 +5,8 @@
   },
   "categories": [
     { "id": "text", "name": "Text" },
+    { "id": "lines", "name": "Lines" },
+    { "id": "conversions", "name": "Conversions" },
     { "id": "regex", "name": "Regular expressions" }
   ],
   "transformations": [
@@ -93,6 +95,154 @@
             "type": "integer",
             "title": "End",
             "description": "Position of the first character to leave out. Leave empty to keep everything up to the end."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "changeCase",
+      "name": "Change case",
+      "category": "text",
+      "description": "Writes the text in upper, lower or title case, or turns each line into a name such as camelCase or snake_case.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "title": "Case",
+            "description": "camelCase and the other identifier styles turn each line into one name, made of its words.",
+            "default": "upper",
+            "oneOf": [
+              { "const": "upper", "title": "UPPER CASE" },
+              { "const": "lower", "title": "lower case" },
+              { "const": "title", "title": "Title Case" },
+              { "const": "camel", "title": "camelCase" },
+              { "const": "pascal", "title": "PascalCase" },
+              { "const": "snake", "title": "snake_case" },
+              { "const": "kebab", "title": "kebab-case" },
+              { "const": "constant", "title": "CONSTANT_CASE" }
+            ]
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "description": "Turkish and Azerbaijani have a dotted İ and a dotless ı, so i and I change differently there.",
+            "default": "any",
+            "oneOf": [
+              { "const": "any", "title": "Any language" },
+              { "const": "turkish", "title": "Turkish or Azerbaijani" }
+            ]
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "lineOperations",
+      "name": "Line operations",
+      "category": "lines",
+      "description": "Sorts the lines, removes duplicate or blank ones, or reverses their order.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "title": "Operation",
+            "description": "Sorting puts numbers in order of their value, so line 2 comes before line 10. Removing duplicates keeps the first of them.",
+            "default": "sort",
+            "oneOf": [
+              { "const": "sort", "title": "Sort A to Z" },
+              { "const": "sortDescending", "title": "Sort Z to A" },
+              { "const": "unique", "title": "Remove duplicates" },
+              { "const": "removeBlank", "title": "Remove blank lines" },
+              { "const": "reverse", "title": "Reverse the order" }
+            ]
+          },
+          "ignoreCase": {
+            "type": "boolean",
+            "title": "Ignore case",
+            "description": "Treats upper and lower case as the same when sorting or finding duplicates.",
+            "default": false
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "encode",
+      "name": "Encode",
+      "category": "conversions",
+      "description": "Encodes the text as Base64, for a URL, or as hexadecimal digits. The text is read as UTF-8.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "title": "Format",
+            "description": "URL encoding writes a space as %20 and keeps only letters, digits and - . _ ~ as they are.",
+            "default": "base64",
+            "oneOf": [
+              { "const": "base64", "title": "Base64" },
+              { "const": "base64Url", "title": "Base64, URL-safe" },
+              { "const": "url", "title": "URL (percent-encoding)" },
+              { "const": "hex", "title": "Hexadecimal" }
+            ]
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "decode",
+      "name": "Decode",
+      "category": "conversions",
+      "description": "Decodes Base64, URL encoding or hexadecimal digits back into text. The bytes must be UTF-8.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "title": "Format",
+            "description": "Spaces and line breaks in Base64 and hexadecimal are ignored. In URL encoding, + stays a +.",
+            "default": "base64",
+            "oneOf": [
+              { "const": "base64", "title": "Base64" },
+              { "const": "base64Url", "title": "Base64, URL-safe" },
+              { "const": "url", "title": "URL (percent-encoding)" },
+              { "const": "hex", "title": "Hexadecimal" }
+            ]
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "reformatDates",
+      "name": "Reformat dates",
+      "category": "conversions",
+      "description": "Reads each line as a date or time in one pattern and writes it in another. Empty lines stay empty.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "title": "Input pattern",
+            "description": "How the dates are written now, such as yyyy-MM-dd: yyyy year, MM month, MMM month name, dd day, HH hour, mm minute. Put other text in single quotes.",
+            "default": "yyyy-MM-dd",
+            "maxLength": 10000
+          },
+          "to": {
+            "type": "string",
+            "title": "Output pattern",
+            "description": "How to write them, such as dd.MM.yyyy or d MMMM yyyy.",
+            "default": "dd.MM.yyyy",
+            "maxLength": 10000
           }
         },
         "required": [],

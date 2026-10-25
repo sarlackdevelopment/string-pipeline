@@ -14,6 +14,7 @@ import dev.stringpipeline.library.Limits;
 import dev.stringpipeline.library.Pipeline;
 import dev.stringpipeline.library.PipelineResult;
 import dev.stringpipeline.library.Step;
+import dev.stringpipeline.library.StepResult;
 import dev.stringpipeline.library.StepResult.Executed;
 import dev.stringpipeline.library.Transformation;
 import java.time.Duration;
@@ -24,9 +25,43 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-/// The traps listed in docs/decisions.md, one nested class each. The Turkish i arrives with the case transformation.
+/// The traps listed in docs/decisions.md, one nested class each.
 @DisplayName("Traps")
 class TrapsTest {
+
+    @Nested
+    @DisplayName("Turkish dotted and dotless i, and ß")
+    class TurkishI {
+
+        private final ChangeCase changeCase = new ChangeCase();
+
+        private StepResult change(String input, String to, String language) {
+            return run(changeCase, input, Map.of("to", text(to), "language", text(language)));
+        }
+
+        @Test
+        void anyLanguageWritesI() {
+            assertThat(change("istanbul", "upper", "any")).isEqualTo(executed("ISTANBUL"));
+        }
+
+        @Test
+        void turkishWritesTheDottedCapitalAndTheDotlessSmallI() {
+            assertThat(change("istanbul", "upper", "turkish")).isEqualTo(executed("İSTANBUL"));
+            assertThat(change("IŞIK", "lower", "turkish")).isEqualTo(executed("ışık"));
+            assertThat(change("TITLE CASE", "snake", "turkish")).isEqualTo(executed("tıtle_case"));
+        }
+
+        @Test
+        @DisplayName("without a language, İ becomes i with a combining dot: two characters for Java")
+        void anyLanguageKeepsTheDotOfTheTurkishCapital() {
+            assertThat(change("İ", "lower", "any")).isEqualTo(executed("i" + Texts.COMBINING_DOT_ABOVE));
+        }
+
+        @Test
+        void sharpSBecomesTwoCapitals() {
+            assertThat(change("straße", "upper", "any")).isEqualTo(executed("STRASSE"));
+        }
+    }
 
     @Nested
     @DisplayName("Emoji and combined characters are never split (D7)")
@@ -58,6 +93,13 @@ class TrapsTest {
                             "first\r\nsecond",
                             Map.of("pattern", text("^.+$"), "multiline", bool(true))))
                     .isEqualTo(executed("first\nsecond"));
+        }
+
+        @Test
+        void lineStepsReadCrLfAndWriteNewline() {
+            assertThat(run(new LineOperations(), "b\r\na\r\n", Map.of())).isEqualTo(executed("a\nb\n"));
+            assertThat(run(new ReformatDates(), "2026-10-25\r\n2026-12-31", Map.of()))
+                    .isEqualTo(executed("25.10.2026\n31.12.2026"));
         }
     }
 
@@ -107,6 +149,11 @@ class TrapsTest {
                     .isEqualTo(executed(""));
             assertThat(run(new RegexReplace(), "", Map.of("pattern", text("^"), "replacement", text("x"))))
                     .isEqualTo(executed("x"));
+            assertThat(run(new ChangeCase(), "", Map.of("to", text("camel")))).isEqualTo(executed(""));
+            assertThat(run(new LineOperations(), "", Map.of())).isEqualTo(executed(""));
+            assertThat(run(new Encode(), "", Map.of())).isEqualTo(executed(""));
+            assertThat(run(new Decode(), "", Map.of())).isEqualTo(executed(""));
+            assertThat(run(new ReformatDates(), "", Map.of())).isEqualTo(executed(""));
         }
 
         @Test

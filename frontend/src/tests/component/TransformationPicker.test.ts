@@ -17,24 +17,20 @@ function renderPicker(full = false) {
 const namesOf = (options: readonly HTMLElement[]) =>
   options.map((option) => option.querySelector('span')?.textContent)
 
+// The names in one group of the open list.
+const optionsOf = (group: string) =>
+  namesOf(within(screen.getByRole('group', { name: group })).getAllByRole('option'))
+
 describe('TransformationPicker (R1.3, D28)', () => {
   it('lists every transformation under its category when opened', async () => {
     const { user, search } = renderPicker()
 
     await user.click(search)
 
-    const text = screen.getByRole('group', { name: 'Text' })
-    const regex = screen.getByRole('group', { name: 'Regular expressions' })
-    expect(namesOf(within(text).getAllByRole('option'))).toEqual([
-      'Replace',
-      'Append',
-      'Prepend',
-      'Substring',
-    ])
-    expect(namesOf(within(regex).getAllByRole('option'))).toEqual([
-      'Regex extract',
-      'Regex replace',
-    ])
+    expect(optionsOf('Text')).toEqual(['Replace', 'Append', 'Prepend', 'Substring', 'Change case'])
+    expect(optionsOf('Lines')).toEqual(['Line operations'])
+    expect(optionsOf('Conversions')).toEqual(['Encode', 'Decode', 'Reformat dates'])
+    expect(optionsOf('Regular expressions')).toEqual(['Regex extract', 'Regex replace'])
   })
 
   it('finds a transformation by a word of its description', async () => {

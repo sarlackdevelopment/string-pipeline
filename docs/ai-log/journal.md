@@ -264,4 +264,24 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** `format:check`, `lint`, `typecheck`, 165 tests in 24 files, `build`; seven end-to-end scenarios; `npm audit` clean.
 
-**Commit.** `feat(a11y): focus after edits, run announcements and contrast themes`
+**Commit.** `aa13999 feat(a11y): focus after edits, run announcements and contrast themes`
+
+## Step 17. The harder transformations (2026-10-25)
+
+**Asked.** The harder transformations of D10: case and language, line operations, encodings, dates.
+
+**AI did.**
+
+- Probed Java 25 in jshell first. In Turkish, i becomes İ; without a language, İ becomes i with a combining dot, and ß becomes SS. Strict date parsing rejects `yyyy` unless an era is given, while the lenient default silently turns 30 February into 28 February. The collation of `Locale.ROOT` sorts é next to e. Java's own Base64 errors read "Illegal base64 character 21".
+- Added five transformations in two new categories, Lines and Conversions: Change case (eight cases, and Turkish or Azerbaijani as a language), Line operations (sort, remove duplicates, remove blank lines, reverse), Encode and Decode (Base64, URL-safe Base64, URL encoding, hexadecimal; always UTF-8), and Reformat dates (strict, English month names in any case, every line on its own, the first bad line named with its number). Each is one class and one line in `BuiltIns` (D19). They share a helper that reads `\r\n`, `\r` and `\n` and keeps a final line break.
+- Sorting puts numbers in order of their value, so file2 comes before file10. The first version of removing duplicates compared every line with every earlier one, and reused the sort order, so file02 and file2 counted as the same line. It now keeps a set of exact lines, or of collation keys when case is ignored, and sorting computes each line's keys once instead of in every comparison.
+- The frontend needed no code (R2.1). The catalog that a server on a spare port returned became `contract/catalog.json`, which both sides test against; the frontend tests that count the catalog were updated, and an end-to-end scenario adds Change case, picks Turkish and gets "İSTANBUL" from the real API.
+- Found that the Java formatter writes a Unicode escape as the character itself, so the comment of the test texts had been wrong since step 9. The e with a combining accent is now built from its code points, which an editor that normalises to NFC cannot change. A `\u` inside a comment then broke the build: Java reads Unicode escapes before it knows what a comment is.
+- While the IDE was indexing, the long keyboard journey passed Vitest's 5-second limit. The limit is now 15 seconds, and Testing Library waits up to 3 seconds; checks that pass still return at once. Once more, during heavy indexing, the two longest integration tests failed; three runs after it and a run beside two other full runs of the suite all passed.
+- Added 74 library tests, with new traps: the Turkish i and ß, Windows line endings in the line steps, and empty input for every new transformation.
+
+**Decided.** D10 refined; four traps added to the table.
+
+**Checked.** `./gradlew build` with 235 Java tests (library 209, server 26); `format:check`, `lint`, `typecheck`, 165 Vitest tests, `build`; eight end-to-end scenarios.
+
+**Commit.** `feat(library): case, line, encoding and date transformations`

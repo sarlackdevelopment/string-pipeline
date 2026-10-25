@@ -35,6 +35,15 @@ When(
   },
 )
 
+When(
+  'I choose {string} as {string} in step {int}',
+  async ({ page }, option: string, title: string, position: number) => {
+    await step(page, position)
+      .getByRole('combobox', { name: title, exact: true })
+      .selectOption({ label: option })
+  },
+)
+
 Then('step {int} shows {string}', async ({ page }, position: number, text: string) => {
   await expect(step(page, position).getByText(text, { exact: true })).toBeVisible()
 })

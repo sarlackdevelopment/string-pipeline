@@ -23,6 +23,28 @@ More screenshots: [a step with an error, at phone width](docs/images/editor-phon
 | `buildSrc/` | Build conventions shared by the Java modules: JDK 25, compiler checks, formatting, JUnit  |
 | `frontend/` | Vue 3 + TypeScript single-page app, built with Vite                                       |
 
+## Transformations
+
+| Category            | Transformation  | What it does                                                                                               |
+| ------------------- | --------------- | ---------------------------------------------------------------------------------------------------------- |
+| Text                | Replace         | Replaces every occurrence of a text, exactly and case-sensitively                                          |
+| Text                | Append, Prepend | Adds text to the end or to the beginning                                                                   |
+| Text                | Substring       | Keeps part of the text like a Python slice, counting characters as you see them                            |
+| Text                | Change case     | UPPER, lower or Title Case, or each line as camelCase, PascalCase, snake_case, kebab-case or CONSTANT_CASE |
+| Lines               | Line operations | Sorts the lines with numbers by value, removes duplicate or blank lines, or reverses their order           |
+| Conversions         | Encode, Decode  | Base64, URL-safe Base64, URL (percent-encoding) or hexadecimal, from and to UTF-8                          |
+| Conversions         | Reformat dates  | Reads each line as a date in one pattern and writes it in another, strictly                                |
+| Regular expressions | Regex extract   | Outputs the matches of a Java regular expression, one per line                                             |
+| Regular expressions | Regex replace   | Replaces every match; the replacement can insert groups with `$1` or `${name}`                             |
+
+Text rules:
+
+- A character is what a person sees as one: 👍🏽, 🇩🇪 and an e with a combining accent are never split.
+- Texts are never normalised, so é written in its two Unicode forms stays two different texts.
+- Case changes follow no particular language unless a step picks Turkish or Azerbaijani, where i becomes İ and I becomes ı. Without a language, ß becomes SS, and İ becomes i followed by a combining dot.
+- Line-based steps read `\n`, `\r\n` and `\r`, and write `\n`.
+- Encode and Decode read and write text as UTF-8; month and day names in dates are English.
+
 ## Using the library
 
 The library is plain Java 25 and runs without the web API ([design](docs/design.md), section 5):

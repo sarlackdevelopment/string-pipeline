@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: the brief is done end to end: backend, UI with accessibility, behaviour and end-to-end tests. Next: step 17, the harder transformations.
-- Last commit: `feat(a11y): focus after edits, run announcements and contrast themes`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
+- Phase: the brief is done end to end, and the harder transformations of D10 are in. Next: step 18, starting everything with one command.
+- Last commit: `feat(library): case, line, encoding and date transformations`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once).
-- Tests: Java 161 in 19 classes (library 135, server 26); frontend 165 in 24 files (unit 101, component 54, integration 10); end to end 7 scenarios in 2 features.
+- Tests: Java 235 (library 209, server 26); frontend 165 in 24 files (unit 101, component 54, integration 10); end to end 8 scenarios in 2 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+.
-- Next step: step 17, the harder transformations of D10, in the library first: case and locale (the Turkish i trap; `Locale.ROOT`, described in the README), dates (parse and format, D4), encodings (Base64 and URL, D4), and line operations (sort, unique; lines end with `\n`, `\r\n` or `\r`). Each is one class and one registration in `BuiltIns` (D19), with its traps as parameterized tests; the frontend needs no change (R2.1), which an end-to-end scenario can show. Update `contract/catalog.json`, which both sides test against (D46).
+- Next step: step 18, `docker compose up` as the one-command start (D22): one image with the Spring Boot server serving the API and the built frontend (Spring serves `frontend/dist` as static files, with the single-page app falling back to `index.html`), built in stages (Node for the frontend, Gradle with JDK 25 for the jar, a JRE 25 to run it). The README keeps the manual path. Mind that the developer runs the API on 8080 during the work: test the image on another port.
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -203,6 +203,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: Reka UI's `ComboboxPortal` (`disabled`) and popper (`positionStrategy: 'fixed'`); Testing Library's `render` (`unwrapNode` moves the nodes after mounting); npm registry (@axe-core/playwright 4.14.0, MPL-2.0).
 - Changed: `frontend/src/composables/useFocusRequest.ts`; `components/PipelineEditor/` (`model/focus.ts`, `model/summary.ts`, types, controller, view, container); `components/StepCard/` (`types.ts`, focus parts, `tabindex="-1"`); `components/TransformationPicker` (focus request, inline list); `components/OutputPanel.vue` (live regions); `components/ui/combobox/` (`ComboboxList` `portal` prop, `ComboboxInput` focus ring, `outline-none`); `src/index.css` (forced colours); tests in all three Vitest layers; `e2e/` (`support/editor.ts`, accessibility feature and steps, screenshots spec); `playwright.config.ts` (projects `e2e` and `screenshots`), `tsconfig.e2e.json` (DOM lib), package files (`screenshots`); `docs/images/`; README, `docs/design.md`, `docs/decisions.md`, both journals.
 - Verified: format:check, lint, typecheck, 165 Vitest tests in 24 files (unit 101, component 54, integration 10), build; `npm run test:e2e` 7 scenarios; probes: the Tab walk failed with the old search field, the contrast scenario failed without the forced-colours rule; npm audit clean.
-- Commit: `feat(a11y): focus after edits, run announcements and contrast themes`.
+- Commit: `aa13999`.
 - Open: the Turkish i trap (step 17).
 - Next: S17, the harder transformations.
+
+### S17 The harder transformations (2026-10-25)
+
+- Goal: the harder transformations of D10, without frontend code (R2.1, D19).
+- Requirements: R1.1, R2.1.
+- Decisions: D10 refined; traps table extended (dates, sorting, URL encoding, Base64).
+- Read: Java 25 behaviour through jshell probes (`toUpperCase` and `toLowerCase` with `Locale.ROOT` and Turkish; strict and smart `DateTimeFormatter` resolving, `parseDefaulting(ERA, 1)`, `parseBest`, error causes; `Collator` of `Locale.ROOT` at tertiary and secondary strength; `Base64` decoder errors).
+- Changed: `library/` (`Category` with LINES and CONVERSIONS; `transformations/` `ChangeCase`, `LineOperations`, `NaturalOrder`, `Lines`, `Encoding`, `Encode`, `Decode`, `ReformatDates`, `BuiltIns`; tests for each, `TrapsTest`, `BuiltInsTest`, `Texts` built from code points); `contract/catalog.json` and its README; `frontend/` (tests that count the catalog, `testTimeout` and `asyncUtilTimeout`, an end-to-end scenario and a step that chooses an option); README (transformations, text rules); `docs/design.md`; `docs/decisions.md`; both journals.
+- Verified: `./gradlew build` with 235 tests; a server on port 8093 gave the new catalog and was stopped; format:check, lint, typecheck, 165 Vitest tests, build; 8 end-to-end scenarios.
+- Commit: `feat(library): case, line, encoding and date transformations`.
+- Open: none.
+- Next: S18, one-command start.

@@ -32,12 +32,22 @@ describe('every file in contract/ parses with the app schemas (D20, D46)', () =>
     const catalog = value(parseCatalog(readContract('catalog.json')))
 
     expect(catalog.limits).toEqual({ maxInputLength: 100_000, maxSteps: 50 })
-    expect(catalog.categories.map((category) => category.id)).toEqual(['text', 'regex'])
+    expect(catalog.categories.map((category) => category.id)).toEqual([
+      'text',
+      'lines',
+      'conversions',
+      'regex',
+    ])
     expect(catalog.transformations.map((transformation) => transformation.id)).toEqual([
       'replace',
       'append',
       'prepend',
       'substring',
+      'changeCase',
+      'lineOperations',
+      'encode',
+      'decode',
+      'reformatDates',
       'regexExtract',
       'regexReplace',
     ])
