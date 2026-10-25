@@ -81,6 +81,7 @@ const unseenCatalog = {
       },
     },
   ],
+  examples: [],
 }
 
 // The server shows the parameters it received as the output, so the test can read them back.

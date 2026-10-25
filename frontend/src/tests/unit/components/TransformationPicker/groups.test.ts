@@ -35,6 +35,7 @@ describe('the groups of the transformation picker (D28)', () => {
         { id: 'text', name: 'Text' },
       ],
       transformations: [transformation('append', 'text')],
+      examples: [],
     }
 
     expect(groupByCategory(catalog).map((group) => group.category.id)).toEqual(['text'])

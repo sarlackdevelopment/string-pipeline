@@ -18,6 +18,7 @@ const {
   focusTarget,
   shareLink,
   linkProblem,
+  examples,
   retryCatalog,
   retryRun,
   setInput,
@@ -42,6 +43,7 @@ const {
     :focus-target="focusTarget"
     :share-link="shareLink"
     :link-problem="linkProblem"
+    :examples="examples"
     @retry-catalog="retryCatalog"
     @retry-run="retryRun"
     @set-input="setInput"

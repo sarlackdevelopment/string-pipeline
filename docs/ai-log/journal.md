@@ -341,4 +341,25 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** 197 Vitest tests, 22 of them new, among them five integration tests that open, follow and rewrite links in jsdom; 12 end-to-end scenarios, 2 of them new, in a third feature: a copied link opens the same chain in a fresh page, with a step that is off, and a link that was cut off says so. Screenshots of the button and of a broken link, looked at and not kept. `format:check`, `lint`, `typecheck`, `build`; the Java side did not change.
 
-**Commit.** `feat(ui): keep the chain in the URL, so a link can share it`
+**Commit.** `b78f934 feat(ui): keep the chain in the URL, so a link can share it`
+
+## Step 19.3. Example chains, beyond the brief (2026-10-25)
+
+**Asked.** The third candidate of step 19: example chains to start from.
+
+**AI did.**
+
+- The examples live in the library, next to the transformations, and the server sends them with the catalog (D50). Kept in the frontend, they would have named transformations and parameters there, which the frontend has avoided since step 11 (D19).
+- An `Example` is an id, a name, an input and library steps. `BuiltIns` builds the transformations first and the examples from those very objects; `Catalog` checks that with an identity set, because Error Prone rejects `==` on objects and `equals` would hide that identity is meant.
+- Five examples, one per kind of work: the brief's chain, a title to a URL slug, sorting file names, reformatting dates, finding e-mail addresses. `ExamplesTest` runs each through the real pipeline and pins its output.
+- The server writes the values in the transformation's display order, so the catalog's JSON is the same at every start. `contract/catalog.json` was taken from a temporary server on port 8093, stopped afterwards; a script checked that the rest of the answer was exactly the file and added only the examples.
+- The frontend checks the examples like the transformations: unique ids, and only transformations and parameters the catalog has. It fills in the defaults and shows each example as a plain link to its chain (D49), so following one adds a history entry and Back returns to the chain before.
+- The first place for the examples, above the input, broke the integration test of the keyboard journey: five links came before the input in the order of the Tab key. They moved under the search that adds steps, and Copy link moved from above the input into the output's header for the same reason.
+- A new end-to-end step, "the chain has no steps", first passed for the wrong reason: a script lost the backslash of `\d`, and a pattern that matches nothing always counts zero. It was fixed, and then shown to fail while the example's two steps were on the page.
+- The screenshots in `docs/images` were taken again: they show the switch of each step, the examples and Copy link.
+
+**Decided.** D50.
+
+**Checked.** `./gradlew build`: 246 Java tests (library 220, 11 new; server 26), the server's catalog strictly equal to the contract. 203 Vitest tests, 6 new; 13 end-to-end scenarios in 4 features, 1 new: an example opens with one click, and Back returns to the chain before it. `format:check`, `lint`, `typecheck`, `build`, `npm audit`.
+
+**Commit.** `feat: example chains in the catalog, shown as links`

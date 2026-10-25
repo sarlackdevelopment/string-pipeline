@@ -77,6 +77,16 @@ describe('the chain in a link (D49)', () => {
     expect(screen.queryByRole('region', { name: 'Steps' })).not.toBeInTheDocument()
   })
 
+  it('opens an example from its link, made of the catalog it came with (D50)', async () => {
+    const user = await openAt('')
+
+    await user.click(screen.getByRole('link', { name: 'Title to URL slug' }))
+
+    expect(await screen.findByRole('group', { name: 'Step 1: Change case' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Step 2: Prepend' })).toBeInTheDocument()
+    expect(input()).toHaveValue('10 Tips for Better Regular Expressions')
+  })
+
   it('says why a link cannot be opened, starts empty, and drops the message after the next edit', async () => {
     const user = await openAt('#chain=eyJpbnB1dCI6')
 

@@ -48,8 +48,8 @@ Not asked for and left out on purpose; the reasons are in [decisions](decisions.
 
 ## Beyond the brief
 
-Candidates for after the brief is done, each in its own commit:
+Built in step 19, once the brief was done, each in commits of its own:
 
-- the chain in the URL, so it can be shared: built in step 19 (D49);
-- example chains to start from;
-- disabling a step without removing it: built in step 19 (D48).
+- the chain in the URL, so it can be shared (D49);
+- example chains to start from (D50);
+- disabling a step without removing it (D48).

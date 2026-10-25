@@ -349,5 +349,69 @@
         "additionalProperties": false
       }
     }
+  ],
+  "examples": [
+    {
+      "id": "brief",
+      "name": "The brief's chain",
+      "input": "Fake Python",
+      "steps": [
+        {
+          "transformation": "replace",
+          "parameters": { "old": "Fake", "new": "Real" }
+        },
+        { "transformation": "append", "parameters": { "text": "!" } }
+      ]
+    },
+    {
+      "id": "titleToSlug",
+      "name": "Title to URL slug",
+      "input": "10 Tips for Better Regular Expressions",
+      "steps": [
+        { "transformation": "changeCase", "parameters": { "to": "kebab" } },
+        { "transformation": "prepend", "parameters": { "text": "/blog/" } }
+      ]
+    },
+    {
+      "id": "sortFileNames",
+      "name": "Sort file names",
+      "input": "file10.txt\nfile2.txt\nfile1.txt\nfile2.txt",
+      "steps": [
+        {
+          "transformation": "lineOperations",
+          "parameters": { "operation": "unique" }
+        },
+        {
+          "transformation": "lineOperations",
+          "parameters": { "operation": "sort" }
+        }
+      ]
+    },
+    {
+      "id": "reformatDates",
+      "name": "Reformat dates",
+      "input": "2026-10-29\n2026-12-31",
+      "steps": [
+        {
+          "transformation": "reformatDates",
+          "parameters": { "to": "d MMMM yyyy" }
+        }
+      ]
+    },
+    {
+      "id": "findEmailAddresses",
+      "name": "Find e-mail addresses",
+      "input": "Write to anna@example.com or bob@example.org; anna@example.com reads both.",
+      "steps": [
+        {
+          "transformation": "regexExtract",
+          "parameters": { "pattern": "[\\w.+-]+@[\\w-]+(\\.[\\w-]+)+" }
+        },
+        {
+          "transformation": "lineOperations",
+          "parameters": { "operation": "unique" }
+        }
+      ]
+    }
   ]
 }

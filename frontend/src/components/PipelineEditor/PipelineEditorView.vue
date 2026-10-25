@@ -5,7 +5,6 @@
  */
 import { LoaderCircleIcon, TriangleAlertIcon } from '@lucide/vue'
 import { computed, useId } from 'vue'
-import CopyLinkButton from '@/components/CopyLinkButton.vue'
 import InputPanel from '@/components/InputPanel.vue'
 import OutputPanel from '@/components/OutputPanel.vue'
 import StepCard from '@/components/StepCard/StepCard.vue'
@@ -20,6 +19,7 @@ import {
   CatalogStatus,
   SEARCH,
   type CatalogState,
+  type ExampleLink,
   type FocusTarget,
   type RunAlert,
   type StepItem,
@@ -41,6 +41,8 @@ const props = defineProps<{
   shareLink: string | null
   /** Why the link the editor was opened with could not be opened (D49). */
   linkProblem: string | null
+  /** Links to the example chains, in display order (D50). */
+  examples: readonly ExampleLink[]
 }>()
 
 const emit = defineEmits<{
@@ -55,6 +57,7 @@ const emit = defineEmits<{
 }>()
 
 const stepsHeadingId = useId()
+const examplesLabelId = useId()
 
 // Each component gets the focus target only when it owns that place; the object stays the same between renders, so
 // only a new edit asks for the focus again.
@@ -90,10 +93,6 @@ const searchFocus = computed(() => (props.focusTarget?.part === SEARCH ? props.f
       <AlertTitle>This link could not be opened</AlertTitle>
       <AlertDescription>{{ linkProblem }}</AlertDescription>
     </Alert>
-
-    <div class="flex items-center justify-end">
-      <CopyLinkButton :link="shareLink" />
-    </div>
 
     <InputPanel
       :model-value="input"
@@ -144,6 +143,23 @@ const searchFocus = computed(() => (props.focusTarget?.part === SEARCH ? props.f
       @add="emit('addStep', $event)"
     />
 
-    <OutputPanel :result="result" :is-updating="isUpdating" :summary="summary" />
+    <!-- After the search that adds steps, so the input stays the first stop of the Tab key. -->
+    <div
+      v-if="examples.length > 0"
+      class="-mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1 text-sm"
+    >
+      <span :id="examplesLabelId" class="text-muted-foreground">Or open an example:</span>
+      <ul :aria-labelledby="examplesLabelId" class="flex flex-wrap gap-x-3 gap-y-1">
+        <li v-for="example in examples" :key="example.id">
+          <a
+            :href="example.href"
+            class="rounded-sm font-medium underline decoration-muted-foreground/60 underline-offset-4 outline-none hover:decoration-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            >{{ example.name }}</a
+          >
+        </li>
+      </ul>
+    </div>
+
+    <OutputPanel :result="result" :is-updating="isUpdating" :summary="summary" :link="shareLink" />
   </div>
 </template>

@@ -9,7 +9,7 @@ A change to the API starts with a change here.
 
 | File                                | Shows                                                                                            |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `catalog.json`                      | limits, the four categories and all eleven transformations                                       |
+| `catalog.json`                      | limits, the four categories, all eleven transformations and the five example chains              |
 | `examples/brief-chain.*`            | the brief's example, extended: replace → append → substring                                      |
 | `examples/step-statuses.*`          | `executed`, `notConfigured`, `invalidParameters` and `notRun` in one run, with the "$5 off" trap |
 | `examples/unknown-transformation.*` | a request error as Problem Details (HTTP 400)                                                    |

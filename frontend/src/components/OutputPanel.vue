@@ -1,12 +1,14 @@
 <script setup lang="ts">
 /**
- * The chain's final output (D13, D32), with a button that copies it. While the next run is on its way, the previous
- * output stays and is marked as updating. A live region under the heading speaks the latest run in one sentence, and
- * another one confirms a copy, which a changed button label alone does not announce (D15).
+ * The chain's final output (D13, D32), with a button that copies it and one that copies a link to the chain (D49).
+ * While the next run is on its way, the previous output stays and is marked as updating. A live region under the
+ * heading speaks the latest run in one sentence, and another one confirms a copy, which a changed button label alone
+ * does not announce (D15).
  */
 import { CheckIcon, CopyIcon, LoaderCircleIcon } from '@lucide/vue'
 import { useClipboard } from '@vueuse/core'
 import { computed, useId } from 'vue'
+import CopyLinkButton from '@/components/CopyLinkButton.vue'
 import { Button } from '@/components/ui/button'
 import type { RunResult } from '@/model/run'
 
@@ -15,6 +17,8 @@ const props = defineProps<{
   isUpdating: boolean
   /** The latest run in one sentence. */
   summary: string
+  /** A link to the chain as it is now; `null` while the chain is empty (D49). */
+  link: string | null
 }>()
 
 const headingId = useId()
@@ -51,6 +55,7 @@ function copyOutput(): void {
           <LoaderCircleIcon class="size-3.5 animate-spin" />
           Updating
         </span>
+        <CopyLinkButton :link="link" />
         <Button variant="outline" size="sm" :disabled="!output" @click="copyOutput">
           <CheckIcon v-if="copied" />
           <CopyIcon v-else />

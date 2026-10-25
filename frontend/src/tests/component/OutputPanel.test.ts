@@ -7,12 +7,15 @@ import { grantClipboardWrite } from '@/tests/helpers/clipboard'
 
 const result = (output: string | null): RunResult => ({ steps: new Map(), output })
 
-function renderPanel(props: { result?: RunResult; isUpdating?: boolean; summary?: string } = {}) {
+function renderPanel(
+  props: { result?: RunResult; isUpdating?: boolean; summary?: string; link?: string } = {},
+) {
   render(OutputPanel, {
     props: {
       result: props.result,
       isUpdating: props.isUpdating ?? false,
       summary: props.summary ?? '',
+      link: props.link ?? null,
     },
   })
   return screen.getByRole('region', { name: 'Output' })
@@ -65,6 +68,12 @@ describe('OutputPanel (D13, D32)', () => {
     expect(await navigator.clipboard.readText()).toBe('Real Python!')
     // A changed label alone is not announced, so a live region confirms the copy (D15).
     expect(screen.getByText('Copied the output.')).toBeInTheDocument()
+  })
+
+  it('offers a link to the chain next to the output (D49)', () => {
+    const panel = renderPanel({ link: 'http://localhost:3000/#chain=e30' })
+
+    expect(within(panel).getByRole('button', { name: 'Copy link' })).toBeEnabled()
   })
 
   it('speaks the latest run in a live region under its heading (D15)', () => {

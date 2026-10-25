@@ -6,7 +6,8 @@
  * (D43). Problem Details stay open too, because RFC 9457 allows extension members.
  */
 import { z } from 'zod'
-import type { Catalog } from '@/model/catalog'
+import type { Catalog, Example, Transformation } from '@/model/catalog'
+import { defaultValues } from '@/model/chain'
 import { toFields } from '@/model/fields'
 import type { Problem } from '@/model/problem'
 import { StepStatus, type RunResult, type StepResult } from '@/model/run'
@@ -16,6 +17,21 @@ export type Parsed<T> =
   { readonly ok: true; readonly value: T } | { readonly ok: false; readonly detail: string }
 
 const nonEmpty = z.string().min(1)
+
+// A step of an example has the shape of a step of a run request, without its id (D50).
+const exampleSchema = z.strictObject({
+  id: nonEmpty,
+  name: nonEmpty,
+  input: z.string(),
+  steps: z
+    .array(
+      z.strictObject({
+        transformation: nonEmpty,
+        parameters: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])),
+      }),
+    )
+    .min(1),
+})
 
 const catalogSchema = z
   .strictObject({
@@ -35,6 +51,7 @@ const catalogSchema = z
         }),
       }),
     ),
+    examples: z.array(exampleSchema),
   })
   .superRefine((catalog, context) => {
     const categories = new Set(catalog.categories.map((category) => category.id))
@@ -60,15 +77,75 @@ const catalogSchema = z
         }
       }
     })
+    // An example is made of the catalog's own transformations and parameters (D50).
+    const properties = new Map(
+      catalog.transformations.map((transformation) => [
+        transformation.id,
+        transformation.parameters.properties,
+      ]),
+    )
+    const exampleIds = new Set<string>()
+    catalog.examples.forEach((example, index) => {
+      const path = ['examples', index]
+      if (exampleIds.has(example.id)) {
+        context.addIssue({
+          code: 'custom',
+          path: [...path, 'id'],
+          message: `Duplicate example id ${example.id}`,
+        })
+      }
+      exampleIds.add(example.id)
+      example.steps.forEach((step, stepIndex) => {
+        const stepPath = [...path, 'steps', stepIndex]
+        const known = properties.get(step.transformation)
+        if (known === undefined) {
+          const message = `Unknown transformation ${step.transformation}`
+          context.addIssue({ code: 'custom', path: [...stepPath, 'transformation'], message })
+          return
+        }
+        for (const name of Object.keys(step.parameters)) {
+          if (!(name in known)) {
+            const message = `Unknown parameter ${name} of ${step.transformation}`
+            context.addIssue({ code: 'custom', path: [...stepPath, 'parameters', name], message })
+          }
+        }
+      })
+    })
   })
-  .transform((catalog): Catalog => ({
-    limits: catalog.limits,
-    categories: catalog.categories,
-    transformations: catalog.transformations.map(({ parameters, ...transformation }) => ({
+  .transform((catalog): Catalog => {
+    const transformations = catalog.transformations.map(({ parameters, ...transformation }) => ({
       ...transformation,
       fields: toFields(parameters),
-    })),
-  }))
+    }))
+    return {
+      limits: catalog.limits,
+      categories: catalog.categories,
+      transformations,
+      examples: catalog.examples.map((example) => toExample(example, transformations)),
+    }
+  })
+
+// Every field gets a value, the example's or the field's default, as a step added from the picker has.
+function toExample(
+  example: z.infer<typeof exampleSchema>,
+  transformations: readonly Transformation[],
+): Example {
+  return {
+    id: example.id,
+    name: example.name,
+    chain: {
+      input: example.input,
+      steps: example.steps.map((step) => {
+        const fields = transformations.find(({ id }) => id === step.transformation)?.fields ?? []
+        return {
+          transformationId: step.transformation,
+          values: { ...defaultValues(fields), ...step.parameters },
+          enabled: true,
+        }
+      }),
+    },
+  }
+}
 
 const issuesSchema = z.array(z.strictObject({ parameter: nonEmpty, message: nonEmpty })).min(1)
 

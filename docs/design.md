@@ -31,6 +31,7 @@ Everything the frontend needs to build the editor ([example](../contract/catalog
 - `limits`: `maxInputLength` (100,000) and `maxSteps` (50), so the UI can enforce them before sending (D21). Lengths count UTF-16 code units, like JavaScript's `length` and HTML's `maxlength`.
 - `categories`: id and name, in display order.
 - `transformations`: id, name, category, description, and `parameters` as JSON Schema (section 3).
+- `examples`: ready-made chains with an id, a name, an input and steps, each step with `transformation` and `parameters` as in a run request; a parameter an example leaves out keeps its default (D50).
 
 ### POST /api/runs
 
@@ -167,10 +168,10 @@ Checks of the second set:
 
 ## 5. Library
 
-| Package                                      | Visibility                                  | Contents                                                                      |
-| -------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------- |
-| `dev.stringpipeline.library`                 | public API                                  | `Catalog`, `Pipeline`, `Transformation`, parameters, values, results          |
-| `dev.stringpipeline.library.transformations` | package-private, plus one public `BuiltIns` | the transformations and their text helpers (graphemes, lines, regex deadline) |
+| Package                                      | Visibility                                  | Contents                                                                        |
+| -------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------- |
+| `dev.stringpipeline.library`                 | public API                                  | `Catalog`, `Example`, `Pipeline`, `Transformation`, parameters, values, results |
+| `dev.stringpipeline.library.transformations` | package-private, plus one public `BuiltIns` | the transformations and their text helpers (graphemes, lines, regex deadline)   |
 
 The server may use only the API package and `BuiltIns`, and an ArchUnit test checks it (D31). The transformation classes are package-private, so the compiler already prevents direct use. `BuiltIns.catalog()` is the one way in, which also keeps the API package free of references to the implementations.
 
@@ -198,6 +199,8 @@ Each step goes through three stages, and each one returns data rather than throw
 
 Exceptions remain only for programmer errors. Adding a transformation means one package-private class and one line in `BuiltIns`; the frontend needs nothing (D19).
 
+Examples (D50, step 19). An `Example` is an id, a name, an input and library `Step`s. `BuiltIns` builds the transformations first and the examples from those very objects, and `Catalog` checks it with an identity set: a client opens an example by its transformation ids and runs the catalog's own transformations, so the example has to run the same ones. `ExamplesTest` runs every example through the real pipeline and pins its output.
+
 Text rules:
 
 - A character is a grapheme cluster. `java.text.BreakIterator` follows Unicode's extended grapheme clusters since Java 20; a probe on Java 25 counted 👍🏽🇩🇪, e with a combining accent, and x as 4 characters (11 UTF-16 units).
@@ -211,7 +214,7 @@ Limits (D21, D45). `Pipeline` takes a `Limits` value with production defaults; t
 
 ## 6. Server
 
-- `CatalogController` (`GET /api/catalog`) builds its response once at startup. It maps each `Parameter` to JSON Schema with an exhaustive `switch` (D30), so a new parameter kind does not compile until the mapping handles it.
+- `CatalogController` (`GET /api/catalog`) builds its response once at startup. It maps each `Parameter` to JSON Schema with an exhaustive `switch` (D30), so a new parameter kind does not compile until the mapping handles it. The examples' values become JSON through an exhaustive `switch` over `ArgumentValue`, in the transformation's display order, so the JSON is the same at every start.
 - `RunController` (`POST /api/runs`) hands the request to `RunRequestReader`, then calls `Pipeline` and maps every `StepResult` to the response with an exhaustive `switch`. The reader:
   - collects every request error with its JSON pointer before it answers. The rules need the catalog or several fields at once, so they are plain code rather than Bean Validation annotations;
   - maps JSON values to `ArgumentValue`: string to text, number to number, boolean to boolean, `null` to absent, object or array to 400.
@@ -230,7 +233,7 @@ Components with behaviour get model, controller, view and container (D26). Purel
 
 ```
 model/                             the domain, pure functions and types, no Vue (step 11)
-  catalog.ts                       limits, categories, transformations with their fields
+  catalog.ts                       limits, categories, transformations with their fields, example chains (D50)
   fields.ts                        JSON Schema → field descriptors; unknown kinds become `unsupported` (D43)
   chain.ts                         input and steps: add, remove, move, edit, turn off (D1, D48)
   run.ts                           chain → run request without the steps that are off; results by step id (D40, D42)
@@ -260,7 +263,7 @@ components/
   ParameterForm/FieldShell.vue     label, description and issue, linked to the control (D15)
   ParameterForm/fields/            TextField, IntegerField, BooleanField, ChoiceField, UnsupportedField
   TransformationPicker/            combobox with search, groups and descriptions (D28); model/groups.ts
-  OutputPanel.vue                  final output and a copy button (D32)
+  OutputPanel.vue                  final output, a copy button, and Copy link (D32, D49)
   ui/                              shadcn-vue components (D28)
 ```
 
@@ -300,6 +303,8 @@ The chain in a link (D49, step 19). `model/link` writes a chain as `#chain=` and
 - leaves an empty chain without a fragment, so the plain address stays plain.
 
 Copy link copies a link built from the chain itself, not from the address, which may still be waiting for its pause. A link that cannot be read shows an alert above the editor, which goes away with the next edit.
+
+Examples (D50, step 19). `api/contract` checks the catalog's examples like its transformations: unique ids, and only transformations and parameters that the catalog has. Each step then gets a value for every field, the example's or the field's default, as a step added from the picker has. The controller turns each example into a link to its chain (`model/link`), and the view lists those links under the search that adds steps: a click follows the link, `useChainLink` opens the chain, and Back returns to the one before. They sit after the search, not above the input, so the input stays the first stop of the Tab key; for the same reason Copy link moved from above the input to the output's header, next to Copy.
 
 Proof of R2.1 (D19): an integration test serves a catalog with a transformation the frontend has never seen, with an unfamiliar mix of parameters, and checks that its form renders and runs.
 

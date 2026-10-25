@@ -32,6 +32,14 @@ export interface StepItem {
   readonly errors: StepErrors | undefined
 }
 
+/** A link that opens an example chain (D50). */
+export interface ExampleLink {
+  readonly id: string
+  readonly name: string
+  /** The fragment of a link to its chain (D49). */
+  readonly href: string
+}
+
 /** A problem with the run as a whole, shown above the steps. */
 export interface RunAlert {
   readonly messages: readonly string[]

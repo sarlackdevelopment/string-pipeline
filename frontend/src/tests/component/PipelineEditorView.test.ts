@@ -7,6 +7,7 @@ import {
   CatalogStatus,
   SEARCH,
   type CatalogState,
+  type ExampleLink,
   type RunAlert,
   type StepItem,
 } from '@/components/PipelineEditor/types'
@@ -42,6 +43,7 @@ interface ViewOptions {
   readonly runAlert?: RunAlert | null
   readonly shareLink?: string | null
   readonly linkProblem?: string | null
+  readonly examples?: readonly ExampleLink[]
 }
 
 function renderView(options: ViewOptions = {}) {
@@ -69,6 +71,7 @@ function renderView(options: ViewOptions = {}) {
       focusTarget: null,
       shareLink: options.shareLink ?? null,
       linkProblem: options.linkProblem ?? null,
+      examples: options.examples ?? [],
       ...events,
     },
   })
@@ -198,6 +201,22 @@ describe('PipelineEditorView (D2, D26)', () => {
       await view.rerender({ shareLink: 'http://localhost:3000/#chain=e30' })
 
       expect(copy).toBeEnabled()
+    })
+
+    it('offers the examples as links to their chains (D50)', () => {
+      renderView({
+        examples: [
+          { id: 'brief', name: "The brief's chain", href: '#chain=a' },
+          { id: 'titleToSlug', name: 'Title to URL slug', href: '#chain=b' },
+        ],
+      })
+
+      const list = screen.getByRole('list', { name: 'Or open an example:' })
+      expect(within(list).getByRole('link', { name: "The brief's chain" })).toHaveAttribute(
+        'href',
+        '#chain=a',
+      )
+      expect(within(list).getAllByRole('link')).toHaveLength(2)
     })
 
     it('says why the link it was opened with could not be opened', () => {

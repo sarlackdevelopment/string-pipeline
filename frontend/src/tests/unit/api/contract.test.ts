@@ -1,8 +1,9 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { parseCatalog, parseProblem, parseRunResult, type Parsed } from '@/api/contract'
+import { defaultValues } from '@/model/chain'
 import { StepStatus } from '@/model/run'
-import { readContract } from '@/tests/helpers/contract'
+import { contractTransformation, readContract } from '@/tests/helpers/contract'
 
 function value<T>(parsed: Parsed<T>): T {
   if (!parsed.ok) {
@@ -22,6 +23,10 @@ function detail<T>(parsed: Parsed<T>): string {
 function catalogJson(): {
   categories: { id: string; name: string }[]
   transformations: { id: string; category: string; parameters: { required: string[] } }[]
+  examples: {
+    id: string
+    steps: { transformation: string; parameters: Record<string, unknown> }[]
+  }[]
   [key: string]: unknown
 } {
   return readContract('catalog.json') as ReturnType<typeof catalogJson>
@@ -51,6 +56,24 @@ describe('every file in contract/ parses with the app schemas (D20, D46)', () =>
       'regexExtract',
       'regexReplace',
     ])
+  })
+
+  it('parses the example chains, with every field of their steps set (D50)', () => {
+    const catalog = value(parseCatalog(readContract('catalog.json')))
+
+    expect(catalog.examples.map((example) => example.id)).toEqual([
+      'brief',
+      'titleToSlug',
+      'sortFileNames',
+      'reformatDates',
+      'findEmailAddresses',
+    ])
+    const titleToSlug = catalog.examples[1]
+    expect(titleToSlug?.chain.steps[0]).toEqual({
+      transformationId: 'changeCase',
+      values: { ...defaultValues(contractTransformation('changeCase').fields), to: 'kebab' },
+      enabled: true,
+    })
   })
 
   it('parses the brief-chain response into results by step id', () => {
@@ -112,6 +135,28 @@ describe('a catalog that breaks the contract is rejected with the reason', () =>
     json.transformations = [...json.transformations, ...json.transformations.slice(0, 1)]
 
     expect(detail(parseCatalog(json))).toContain('Duplicate id replace')
+  })
+
+  it('rejects an example made of a transformation or a parameter the catalog does not have (D50)', () => {
+    const json = catalogJson()
+    const [first, second] = json.examples
+    if (first?.steps[0] === undefined || second?.steps[0] === undefined) {
+      throw new Error('The contract has two examples.')
+    }
+    first.steps[0].transformation = 'reverse'
+    second.steps[0].parameters['colour'] = 'red'
+
+    const reason = detail(parseCatalog(json))
+
+    expect(reason).toContain('Unknown transformation reverse')
+    expect(reason).toContain('Unknown parameter colour of changeCase')
+  })
+
+  it('rejects two examples with the same id', () => {
+    const json = catalogJson()
+    json.examples = [...json.examples, ...json.examples.slice(0, 1)]
+
+    expect(detail(parseCatalog(json))).toContain('Duplicate example id brief')
   })
 
   it('rejects a required parameter without a schema', () => {

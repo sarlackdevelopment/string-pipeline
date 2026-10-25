@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: the brief is done end to end, with the harder transformations of D10 and a one-command start. Step 19, beyond the brief, is under way: 19.1, turning a step off, and 19.2, the chain in the URL, are done; 19.3, example chains, follows.
-- Last commit: `feat(ui): keep the chain in the URL, so a link can share it`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
+- Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, and the three extras of step 19, beyond the brief: turning a step off, the chain in the URL, example chains. Next: step 20, the final check.
+- Last commit: `feat: example chains in the catalog, shown as links`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once). `docker compose up --build` serves the app on 8080, or on `PORT`; `E2E_BASE_URL=http://localhost:<port> npm run test:e2e` runs the features against it.
-- Tests: Java 235 (library 209, server 26); frontend 197 in 27 files (unit 120, component 61, integration 16); end to end 12 scenarios in 3 features.
+- Tests: Java 246 (library 220, server 26); frontend 203 in 27 files (unit 123, component 63, integration 17); end to end 13 scenarios in 4 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+. Docker Desktop with Compose for the image.
-- Next step: 19.3, example chains: defined in the library next to the transformations (`BuiltIns`) and tested by running them, served by the server in the catalog, shown by the frontend as links to `#chain=` built with `model/link`, so the frontend still knows no transformation by name and Back returns to the chain before an example. Its own commit, marked beyond the brief. Then step 20, the final check: a fresh clone, every check including `docker compose up --build` and the end-to-end features against the container (`E2E_BASE_URL`), the README read through, the screenshots taken again, and a zip of the clone with `.git` (D24).
+- Next step: step 20, the final check: a fresh clone, every check including `docker compose up --build` and the end-to-end features against the container (`E2E_BASE_URL`), the README read through, and a zip of the clone with `.git` (D24). Docker Desktop is installed but stopped: `docker desktop start` starts it, `docker desktop stop` stops it again afterwards.
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -251,6 +251,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: VueUse 14 `debounceFilter`: `watchDebounced` cannot cancel a waiting call, `useDebounceFn` returns a function with `cancel`, `flush` and `isPending`.
 - Changed: `model/link.ts` (`toFragment`, `fromFragment`, `LinkStatus`); `model/chain.ts` (`ChainContent`, `withIds`); the store (`nextId`, `load`); `composables/useChainLink.ts`; the controller (`shareLink`, `linkProblem`), view (alert, toolbar) and container; `components/CopyLinkButton.vue`; `tests/helpers/clipboard.ts` (moved out of the output panel's test) and `tests/helpers/setup.ts` (plain address after every test); tests of the model, store, view, button and `tests/integration/ChainLink.test.ts`; `e2e/features/share-chain.feature` and `e2e/steps/link.ts`; README, requirements, decisions, design (section 7), both journals.
 - Verified: 197 Vitest tests (unit 120, component 61, integration 16); 12 e2e scenarios in 3 features; the copied link read back from Chromium's clipboard (`context.grantPermissions`); screenshots taken with a temporary spec, deleted afterwards; ports 8091 and 4191 free; the developer's server on 8080 untouched.
-- Commit: `feat(ui): keep the chain in the URL, so a link can share it`.
+- Commit: `b78f934`.
 - Open: none.
 - Next: S19.3, example chains.
+
+### S19.3 Example chains (2026-10-25)
+
+- Goal: D50, beyond the brief: example chains to start from.
+- Requirements: beyond the brief (requirements, last section, now all built).
+- Decisions: D50.
+- Read: `Catalog`, `Step`, `ArgumentValue`, `BuiltIns`, `CatalogResponse`, `CatalogControllerTest` (`isStrictlyEqualTo` the contract).
+- Changed: library `Example` (new), `Catalog` (`examples()`, identity check), `BuiltIns` (five examples), `ExamplesTest` (new), `CatalogTest`; server `CatalogResponse` (`examples`, values in display order), `CatalogController` (OpenAPI text); `contract/catalog.json` (examples added from a temporary server on port 8093), `contract/README.md`; frontend `model/catalog.ts` (`Example`), `api/contract.ts` (schema, checks, defaults), the editor's types (`ExampleLink`), controller, view (examples under the search) and container, `OutputPanel.vue` (Copy link moved here); tests of the contract, the view, the output panel, the R2.1 catalog fixture and the picker's groups (`examples: []`), `ChainLink.test.ts`; `e2e/features/examples.feature`, `e2e/steps/link.ts`; `docs/images` taken again; README, requirements, decisions, design (sections 2, 5, 6, 7), both journals.
+- Verified: `./gradlew build` (library 220, server 26); 203 Vitest tests (unit 123, component 63, integration 17); 13 e2e scenarios; "the chain has no steps" fails with the example's 2 steps on the page; the temporary server on 8093 stopped and no process of it left; ports 8091 and 4191 free; the developer's server on 8080 untouched.
+- Commit: `feat: example chains in the catalog, shown as links`.
+- Open: none.
+- Next: S20, the final check.

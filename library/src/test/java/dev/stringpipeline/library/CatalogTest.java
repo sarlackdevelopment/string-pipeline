@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class CatalogTest {
@@ -49,5 +51,52 @@ class CatalogTest {
     void rejectsAnIdThatIsNotLowerCamelCase() {
         assertThatThrownBy(() -> new TransformationInfo("regex-replace", "Regex replace", "A test.", Category.REGEX))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Nested
+    class Examples {
+
+        private final Transformation appending = Fakes.appending("!");
+
+        @Test
+        void offersExamplesMadeOfItsTransformations() {
+            Example twice = example("twice", appending);
+
+            Catalog catalog = new Catalog(List.of(appending), List.of(twice));
+
+            assertThat(catalog.examples()).containsExactly(twice);
+            assertThat(new Catalog(List.of(appending)).examples()).isEmpty();
+        }
+
+        @Test
+        void rejectsAnExampleWithATransformationFromElsewhere() {
+            List<Example> elsewhere = List.of(example("elsewhere", Fakes.appending("?")));
+
+            assertThatThrownBy(() -> new Catalog(List.of(appending), elsewhere))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("elsewhere");
+        }
+
+        @Test
+        void rejectsTwoExamplesWithTheSameId() {
+            List<Example> twins = List.of(example("twice", appending), example("twice", appending));
+
+            assertThatThrownBy(() -> new Catalog(List.of(appending), twins))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("twice");
+        }
+
+        @Test
+        void needsAnIdInLowerCamelCaseAndAtLeastOneStep() {
+            assertThatThrownBy(() -> example("two-steps", appending)).isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new Example("empty", "Empty", "a", List.of()))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("empty");
+        }
+
+        private static Example example(String id, Transformation transformation) {
+            return new Example(
+                    id, id, "a", List.of(new Step(transformation, Map.of()), new Step(transformation, Map.of())));
+        }
     }
 }

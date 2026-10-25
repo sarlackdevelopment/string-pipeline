@@ -20,6 +20,7 @@ import { runSummary } from './model/summary'
 import {
   CatalogStatus,
   type CatalogState,
+  type ExampleLink,
   type FocusTarget,
   type RunAlert,
   type StepItem,
@@ -40,6 +41,16 @@ export function usePipelineEditorController() {
     const fragment = toFragment(store.chain)
     return fragment === '' ? null : new URL(fragment, window.location.href).href
   })
+
+  // Plain links to the chains of the examples (D50): following one opens its chain, and Back returns to the chain
+  // before it.
+  const examples = computed<readonly ExampleLink[]>(() =>
+    (catalogQuery.data.value?.examples ?? []).map((example) => ({
+      id: example.id,
+      name: example.name,
+      href: toFragment(example.chain),
+    })),
+  )
 
   const catalogState = computed<CatalogState>(() => {
     const catalog = catalogQuery.data.value
@@ -128,6 +139,7 @@ export function usePipelineEditorController() {
     focusTarget,
     shareLink,
     linkProblem: link.problem,
+    examples,
     retryCatalog: () => {
       void catalogQuery.refetch()
     },

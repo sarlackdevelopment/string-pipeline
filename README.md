@@ -19,7 +19,7 @@ With Docker, one command builds and starts everything:
 docker compose up --build
 ```
 
-The app runs on http://localhost:8080, with Swagger UI at http://localhost:8080/swagger-ui.html. The first build takes a few minutes; `PORT=9090 docker compose up --build` uses another port (in PowerShell, set `$env:PORT = 9090` first). Type a text, add steps with the search field under the steps, and every step shows its own output.
+The app runs on http://localhost:8080, with Swagger UI at http://localhost:8080/swagger-ui.html. The first build takes a few minutes; `PORT=9090 docker compose up --build` uses another port (in PowerShell, set `$env:PORT = 9090` first). Type a text, add steps with the search field under the steps, or open one of the examples under it; every step shows its own output.
 
 Without Docker, start the API, then the frontend in a second terminal:
 
@@ -33,7 +33,7 @@ The app then runs on http://localhost:5173, and Vite's dev server forwards `/api
 ## Documentation
 
 - [Requirements](docs/requirements.md): the brief as numbered requirements, R1.1–R4.4
-- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D49
+- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D50
 - [Design](docs/design.md): the API, the transformations, the library, the server and the frontend
 - [API contract](contract/README.md): example requests and responses that the Java and TypeScript tests share
 - [AI usage log](docs/ai-log/README.md): every step taken with the AI assistant, for people and for agents
@@ -75,6 +75,7 @@ Added after the brief was done, each in commits of its own ([decisions](docs/dec
 
 - A step can be turned off with the switch in its header. It keeps its place and its values, and the text passes through it unchanged (D48).
 - The address holds the chain, so a link opens the same chain anywhere, and Copy link copies it. Edits change the address in place, and Back returns to the chain before a followed link (D49).
+- Five example chains open with one click, under the search that adds steps. The server sends them with the catalog, the library's tests run each of them, and the frontend shows them as links (D50).
 
 ## Using the library
 
@@ -95,10 +96,10 @@ Every step's result is `Executed`, `NotConfigured`, `InvalidParameters`, `Failed
 
 ## Web API
 
-| Endpoint           | What it does                                                                   |
-| ------------------ | ------------------------------------------------------------------------------ |
-| `GET /api/catalog` | Limits, categories and every transformation with its parameters as JSON Schema |
-| `POST /api/runs`   | Runs a chain and returns a result for every step                               |
+| Endpoint           | What it does                                                                                    |
+| ------------------ | ----------------------------------------------------------------------------------------------- |
+| `GET /api/catalog` | Limits, categories, every transformation with its parameters as JSON Schema, and example chains |
+| `POST /api/runs`   | Runs a chain and returns a result for every step                                                |
 
 With the app running, in Docker or with `./gradlew :server:bootRun`, Swagger UI at http://localhost:8080/swagger-ui.html lets you try both endpoints. From the command line:
 
