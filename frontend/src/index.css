@@ -7,7 +7,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-/* Class-based, so `dark:` utilities in the components never follow the OS on their own. There is no dark theme. */
+/* Class-based: the theme puts `dark` on <html> (D51), so `dark:` utilities follow the user's choice, not only the OS. */
 @custom-variant dark (&:is(.dark *));
 
 /*
@@ -131,6 +131,34 @@
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
   --radius: 0.625rem;
+  color-scheme: light;
+}
+
+/*
+ * The dark theme (D51): shadcn-vue's neutral dark palette, and Tailwind's green-500 for an executed step, 8:1 on a
+ * card. `color-scheme` darkens what the browser draws itself, such as scroll bars and the handle of the input.
+ */
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --success: oklch(0.723 0.219 149.579);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  color-scheme: dark;
 }
 
 @layer base {
@@ -157,5 +185,19 @@
   [data-highlighted] {
     outline: 2px solid Highlight;
     outline-offset: -2px;
+  }
+}
+
+/*
+ * For people who ask their system for less motion, nothing moves: spinners stand still, beside the words that say a run
+ * is on its way, and the list of transformations opens without a zoom (D15).
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

@@ -29,9 +29,11 @@ beforeAll(() => {
 afterEach(() => {
   cleanup()
   server.resetHandlers()
-  // Every test starts at the app's own address, without a link in it (D49).
+  // Every test starts at the app's own address, without a link in it (D49), and without a chosen theme (D51).
   if (typeof window !== 'undefined') {
     window.history.replaceState(null, '', '/')
+    window.localStorage.clear()
+    document.documentElement.className = ''
   }
 })
 

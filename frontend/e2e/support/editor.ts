@@ -21,6 +21,10 @@ export const field = (page: Page, position: number, title: string): Locator =>
 export const runSwitch = (page: Page, position: number): Locator =>
   step(page, position).getByRole('switch', { name: `Run step ${String(position)}`, exact: true })
 
+/** One option of the theme in the header (D51). */
+export const themeOption = (page: Page, name: string): Locator =>
+  page.getByRole('radiogroup', { name: 'Theme' }).getByRole('radio', { name, exact: true })
+
 export const output = (page: Page): Locator => page.getByRole('region', { name: 'Output' })
 
 export const runSummary = (page: Page): Locator => page.getByRole('status', { name: 'Run summary' })

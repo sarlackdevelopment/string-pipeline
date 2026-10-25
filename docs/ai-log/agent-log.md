@@ -4,10 +4,10 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: all 20 steps are done: the brief end to end, the harder transformations of D10, a one-command start, three extras beyond the brief, and the final check. The delivery is a zip of a fresh clone of the last commit (D24).
-- Last commit: `docs: README and AI log for the delivery`. Branch `main`, no remote. Commits use the repository's own `user.email`.
+- Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, four extras beyond the brief (turning a step off, the chain in the URL, example chains, themes) and the final check. The delivery is a zip of a fresh clone of the last commit (D24).
+- Last commit: `feat(ui): light, dark and system themes`. Branch `main`, no remote. Commits use the repository's own `user.email`.
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once). `docker compose up --build` serves the app on 8080, or on `PORT`; `E2E_BASE_URL=http://localhost:<port> npm run test:e2e` runs the features against it.
-- Tests: Java 246 (library 220, server 26); frontend 203 in 27 files (unit 123, component 63, integration 17); end to end 13 scenarios in 4 features.
+- Tests: Java 246 (library 220, server 26); frontend 215 in 29 files (unit 130, component 68, integration 17); end to end 19 scenarios in 5 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+. Docker Desktop with Compose for the image.
 - Next step: none planned. Any later change is a new commit with the full checks, then a new zip of a fresh clone, made with the script that keeps Unix permissions (S20).
 - Open questions: none.
@@ -275,6 +275,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: `gradle.properties` (`org.gradle.caching=true`: a first build in a fresh clone takes compilation and tests from the local cache); the author and committer addresses of every commit; the README, design section 9 and the AI log's README as a reviewer.
 - Changed: README (how it is built, worth a look, how AI was used, known issues), `docs/design.md` (section 9), `docs/ai-log/README.md` (no raw exports, D25), both journals. History: the author and committer address of all 17 commits set to the developer's private one, dates and content kept, the journals' hashes of earlier commits updated; checked pair by pair before `main` moved; a bundle of the old history kept outside the repository; a local `user.email` set.
 - Verified: fresh clone with `./gradlew build` (again with `--no-build-cache`: 25 tasks executed, 246 tests), `npm ci`, `format:check`, `lint`, `typecheck`, 203 Vitest tests, `build`, `npm audit` (0), `npm run test:e2e` (13); `docker compose build --no-cache` (150 s), the container on 8095 (catalog with 11 transformations and 5 examples, Swagger UI, user `pipeline`), 13 e2e scenarios against it; `eclipse-temurin:21-jdk-noble` with an empty Gradle home built a fresh clone, the foojay resolver downloading JDK 25 (about 7 min). Docker Desktop stopped afterwards; ports 8091, 4191 and 8095 free; the developer's server on 8080 untouched.
-- Commit: `docs: README and AI log for the delivery`.
+- Commit: `e3a29ec`.
 - Open: none.
 - Next: none planned.
+
+### S21 Themes (2026-10-25)
+
+- Goal: D51, beyond the brief: light, dark, or the system's theme; and no motion for people who ask for less (D15).
+- Requirements: beyond the brief (requirements, last section).
+- Decisions: D51; D15 refined; the wording of D33 corrected.
+- Read: VueUse 15 `useColorMode` (store `light`/`dark`/`auto`, class on `html`, `useStorage` catches storage errors, `useMediaQuery` checks `matchMedia`); Reka UI 2.11 `RadioGroupRoot`/`RadioGroupItem` (roles radiogroup and radio, `aria-checked`, `data-state`, roving focus, an arrow key checks the radio it focuses while the key is down).
+- Changed: `frontend/index.html` (the script before the first paint), `src/index.css` (`.dark` tokens, `color-scheme`, the reduced-motion rule), `composables/useTheme.ts`, `components/ThemeSwitcher.vue`, `App.vue`; tests: `tests/component/ThemeSwitcher.test.ts`, `tests/unit/theme-script.test.ts` (runs the script with `node:vm`), `tests/helpers/setup.ts` (clears the stored theme and the class of `html`); `e2e/features/themes.feature`, `e2e/steps/theme.ts`, the accessibility feature and steps (axe in the dark theme, the chosen theme in forced colours, no motion, the Tab walk from the header), `e2e/support/editor.ts` (`themeOption`), the screenshots (`editor-dark.png` added); README, requirements, decisions, design (section 7), both journals.
+- Verified: 215 Vitest tests (unit 130, component 68, integration 17); 19 e2e scenarios in 5 features. Broken on purpose once each, with the files restored afterwards: the storage key in `index.html` (the unit test and "before the app runs" fail), the reduced-motion rule ("no motion" fails), the forced-colours fill (passed at first; the check was made strict, then failed, then passed with the fix). Contrast of the tokens computed from OKLCH; the screenshots looked at. Ports 8091 and 4191 free; the developer's server on 8080 untouched.
+- Commit: `feat(ui): light, dark and system themes`.
+- Open: none.
+- Next: none planned; a new zip of a fresh clone with the delivery script.

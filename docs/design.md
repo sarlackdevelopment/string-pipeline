@@ -249,10 +249,12 @@ queries/                           TanStack Query (D29)
 stores/pipeline.ts                 Pinia setup store: the chain being edited (D29)
 composables/useFocusRequest.ts     focuses the part a container asks for, after the DOM updated (D15)
 composables/useChainLink.ts        opens the chain of a link, and writes the chain back into the address (D49)
-App.vue                            shell: header, error boundary, PipelineEditor
+composables/useTheme.ts            light, dark or the system's theme, kept in localStorage (D51)
+App.vue                            shell: header with the theme, error boundary, PipelineEditor
 components/
   PipelineEditor/                  the editor: controller, view, container, types; model/: messages, focus, summary
   CopyLinkButton.vue               copies a link to the chain (D49)
+  ThemeSwitcher.vue                light, dark or the system's theme, a radio group in the header (D51)
   InputPanel.vue                   input text, maxlength from the catalog limits
   StepCard/StepCard.vue            fieldset, legend "Step 2: Replace", status, on/off switch, move and remove, form, output
   StepCard/model/status.ts         status → label and tone (pure)
@@ -293,6 +295,7 @@ Accessibility (D15, built in step 16):
 - The picker's list opens next to its search field, inside the page's landmarks, instead of in a portal at the end of the body.
 - Windows contrast themes drop box shadows, which carry the focus rings here; outlines in system colours take their place. The search field of the picker shows a focus ring too, which the copied combobox lacked.
 - The end-to-end tests run axe on the editor with an error and the list open, walk every stop of the Tab key and check that each one shows the focus, and check the focus outline in a contrast theme.
+- Since step 21: the theme is a radio group, a single stop of the Tab key before the input, where the arrow keys move the choice. axe runs in the dark theme too. For people who ask their system for less motion, a rule outside the cascade layers stops every animation and transition.
 
 Turning a step off (D48, step 19). Each step has a switch named "Run step 2". A step that is off keeps its place and its values, and `model/run` leaves it out of the request, so the text passes through it unchanged; an older result for its id is not shown. Its card says Off, gets a dashed border instead of a lighter colour, which would push its text below 4.5:1, and says that the text passes through. The live region counts it: "1 of 2 steps ran; 1 is off." The kit's switch was changed in two ways. Off, shadcn-vue draws a light grey track, 1.26:1 against the card, below the 3:1 that WCAG 1.4.11 asks of a control; ours is outlined in the muted text colour, 4.75:1. In a Windows contrast theme, system colours paint the thumb and the track that is on, which the theme would otherwise paint in the card's colour: an end-to-end test checks the thumb.
 
@@ -305,6 +308,8 @@ The chain in a link (D49, step 19). `model/link` writes a chain as `#chain=` and
 Copy link copies a link built from the chain itself, not from the address, which may still be waiting for its pause. A link that cannot be read shows an alert above the editor, which goes away with the next edit.
 
 Examples (D50, step 19). `api/contract` checks the catalog's examples like its transformations: unique ids, and only transformations and parameters that the catalog has. Each step then gets a value for every field, the example's or the field's default, as a step added from the picker has. The controller turns each example into a link to its chain (`model/link`), and the view lists those links under the search that adds steps: a click follows the link, `useChainLink` opens the chain, and Back returns to the one before. They sit after the search, not above the input, so the input stays the first stop of the Tab key; for the same reason Copy link moved from above the input to the output's header, next to Copy.
+
+Themes (D51, step 21). `useTheme` wraps VueUse's `useColorMode`: the choice, `light`, `dark` or `auto`, is kept in `localStorage`, and `light` or `dark` goes on `<html>`. The tokens under `.dark` are shadcn-vue's neutral dark palette, with Tailwind's green-500 for an executed step; the copied components' `dark:` utilities, idle until now, follow the same class, and `color-scheme` darkens what the browser draws itself. A small script in `index.html` applies the same rule before the first paint, so a dark page does not flash white while the app loads; a unit test runs that script in a Node sandbox, and an end-to-end test blocks the app's own scripts and finds the page dark all the same. The switcher is Reka UI's radio group in the look of a segmented control. In a Windows contrast theme the chosen option is filled with Highlight and opts out of the backplate the theme draws behind text, which otherwise hid its label.
 
 Proof of R2.1 (D19): an integration test serves a catalog with a transformation the frontend has never seen, with an unfamiliar mix of parameters, and checks that its form renders and runs.
 

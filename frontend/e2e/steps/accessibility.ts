@@ -4,12 +4,23 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect } from '@playwright/test'
 import { createBdd } from 'playwright-bdd'
-import { addStepWithKeyboard, field, runSummary, runSwitch, search } from '../support/editor'
+import {
+  addStepWithKeyboard,
+  field,
+  runSummary,
+  runSwitch,
+  search,
+  themeOption,
+} from '../support/editor'
 
 const { Given, When, Then } = createBdd()
 
 Given('the page uses forced colours', async ({ page }) => {
   await page.emulateMedia({ forcedColors: 'active' })
+})
+
+Given('the system asks for reduced motion', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
 })
 
 When('I pick the step {string} with the keyboard', async ({ page }, name: string) => {
@@ -34,6 +45,51 @@ Then(
 
 Then('the run summary says {string}', async ({ page }, text: string) => {
   await expect(runSummary(page)).toHaveText(text)
+})
+
+Then('the theme {string} has the focus and a visible outline', async ({ page }, name: string) => {
+  const option = themeOption(page, name)
+  await expect(option).toBeFocused()
+  const outline = await option.evaluate((element) => getComputedStyle(element).outlineStyle)
+  expect(outline).not.toBe('none')
+})
+
+// A contrast theme repaints every background that is not a system colour, which would hide the chosen option. Telling
+// the backgrounds apart is not enough: a button gets the colour of buttons, the others stay transparent, and both can
+// look like the page. So the chosen option has to be filled with the theme's own Highlight colour, with its label in
+// HighlightText. And it has to opt out of the theme's adjustments: the theme draws a backplate in the colour of the page
+// behind all text, which hid the label once.
+Then('the chosen theme is filled with the highlight colour', async ({ page }) => {
+  const look = await themeOption(page, 'System').evaluate((element) => {
+    const probe = document.createElement('div')
+    probe.style.backgroundColor = 'Highlight'
+    probe.style.color = 'HighlightText'
+    document.body.append(probe)
+    const [chosen, system] = [getComputedStyle(element), getComputedStyle(probe)]
+    const result = {
+      fill: chosen.backgroundColor === system.backgroundColor,
+      label: chosen.color === system.color,
+      adjust: chosen.forcedColorAdjust,
+    }
+    probe.remove()
+    return result
+  })
+  expect(look).toEqual({ fill: true, label: true, adjust: 'none' })
+})
+
+// A spinner of the page's own kind, added for the check: none may be on screen when the check runs.
+Then('a spinner stands still', async ({ page }) => {
+  const animation = await page.evaluate(() => {
+    const spinner = document.createElement('div')
+    spinner.className = 'animate-spin'
+    document.body.append(spinner)
+    const style = getComputedStyle(spinner)
+    const result = { duration: style.animationDuration, count: style.animationIterationCount }
+    spinner.remove()
+    return result
+  })
+  expect(parseFloat(animation.duration)).toBeLessThan(0.001)
+  expect(animation.count).toBe('1')
 })
 
 // A contrast theme paints every background in the colour of the page, unless it is a system colour. The thumb of the
@@ -68,11 +124,14 @@ Then('{string} has the focus and a visible outline', async ({ page }, name: stri
 })
 
 // A control shows its focus with an outline or a ring (a box shadow), on itself or on the input group around it. No
-// control here has a shadow while it is not focused, so a shadow means a ring.
+// control here has a shadow while it is not focused, so a shadow means a ring. The walk starts at the first stop of the
+// page, the chosen theme in the header. It is reached from the input with Shift+Tab: browsers show the focus of a
+// button that a script focuses only after keyboard use, and the scenario used the mouse last.
 Then('every stop of the Tab key shows where the focus is', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Input' }).focus()
+  await page.keyboard.press('Shift+Tab')
   const unmarked: string[] = []
-  for (let stop = 0; stop < 50; stop += 1) {
+  for (let stop = 0; stop < 60; stop += 1) {
     const focused = await page.evaluate(() => {
       const element = document.activeElement
       if (!(element instanceof HTMLElement) || element === document.body) {

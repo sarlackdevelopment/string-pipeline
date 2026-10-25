@@ -1,4 +1,4 @@
-# R1.3; D15, D48
+# R1.3; D15, D48, D51
 Feature: Use the editor with a keyboard and a screen reader
   As a person who uses a keyboard or a screen reader
   I want the editor to keep my place and tell me what happened
@@ -20,10 +20,28 @@ Feature: Use the editor with a keyboard and a screen reader
     And I open the list of transformations
     Then axe finds no accessibility violations
 
+  Scenario: axe finds no violations in the dark theme either
+    When I choose the theme "Dark"
+    And I type "Price: 5 EUR" as the input
+    And I add the step "Regex replace"
+    And I set "Pattern" to "(" in step 1
+    And I open the list of transformations
+    Then axe finds no accessibility violations
+
   Scenario: The focus stays visible in a Windows contrast theme
     Given the page uses forced colours
     When I press Tab
+    Then the theme "System" has the focus and a visible outline
+    When I press Tab
     Then "Input" has the focus and a visible outline
+
+  Scenario: The chosen theme stands out in a Windows contrast theme
+    Given the page uses forced colours
+    Then the chosen theme is filled with the highlight colour
+
+  Scenario: Nothing moves for people who reduce motion
+    Given the system asks for reduced motion
+    Then a spinner stands still
 
   Scenario: The switch of a step that is off stays visible in a Windows contrast theme
     Given the page uses forced colours

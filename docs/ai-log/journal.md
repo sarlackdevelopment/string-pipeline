@@ -381,4 +381,29 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** On the fresh clone: 246 Java tests, again without the build cache; 203 Vitest tests; 13 end-to-end scenarios; format, lint, typecheck, build, and `npm audit` with 0 vulnerabilities. The image built from scratch in 2.5 minutes and passed the 13 scenarios. The Linux build with JDK 21 and a downloaded JDK 25 passed in about 7 minutes. The rewritten history: 17 pairs compared, one address left in it. Docs: Prettier, links, names.
 
-**Commit.** `docs: README and AI log for the delivery`
+**Commit.** `e3a29ec docs: README and AI log for the delivery`
+
+## Step 21. Light, dark and system themes (2026-10-25)
+
+**Asked.** After the delivery check, the developer asked whether the app lets people switch between a light and a dark theme, as a full app would, and whether it serves people with disabilities. It served them (step 16), but it had no themes: the plan had no step for them. They asked for this step, beyond the brief.
+
+**AI did.**
+
+- Added light, dark, or the system's theme to the header (D51). The switcher is Reka UI's radio group in the look of a segmented control: a single stop of the Tab key, where the arrow keys move the choice. VueUse's `useColorMode` keeps the choice in `localStorage` and puts `light` or `dark` on `<html>`. It already catches the error of blocked storage and checks that `matchMedia` exists, so the app needs no guards of its own.
+- The dark palette is shadcn-vue's neutral one, with green-500 for an executed step. Computed from the tokens, text is at 5.8:1 to 19:1, the green at 8:1 and the outline of a switch that is off at 6.9:1; axe checks the rendered page in both themes.
+- A small script in `index.html` applies the same rule before the first paint, so a dark page does not flash white while the app loads. A unit test runs that script in a Node sandbox for every case, and an end-to-end test blocks the app's own scripts and finds the page dark all the same.
+- For people who ask their system for less motion, nothing moves any more: spinners stand still beside the words that say what is going on (D15).
+- The tests caught several mistakes, mostly in the tests themselves:
+  - The first check of the page's brightness read the computed colour as RGB, but Chromium gives it in OKLCH, as the tokens define it. The checks of the dark theme passed for the wrong reason until the one of the light theme failed. A canvas now converts the colour.
+  - A walk of the Tab key that begins with a script focusing a button shows no focus there, because the browser remembers that the mouse came last. The walk now reaches the header with Shift+Tab from the input.
+  - Every new check was broken on purpose once. The check that the chosen theme stands out in a contrast theme passed without the fix: a button's forced background differs from a transparent one, though both look like the page. It now requires the theme's own Highlight colour.
+  - The new screenshot of the contrast theme then showed the label of the chosen theme hidden by a black box: the backplate that the theme draws behind text. The chosen option now opts out with `forced-color-adjust: none`, and the check covers that too.
+  - user-event lets go of a key at once, while Reka UI checks a radio only if the arrow key is still down a moment later, as it is when a person presses it. The component test holds the key, and the end-to-end test presses it for 50 ms.
+- D33 no longer says that running the frontend without a backend "is not built yet": the frontend always runs against a real API.
+- The screenshots in `docs/images` were taken again, with a new one of the dark theme.
+
+**Decided.** D51; D15 refined.
+
+**Checked.** 215 Vitest tests, 12 of them new; 19 end-to-end scenarios, 6 of them new: the system's theme, a theme kept after a reload and shown before the app runs, the theme from the keyboard, axe in the dark theme, the chosen theme in a contrast theme, and no motion. `format:check`, `lint`, `typecheck`, `build`, `npm audit`; `./gradlew build`, unchanged.
+
+**Commit.** `feat(ui): light, dark and system themes`

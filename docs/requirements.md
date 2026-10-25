@@ -53,3 +53,5 @@ Built in step 19, once the brief was done, each in commits of its own:
 - the chain in the URL, so it can be shared (D49);
 - example chains to start from (D50);
 - disabling a step without removing it (D48).
+
+Added in step 21, at the developer's request: light, dark and the system's theme (D51).

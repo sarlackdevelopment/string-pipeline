@@ -1,6 +1,7 @@
 /**
  * The screenshots in `docs/images`, taken from the running app: `npm run screenshots`. They show the brief's chain on
- * a desktop, a step with an error at phone width, and the editor in a Windows contrast theme (D15).
+ * a desktop, a step with an error at phone width, the editor in a Windows contrast theme (D15) and in the dark theme
+ * (D51).
  */
 import { fileURLToPath, URL } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
@@ -48,6 +49,16 @@ test('a step with an error, at phone width', async ({ page }) => {
   await settle(page)
 
   await page.screenshot({ path: `${images}editor-phone.png`, fullPage: true })
+})
+
+test('the dark theme', async ({ page }) => {
+  await page.setViewportSize({ width: 1100, height: 900 })
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await openEditor(page)
+  await buildChainOfTheBrief(page)
+  await settle(page)
+
+  await page.screenshot({ path: `${images}editor-dark.png`, fullPage: true })
 })
 
 test('a Windows contrast theme', async ({ page }) => {

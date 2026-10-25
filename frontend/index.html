@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data:," />
     <title>String Pipeline</title>
+    <script>
+      // The theme before the first paint (D51), so a dark page does not flash white while the app loads. The app's
+      // useTheme takes over from there, with the same key and the same values: light, dark, or auto for the system's.
+      try {
+        const theme = localStorage.getItem('string-pipeline-theme')
+        const dark =
+          theme === 'dark' ||
+          (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.classList.add(dark ? 'dark' : 'light')
+      } catch {
+        // Without storage or media queries, the app decides once it runs.
+      }
+    </script>
   </head>
   <body>
     <div id="app"></div>
