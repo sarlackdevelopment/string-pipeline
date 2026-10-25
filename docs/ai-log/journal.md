@@ -362,4 +362,23 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** `./gradlew build`: 246 Java tests (library 220, 11 new; server 26), the server's catalog strictly equal to the contract. 203 Vitest tests, 6 new; 13 end-to-end scenarios in 4 features, 1 new: an example opens with one click, and Back returns to the chain before it. `format:check`, `lint`, `typecheck`, `build`, `npm audit`.
 
-**Commit.** `feat: example chains in the catalog, shown as links`
+**Commit.** `92abc8a feat: example chains in the catalog, shown as links`
+
+## Step 20. The final check (2026-10-25)
+
+**Asked.** The last step: a fresh clone, every check, the README read through, and a zip of the clone with `.git` (D24).
+
+**AI did.**
+
+- Cloned the repository afresh and ran every check there, as a reviewer would: `./gradlew build`, `npm ci`, formatting, lint, types, Vitest, the production build, `npm audit` and the end-to-end features. Gradle's local build cache had answered most of that first Java build, compilation and tests included, so it ran again with `--no-build-cache`, as on a machine that has never built the project.
+- Built the Docker image from scratch with `--no-cache`, ran it on port 8095 beside the developer's server on 8080, and ran the end-to-end features against it.
+- Tested a promise of the README that nothing had tested yet: that any JDK 17 or newer can start the build. JDK 25 had been installed on this machine from the start. A Linux container with JDK 21 and an empty Gradle home built a fresh clone, and Gradle's toolchain downloaded JDK 25 for it.
+- Set the author and committer address of every commit to the developer's private one. Names, dates, messages and files stayed the same; the journals now name the earlier commits by their new hashes. A script compared each of the 17 old commits with its new one before `main` moved, and the old history stays in a bundle outside the repository. The repository now has its own `user.email`.
+- Read the README through as a reviewer and added what the delivery asks for (R4.2, R4.3): how the app is built, what is worth a look, how AI was used, and the known issues. In the design, the points to approve became the points the developer approved in step 8. The AI log no longer promises raw exports of sessions, which D25 had already ruled out.
+- The delivery is a zip of a fresh clone of this commit, made right after it. Windows' own zip tools do not record Unix permissions, and `./gradlew` would then not run after unzipping on macOS or Linux, so a small script writes the zip with the modes that git records. The clone's remote, which points to the developer's folder, is removed before zipping.
+
+**Decided.** Nothing new; D24 as planned.
+
+**Checked.** On the fresh clone: 246 Java tests, again without the build cache; 203 Vitest tests; 13 end-to-end scenarios; format, lint, typecheck, build, and `npm audit` with 0 vulnerabilities. The image built from scratch in 2.5 minutes and passed the 13 scenarios. The Linux build with JDK 21 and a downloaded JDK 25 passed in about 7 minutes. The rewritten history: 17 pairs compared, one address left in it. Docs: Prettier, links, names.
+
+**Commit.** `docs: README and AI log for the delivery`

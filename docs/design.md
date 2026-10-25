@@ -323,7 +323,9 @@ The stand-in API (`src/tests/helpers/api.ts`) runs on MSW (D33). It serves a cat
 
 The end-to-end tests (step 15) are Gherkin features, run by Playwright through playwright-bdd: the brief's chain (`@smoke`), a pattern that Java cannot compile, with the server's message at its field, and an emoji that Substring keeps whole. Playwright starts the API with Gradle on port 8091 and the built app with `vite preview` on port 4191, whose proxy reaches that API through `API_PROXY_TARGET`; development servers on 8080 and 5173 are never touched. The steps find elements by role and name, and read texts inside them. A second feature (step 16) checks accessibility: axe, the stops of the Tab key and a contrast theme. A second Playwright project, `npm run screenshots`, takes the pictures in `docs/images` from the same running app.
 
-## 9. Points to approve
+## 9. Points approved at the design review
+
+The developer approved these three points in step 8, before any feature code was written:
 
 1. `GET /api/catalog` with limits, instead of a bare list of transformations: one call gives the frontend everything it needs to build the editor.
 2. Checking every step's parameters even after a step that cannot run (refines D12).

@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, and the three extras of step 19, beyond the brief: turning a step off, the chain in the URL, example chains. Next: step 20, the final check.
-- Last commit: `feat: example chains in the catalog, shown as links`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
+- Phase: all 20 steps are done: the brief end to end, the harder transformations of D10, a one-command start, three extras beyond the brief, and the final check. The delivery is a zip of a fresh clone of the last commit (D24).
+- Last commit: `docs: README and AI log for the delivery`. Branch `main`, no remote. Commits use the repository's own `user.email`.
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once). `docker compose up --build` serves the app on 8080, or on `PORT`; `E2E_BASE_URL=http://localhost:<port> npm run test:e2e` runs the features against it.
 - Tests: Java 246 (library 220, server 26); frontend 203 in 27 files (unit 123, component 63, integration 17); end to end 13 scenarios in 4 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+. Docker Desktop with Compose for the image.
-- Next step: step 20, the final check: a fresh clone, every check including `docker compose up --build` and the end-to-end features against the container (`E2E_BASE_URL`), the README read through, and a zip of the clone with `.git` (D24). Docker Desktop is installed but stopped: `docker desktop start` starts it, `docker desktop stop` stops it again afterwards.
+- Next step: none planned. Any later change is a new commit with the full checks, then a new zip of a fresh clone, made with the script that keeps Unix permissions (S20).
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -263,6 +263,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: `Catalog`, `Step`, `ArgumentValue`, `BuiltIns`, `CatalogResponse`, `CatalogControllerTest` (`isStrictlyEqualTo` the contract).
 - Changed: library `Example` (new), `Catalog` (`examples()`, identity check), `BuiltIns` (five examples), `ExamplesTest` (new), `CatalogTest`; server `CatalogResponse` (`examples`, values in display order), `CatalogController` (OpenAPI text); `contract/catalog.json` (examples added from a temporary server on port 8093), `contract/README.md`; frontend `model/catalog.ts` (`Example`), `api/contract.ts` (schema, checks, defaults), the editor's types (`ExampleLink`), controller, view (examples under the search) and container, `OutputPanel.vue` (Copy link moved here); tests of the contract, the view, the output panel, the R2.1 catalog fixture and the picker's groups (`examples: []`), `ChainLink.test.ts`; `e2e/features/examples.feature`, `e2e/steps/link.ts`; `docs/images` taken again; README, requirements, decisions, design (sections 2, 5, 6, 7), both journals.
 - Verified: `./gradlew build` (library 220, server 26); 203 Vitest tests (unit 123, component 63, integration 17); 13 e2e scenarios; "the chain has no steps" fails with the example's 2 steps on the page; the temporary server on 8093 stopped and no process of it left; ports 8091 and 4191 free; the developer's server on 8080 untouched.
-- Commit: `feat: example chains in the catalog, shown as links`.
+- Commit: `92abc8a`.
 - Open: none.
 - Next: S20, the final check.
+
+### S20 The final check (2026-10-25)
+
+- Goal: a fresh clone, every check, the README read through, a zip with `.git` (D24).
+- Requirements: R4.1–R4.4.
+- Decisions: none new.
+- Read: `gradle.properties` (`org.gradle.caching=true`: a first build in a fresh clone takes compilation and tests from the local cache); the author and committer addresses of every commit; the README, design section 9 and the AI log's README as a reviewer.
+- Changed: README (how it is built, worth a look, how AI was used, known issues), `docs/design.md` (section 9), `docs/ai-log/README.md` (no raw exports, D25), both journals. History: the author and committer address of all 17 commits set to the developer's private one, dates and content kept, the journals' hashes of earlier commits updated; checked pair by pair before `main` moved; a bundle of the old history kept outside the repository; a local `user.email` set.
+- Verified: fresh clone with `./gradlew build` (again with `--no-build-cache`: 25 tasks executed, 246 tests), `npm ci`, `format:check`, `lint`, `typecheck`, 203 Vitest tests, `build`, `npm audit` (0), `npm run test:e2e` (13); `docker compose build --no-cache` (150 s), the container on 8095 (catalog with 11 transformations and 5 examples, Swagger UI, user `pipeline`), 13 e2e scenarios against it; `eclipse-temurin:21-jdk-noble` with an empty Gradle home built a fresh clone, the foojay resolver downloading JDK 25 (about 7 min). Docker Desktop stopped afterwards; ports 8091, 4191 and 8095 free; the developer's server on 8080 untouched.
+- Commit: `docs: README and AI log for the delivery`.
+- Open: none.
+- Next: none planned.

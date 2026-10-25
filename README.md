@@ -1,6 +1,6 @@
 # String Pipeline
 
-A no-code web app for chaining string transformations: pick transformations, configure each one in a form, see the result of every step. Built as a take-home assignment for the Full-Stack Software Engineer position at KNIME.
+A no-code web app for chaining string transformations: pick transformations, configure each one in a form, see the result of every step. The frontend is Vue 3 with TypeScript; the transformations are a Java 25 library behind a Spring Boot web API. Built as a take-home assignment for the Full-Stack Software Engineer position at KNIME.
 
 ![The editor running the chain of the brief: Replace, then Append, from "Fake Python" to "Real Python!"](docs/images/editor.png)
 
@@ -38,14 +38,30 @@ The app then runs on http://localhost:5173, and Vite's dev server forwards `/api
 - [API contract](contract/README.md): example requests and responses that the Java and TypeScript tests share
 - [AI usage log](docs/ai-log/README.md): every step taken with the AI assistant, for people and for agents
 
-## Repository layout
+The app was built step by step with Claude Code, running Claude Opus 5.5. The developer set the plan and reviewed every step before the next one began; commits the assistant helped write carry a `Co-Authored-By` trailer (R4.3).
+
+## How it is built
 
 | Path        | What                                                                                      |
 | ----------- | ----------------------------------------------------------------------------------------- |
 | `library/`  | Java 25 library with the transformations and the pipeline that chains them. No frameworks |
-| `server/`   | Spring Boot web API on top of the library                                                 |
-| `buildSrc/` | Build conventions shared by the Java modules: JDK 25, compiler checks, formatting, JUnit  |
+| `server/`   | Spring Boot 4 web API on top of the library                                               |
 | `frontend/` | Vue 3 + TypeScript single-page app, built with Vite                                       |
+| `contract/` | Example requests and responses that both the Java and the TypeScript tests read           |
+| `buildSrc/` | Build conventions shared by the Java modules: JDK 25, compiler checks, formatting, JUnit  |
+
+- **The library** gives every step a result: `Executed`, `NotConfigured`, `InvalidParameters`, `Failed` or `NotRun`. Problems are data, not exceptions, and every step's parameters are checked before any step runs, so a chain shows all its configuration problems at once. A transformation is one class that declares its parameters; `BuiltIns` lists the transformations and the example chains.
+- **The web API** has two endpoints. The catalog describes each transformation's parameters as JSON Schema, and a run returns a result for every step. A malformed request gets Problem Details with JSON pointers to its fields. An ArchUnit test keeps the server on the library's public API.
+- **The frontend** builds every form from the catalog and knows no transformation by name (R2.1). Pinia holds the chain, TanStack Query the server's answers, and zod checks each answer at the boundary. A component with behaviour is split into a model of pure functions, a controller, a view and a container. The UI kit is shadcn-vue on Reka UI.
+- **Tests** cover every layer: 246 in Java, 203 Vitest tests in the frontend (unit, component, and integration against a stand-in API), and 13 end-to-end scenarios in Gherkin that run Chromium against the real API.
+
+## Worth a look
+
+- **R2.1, shown twice.** An integration test serves a catalog with a transformation the frontend has never seen, and checks that its form renders and runs. And the five harder transformations, from Change case to Reformat dates, were added later without a change to the frontend.
+- **Text traps.** A character is what a person sees as one, so 👍🏽 is never cut in half. Turkish İ, ß, Windows line endings, 30 February and bytes that are not UTF-8 each have a test ([decisions](docs/decisions.md), Traps).
+- **Limits.** A regular expression stops after 2 seconds, and no step may produce more than a million characters, so no chain can hang the server or exhaust its memory.
+- **Accessibility.** After a step is added, moved or removed, the focus keeps the user's place. A live region tells screen readers how each run went, errors sit at their fields, and the focus and the step switches stay visible in Windows contrast themes. The end-to-end tests run axe and walk every stop of the Tab key.
+- **Strict checks.** Java compiles with Error Prone, NullAway and `-Werror`. TypeScript is strict and linted by oxlint and type-aware ESLint. Both sides check their formatting.
 
 ## Transformations
 
@@ -149,3 +165,9 @@ cd frontend
 npm run format:check && npm run lint && npm run typecheck && npm test && npm run build
 npm run test:e2e
 ```
+
+## Known issues
+
+- The Docker image was built and tested on x86-64. Its base images and the npm lockfile cover ARM64 as well, as on a Mac with Apple Silicon, but that build was not tried.
+- A link to a chain holds its input text (D49), so a long text makes a long link, which a chat app may cut off. The editor then says that it cannot open the link.
+- The AI log summarises the development session instead of exporting it, because the session also holds private correspondence (D25).
