@@ -1,50 +1,37 @@
 /**
- * The steps of the features. Elements are found by role and name, as assistive technology finds them; texts are read
- * inside those elements.
+ * The steps of building a chain. Elements are found by role and name; texts are read inside them.
  */
-import { expect, type Page } from '@playwright/test'
+import { expect } from '@playwright/test'
 import { createBdd } from 'playwright-bdd'
+import {
+  addStep,
+  escapeForRegExp,
+  field,
+  openEditor,
+  output,
+  setField,
+  step,
+  typeInput,
+} from '../support/editor'
 
 const { Given, When, Then } = createBdd()
 
-const escapeForRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
-const search = (page: Page) => page.getByRole('combobox', { name: 'Add a step' })
-
-const step = (page: Page, position: number) =>
-  page.getByRole('group', { name: new RegExp(`^Step ${String(position)}: `) })
-
-// A parameter is a text field or a number field, both named by the parameter's title.
-const field = (page: Page, position: number, title: string) =>
-  step(page, position)
-    .getByRole('textbox', { name: title, exact: true })
-    .or(step(page, position).getByRole('spinbutton', { name: title, exact: true }))
-
-const output = (page: Page) => page.getByRole('region', { name: 'Output' })
-
 Given('the editor is open', async ({ page }) => {
-  await page.goto('/')
-  await expect(search(page)).toBeEnabled()
+  await openEditor(page)
 })
 
 When('I type {string} as the input', async ({ page }, text: string) => {
-  await page.getByRole('textbox', { name: 'Input' }).fill(text)
+  await typeInput(page, text)
 })
 
-// An option is named by the transformation's name followed by its description.
 When('I add the step {string}', async ({ page }, name: string) => {
-  const steps = await page.getByRole('group', { name: /^Step \d+: / }).count()
-  await search(page).fill(name)
-  await page.getByRole('option', { name: new RegExp(`^${escapeForRegExp(name)} `) }).click()
-  await expect(
-    page.getByRole('group', { name: `Step ${String(steps + 1)}: ${name}`, exact: true }),
-  ).toBeVisible()
+  await addStep(page, name)
 })
 
 When(
   'I set {string} to {string} in step {int}',
   async ({ page }, title: string, value: string, position: number) => {
-    await field(page, position, title).fill(value)
+    await setField(page, position, title, value)
   },
 )
 

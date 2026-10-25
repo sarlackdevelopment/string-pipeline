@@ -1,11 +1,14 @@
 import { http, HttpResponse } from 'msw'
-import { describe, expect, it, vi } from 'vitest'
-import { CatalogStatus } from '@/components/PipelineEditor/types'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { CatalogStatus, SEARCH } from '@/components/PipelineEditor/types'
 import { usePipelineEditorController } from '@/components/PipelineEditor/usePipelineEditorController'
+import { StepPart } from '@/components/StepCard/types'
 import { Direction } from '@/model/chain'
 import { StepStatus } from '@/model/run'
 import {
   CATALOG_URL,
+  fakeRun,
+  gate,
   RUNS_URL,
   serveCatalog,
   serveNetworkError,
@@ -160,6 +163,47 @@ describe('the editor controller (D26)', () => {
       await vi.waitFor(() =>
         expect(editor.runAlert.value).toEqual({ messages: ['Wrong at #/steps'], canRetry: false }),
       )
+    })
+  })
+
+  describe('focus and announcements (D15)', () => {
+    it('asks for the focus after adding, moving and removing a step', async () => {
+      serveCatalog()
+      serveRuns()
+      const editor = setup()
+      await ready(editor)
+      const idAt = (index: number) => editor.steps.value[index]?.id ?? 'missing'
+
+      editor.addStep('append')
+      const first = idAt(0)
+      expect(editor.focusTarget.value).toEqual({ stepId: first, part: StepPart.firstField })
+      editor.addStep('prepend')
+      const second = idAt(1)
+      editor.moveStep(second, Direction.up)
+      expect(editor.focusTarget.value).toEqual({ stepId: second, part: StepPart.card })
+      editor.removeStep(second)
+      expect(editor.focusTarget.value).toEqual({ stepId: first, part: StepPart.card })
+      editor.removeStep(first)
+      expect(editor.focusTarget.value).toEqual({ part: SEARCH })
+    })
+
+    it('keeps the summary of the last run while the next one is on its way', async () => {
+      const held = gate()
+      serveCatalog()
+      serveRuns(fakeRun, (body) => (body.steps.length === 2 ? held.opened : Promise.resolve()))
+      onTestFinished(held.open)
+      const editor = setup()
+      await ready(editor)
+      editor.setInput('a')
+      editor.addStep('append')
+      await vi.waitFor(() => expect(editor.summary.value).toBe('The step ran.'))
+
+      editor.addStep('replace')
+      await vi.waitFor(() => expect(editor.isUpdating.value).toBe(true))
+
+      expect(editor.summary.value).toBe('The step ran.')
+      held.open()
+      await vi.waitFor(() => expect(editor.summary.value).toBe('Step 2, Replace, needs a value.'))
     })
   })
 })

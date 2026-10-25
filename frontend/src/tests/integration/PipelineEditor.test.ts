@@ -94,7 +94,7 @@ const echoParameters = (request: ReceivedRun) => {
 }
 
 describe('the pipeline editor', () => {
-  it('builds and reorders the chain of the brief from the keyboard alone (R1.2, R1.3, D15)', async () => {
+  it('builds, reorders and empties the chain of the brief from the keyboard alone, keeping the focus in place (R1.2, R1.3, D15)', async () => {
     serveCatalog()
     serveRuns()
     const { user, search } = await renderEditor()
@@ -102,59 +102,67 @@ describe('the pipeline editor', () => {
     await user.tab()
     expect(screen.getByRole('textbox', { name: 'Input' })).toHaveFocus()
     await user.keyboard('Fake Python')
-
     await user.tab()
     expect(search).toHaveFocus()
+
+    // Adding a step takes the focus to its first field.
     await user.keyboard('replace{Enter}')
     const replace = await screen.findByRole('group', { name: 'Step 1: Replace' })
-    await waitFor(() => expect(search).toHaveValue(''))
-
-    // The new step comes before the search field, so Shift+Tab walks back into it.
-    await user.tab({ shift: true })
-    expect(within(replace).getByRole('textbox', { name: 'Replace with' })).toHaveFocus()
-    await user.keyboard('Real')
-    await user.tab({ shift: true })
-    expect(within(replace).getByRole('textbox', { name: 'Find' })).toHaveFocus()
+    await waitFor(() => {
+      expect(within(replace).getByRole('textbox', { name: 'Find' })).toHaveFocus()
+    })
     await user.keyboard('Fake')
-
     await user.tab()
+    await user.keyboard('Real')
+
     await user.tab()
     expect(search).toHaveFocus()
     await user.keyboard('append{Enter}')
     const append = await screen.findByRole('group', { name: 'Step 2: Append' })
-    await user.tab({ shift: true })
-    expect(within(append).getByRole('textbox', { name: 'Text' })).toHaveFocus()
+    await waitFor(() => {
+      expect(within(append).getByRole('textbox', { name: 'Text' })).toHaveFocus()
+    })
     await user.keyboard('!')
-
     await waitFor(() => expect(output()).toHaveTextContent('Real Python!'))
 
-    // Back past "Remove step 2" and the disabled "Move step 2 down" to "Move step 2 up".
+    // Back past "Remove step 2" and the disabled "Move step 2 down" to "Move step 2 up". At the top, that button no
+    // longer applies, so the focus goes to the moved step itself.
     await user.tab({ shift: true })
     await user.tab({ shift: true })
     expect(within(append).getByRole('button', { name: 'Move step 2 up' })).toHaveFocus()
     await user.keyboard('{Enter}')
-
     const first = await screen.findByRole('group', { name: 'Step 1: Append' })
-    const second = screen.getByRole('group', { name: 'Step 2: Replace' })
+    await waitFor(() => expect(first).toHaveFocus())
     await waitFor(() => expect(within(first).getByText('Fake Python!')).toBeInTheDocument())
-    expect(within(second).getByText('Real Python!')).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('group', { name: 'Step 2: Replace' })).getByText('Real Python!'),
+    ).toBeInTheDocument()
+
+    // Removing a step takes the focus to the step that took its place, and after the last one to the search.
+    await user.tab()
+    await user.tab()
+    expect(within(first).getByRole('button', { name: 'Remove step 1' })).toHaveFocus()
+    await user.keyboard('{Enter}')
+    const remaining = await screen.findByRole('group', { name: 'Step 1: Replace' })
+    await waitFor(() => expect(remaining).toHaveFocus())
+    await user.tab()
+    expect(within(remaining).getByRole('button', { name: 'Remove step 1' })).toHaveFocus()
+    await user.keyboard('{Enter}')
+    await waitFor(() => expect(search).toHaveFocus())
+    expect(screen.queryByRole('region', { name: 'Steps' })).not.toBeInTheDocument()
   })
 
-  it('removes a step from the keyboard', async () => {
+  it('tells screen readers in one sentence how the latest run went (D15)', async () => {
     serveCatalog()
     serveRuns()
     const { user, search } = await renderEditor()
-    await user.type(search, 'append{Enter}')
-    await screen.findByRole('group', { name: 'Step 1: Append' })
+    const summary = screen.getByRole('status', { name: 'Run summary' })
 
-    // From the top: the input, then the only enabled button of the only step.
-    await user.click(document.body)
-    await user.tab()
-    await user.tab()
-    expect(screen.getByRole('button', { name: 'Remove step 1' })).toHaveFocus()
-    await user.keyboard('{Enter}')
+    await user.type(search, 'replace{Enter}')
+    await waitFor(() => expect(summary).toHaveTextContent('Step 1, Replace, needs a value.'))
+    await user.keyboard('Fake')
 
-    expect(screen.queryByRole('group', { name: 'Step 1: Append' })).not.toBeInTheDocument()
+    await waitFor(() => expect(summary).toHaveTextContent('The step ran.'))
   })
 
   it('builds the form of a transformation it has never seen, and runs it (R2.1, D19)', async () => {

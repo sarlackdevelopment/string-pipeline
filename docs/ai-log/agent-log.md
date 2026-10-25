@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: backend done; the UI works end to end, with behaviour tests and an end-to-end smoke test. Next: step 16, accessibility.
-- Last commit: `test(e2e): Gherkin smoke journey against the real API with Playwright`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
+- Phase: the brief is done end to end: backend, UI with accessibility, behaviour and end-to-end tests. Next: step 17, the harder transformations.
+- Last commit: `feat(a11y): focus after edits, run announcements and contrast themes`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once).
-- Tests: Java 161 in 19 classes (library 135, server 26); frontend 141 in 22 files (unit 86, component 45, integration 10); end to end 3 scenarios.
+- Tests: Java 161 in 19 classes (library 135, server 26); frontend 165 in 24 files (unit 101, component 54, integration 10); end to end 7 scenarios in 2 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+.
-- Next step: step 16, accessibility (D15, PLAYBOOK row 16): after adding a step, focus goes to its first field; after removing one, to the next step or the search field; after moving one, back to its button. An `<output aria-live="polite">` announces a short summary of each run after the pause. The picker's list sits in a portal at the end of `body`, outside the landmarks (axe `region`). Check forced-colors mode and take screenshots. Behaviour tests from step 14 assert today's focus in the keyboard path; update them with the new focus rules.
+- Next step: step 17, the harder transformations of D10, in the library first: case and locale (the Turkish i trap; `Locale.ROOT`, described in the README), dates (parse and format, D4), encodings (Base64 and URL, D4), and line operations (sort, unique; lines end with `\n`, `\r\n` or `\r`). Each is one class and one registration in `BuiltIns` (D19), with its traps as parameterized tests; the frontend needs no change (R2.1), which an end-to-end scenario can show. Update `contract/catalog.json`, which both sides test against (D46).
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -191,6 +191,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: npm registry (@playwright/test 1.64.1, playwright-bdd 9.2.1); `npx playwright install --dry-run chromium` (build 1248; the cached 1243 is older).
 - Changed: `frontend/playwright.config.ts`, `frontend/e2e/` (feature and steps), `frontend/tsconfig.e2e.json`, `frontend/tsconfig.json`, `frontend/tsconfig.node.json`, `frontend/vite.config.ts` (`API_PROXY_TARGET`), `frontend/eslint.config.ts` (ignores), `frontend/.gitignore`, package files (`test:e2e`), README, `docs/design.md`, `docs/decisions.md`, both journals.
 - Verified: `npm run test:e2e` green twice (3 scenarios, about 25 s); a throwaway wrong-output scenario failed as it should; ports 8091 and 4191 free afterwards, the developer's API on 8080 untouched; format:check, lint, typecheck, 141 Vitest tests, build; npm audit clean.
-- Commit: `test(e2e): Gherkin smoke journey against the real API with Playwright`.
+- Commit: `47fc393`.
 - Open: the Turkish i trap (step 17); the picker's list outside the landmarks, focus after add, remove and move, and the live region (step 16).
 - Next: S16, accessibility.
+
+### S16 Accessibility (2026-10-25)
+
+- Goal: D15 in full, as PLAYBOOK row 16 lists it: focus, live region, errors at fields, forced colours, screenshots.
+- Requirements: R1.3.
+- Decisions: D15 refined.
+- Read: Reka UI's `ComboboxPortal` (`disabled`) and popper (`positionStrategy: 'fixed'`); Testing Library's `render` (`unwrapNode` moves the nodes after mounting); npm registry (@axe-core/playwright 4.14.0, MPL-2.0).
+- Changed: `frontend/src/composables/useFocusRequest.ts`; `components/PipelineEditor/` (`model/focus.ts`, `model/summary.ts`, types, controller, view, container); `components/StepCard/` (`types.ts`, focus parts, `tabindex="-1"`); `components/TransformationPicker` (focus request, inline list); `components/OutputPanel.vue` (live regions); `components/ui/combobox/` (`ComboboxList` `portal` prop, `ComboboxInput` focus ring, `outline-none`); `src/index.css` (forced colours); tests in all three Vitest layers; `e2e/` (`support/editor.ts`, accessibility feature and steps, screenshots spec); `playwright.config.ts` (projects `e2e` and `screenshots`), `tsconfig.e2e.json` (DOM lib), package files (`screenshots`); `docs/images/`; README, `docs/design.md`, `docs/decisions.md`, both journals.
+- Verified: format:check, lint, typecheck, 165 Vitest tests in 24 files (unit 101, component 54, integration 10), build; `npm run test:e2e` 7 scenarios; probes: the Tab walk failed with the old search field, the contrast scenario failed without the forced-colours rule; npm audit clean.
+- Commit: `feat(a11y): focus after edits, run announcements and contrast themes`.
+- Open: the Turkish i trap (step 17).
+- Next: S17, the harder transformations.

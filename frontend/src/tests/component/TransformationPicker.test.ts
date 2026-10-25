@@ -7,15 +7,16 @@ import { contractCatalog } from '@/tests/helpers/contract'
 function renderPicker(full = false) {
   const user = userEvent.setup()
   const onAdd = vi.fn<(transformationId: string) => void>()
-  render(TransformationPicker, { props: { catalog: contractCatalog(), full, onAdd } })
-  return { user, onAdd, search: screen.getByRole('combobox', { name: 'Add a step' }) }
+  const view = render(TransformationPicker, {
+    props: { catalog: contractCatalog(), full, focusRequest: null, onAdd },
+  })
+  return { user, view, onAdd, search: screen.getByRole('combobox', { name: 'Add a step' }) }
 }
 
 // An option shows the name, then the description.
 const namesOf = (options: readonly HTMLElement[]) =>
   options.map((option) => option.querySelector('span')?.textContent)
 
-// Reka renders the list in a portal at the end of the body, so the options are found through `screen`.
 describe('TransformationPicker (R1.3, D28)', () => {
   it('lists every transformation under its category when opened', async () => {
     const { user, search } = renderPicker()
@@ -77,5 +78,21 @@ describe('TransformationPicker (R1.3, D28)', () => {
 
     expect(search).toBeDisabled()
     expect(search).toHaveAccessibleDescription('A chain can have up to 50 steps.')
+  })
+
+  it('opens its list inside the page, within the landmarks, not at the end of the body (D15)', async () => {
+    const { user, view, search } = renderPicker()
+
+    await user.click(search)
+
+    expect(view.container).toContainElement(screen.getByRole('listbox'))
+  })
+
+  it('takes the focus on its search field when asked, after the last step was removed (D15)', async () => {
+    const { view, search } = renderPicker()
+
+    await view.rerender({ focusRequest: { part: 'search' } })
+
+    expect(search).toHaveFocus()
   })
 })

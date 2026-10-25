@@ -242,4 +242,26 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** The three scenarios pass twice in a row, in about 25 s with the server start and the build. `format:check`, `lint`, `typecheck`, 141 Vitest tests, `build`; `npm audit` clean.
 
-**Commit.** `test(e2e): Gherkin smoke journey against the real API with Playwright`
+**Commit.** `47fc393 test(e2e): Gherkin smoke journey against the real API with Playwright`
+
+## Step 16. Accessibility (2026-10-25)
+
+**Asked.** Focus, the live region, errors linked to fields, contrast themes, screenshots.
+
+**AI did.**
+
+- Made the focus keep the user's place. A new step's first field takes it; after a removal, the step that took the removed one's place, or the search field once the last step is gone; after a move, the button that moved the step, or the step itself once that button is disabled at an end of the chain. A pure function in the editor's model decides where the focus goes, and the controller hands each decision as a new object to the component that owns the place, which focuses it once the DOM has updated, like a React effect that depends on the request.
+- Added a live region under the Output heading. It says in one sentence how the latest run went, such as "Step 2, Replace, needs a value.", but never the output, so typing does not repeat it at every pause; it keeps the previous sentence while the next run is on its way. A second live region confirms a copy, because a changed button label alone is not announced.
+- Moved the picker's list out of the portal at the end of the body, so it opens inside the page's landmarks; axe no longer reports it.
+- Contrast themes: they drop box shadows, which carry the focus rings, so the focus and the highlighted option now get outlines in system colours. Chromium's emulation draws the real system palette, which the screenshots show.
+- A screenshot with the keyboard focus on the picker found a real gap: its search field showed no focus at all. The copied combobox puts its input in an input group that only draws a ring for an input-group-control. The group now draws one for the search field too.
+- Added a second end-to-end feature: a step added from the keyboard takes the focus and the run is announced; axe finds no violations with an error at a field and the list open; every stop of the Tab key shows the focus; the focus outline stays visible in a contrast theme. Throwaway probes made the last two fail without their fixes, and were reverted.
+- Errors were already linked to their fields in step 13 (`aria-describedby` and `aria-invalid`); the new tests check them through the accessible description.
+- A component test that focused a card while it mounted failed only under Testing Library, which moves the rendered nodes once after mounting and so drops that focus. The component tests now ask after the first render, and the integration tests cover a card that arrives with a request.
+- Added `npm run screenshots`, a second Playwright project that takes the pictures in `docs/images` from the running app; the README now opens with one. Added `@axe-core/playwright` (MPL-2.0, used only in tests).
+
+**Decided.** D15 refined.
+
+**Checked.** `format:check`, `lint`, `typecheck`, 165 tests in 24 files, `build`; seven end-to-end scenarios; `npm audit` clean.
+
+**Commit.** `feat(a11y): focus after edits, run announcements and contrast themes`

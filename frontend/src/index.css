@@ -142,3 +142,20 @@
     @apply bg-background font-sans text-foreground;
   }
 }
+
+/*
+ * Windows contrast themes force their own colours and drop box shadows, and the shadows carry the focus rings and the
+ * highlighted option here. Outlines in system colours take their place (D15). Outside the cascade layers, these rules
+ * win over the utilities that turn outlines off.
+ */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  [data-highlighted] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}

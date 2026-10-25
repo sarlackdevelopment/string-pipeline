@@ -2,6 +2,8 @@ import userEvent from '@testing-library/user-event'
 import { render, screen, within } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import StepCard from '@/components/StepCard/StepCard.vue'
+import { StepPart } from '@/components/StepCard/types'
+import type { Transformation } from '@/model/catalog'
 import { Direction, type ParameterValue } from '@/model/chain'
 import type { StepErrors } from '@/model/problem'
 import { StepStatus, type StepResult } from '@/model/run'
@@ -15,6 +17,7 @@ interface CardOptions {
   readonly isUpdating?: boolean
   readonly canMoveUp?: boolean
   readonly canMoveDown?: boolean
+  readonly transformation?: Transformation
 }
 
 // Step 2 of a chain: Replace "Fake" with "Real".
@@ -25,20 +28,21 @@ function renderCard(options: CardOptions = {}) {
     onRemove: vi.fn<() => void>(),
     onChange: vi.fn<(name: string, value: ParameterValue) => void>(),
   }
-  render(StepCard, {
+  const view = render(StepCard, {
     props: {
       number: 2,
-      transformation: replace,
+      transformation: options.transformation ?? replace,
       values: { old: 'Fake', new: 'Real' },
       result: options.result,
       errors: options.errors,
       isUpdating: options.isUpdating ?? false,
       canMoveUp: options.canMoveUp ?? true,
       canMoveDown: options.canMoveDown ?? true,
+      focusRequest: null,
       ...events,
     },
   })
-  return { user, ...events, card: screen.getByRole('group', { name: 'Step 2: Replace' }) }
+  return { user, view, ...events, card: screen.getByRole('group', { name: /^Step 2: / }) }
 }
 
 describe('StepCard', () => {
@@ -142,6 +146,44 @@ describe('StepCard', () => {
       const replaceWith = screen.getByRole('textbox', { name: 'Replace with' })
       expect(replaceWith).toHaveAccessibleDescription(/This value has the wrong type\./)
       expect(replaceWith).toHaveAttribute('aria-invalid', 'true')
+    })
+  })
+  // Testing Library moves the rendered nodes once after mounting, which drops a focus set during the mount. So these
+  // tests ask after the first render; the editor's integration tests cover a card that arrives with a request.
+  describe('the focus after an edit (D15)', () => {
+    it('focuses its first field when asked', async () => {
+      const { view } = renderCard()
+
+      await view.rerender({ focusRequest: { part: StepPart.firstField } })
+
+      expect(screen.getByRole('textbox', { name: 'Find' })).toHaveFocus()
+    })
+
+    it('focuses the button that moved it, or the whole card', async () => {
+      const { view, card } = renderCard()
+
+      await view.rerender({ focusRequest: { part: StepPart.moveUp } })
+      expect(screen.getByRole('button', { name: 'Move step 2 up' })).toHaveFocus()
+      await view.rerender({ focusRequest: { part: StepPart.card } })
+      expect(card).toHaveFocus()
+    })
+
+    it('focuses again when asked again for the same part', async () => {
+      const { view } = renderCard()
+      await view.rerender({ focusRequest: { part: StepPart.firstField } })
+      screen.getByRole('textbox', { name: 'Replace with' }).focus()
+
+      await view.rerender({ focusRequest: { part: StepPart.firstField } })
+
+      expect(screen.getByRole('textbox', { name: 'Find' })).toHaveFocus()
+    })
+
+    it('focuses the whole card when its step has no fields', async () => {
+      const { view, card } = renderCard({ transformation: { ...replace, fields: [] } })
+
+      await view.rerender({ focusRequest: { part: StepPart.firstField } })
+
+      expect(card).toHaveFocus()
     })
   })
 })

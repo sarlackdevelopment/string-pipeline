@@ -1,6 +1,8 @@
 /**
  * Public types of the pipeline editor (D26): what its view shows.
  */
+import type { StepPart } from '@/components/StepCard/types'
+import type { FocusRequest } from '@/composables/useFocusRequest'
 import type { Catalog, Transformation } from '@/model/catalog'
 import type { StepValues } from '@/model/chain'
 import type { StepErrors } from '@/model/problem'
@@ -31,3 +33,10 @@ export interface RunAlert {
   /** False when another try cannot help, as with a rejected request. */
   readonly canRetry: boolean
 }
+
+/** The focus target of the search field that adds steps. */
+export const SEARCH = 'search'
+
+/** Where the focus goes after an edit (D15): a part of a step, or the search field. */
+export type FocusTarget =
+  (FocusRequest<StepPart> & { readonly stepId: string }) | FocusRequest<typeof SEARCH>

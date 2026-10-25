@@ -1,7 +1,7 @@
 /**
  * End-to-end tests (D23): the Gherkin features in `e2e/features` run in Chromium against the real API and the built
  * app. Playwright starts both on ports of their own and stops them afterwards, so a development server on 8080 or
- * 5173 is never touched.
+ * 5173 is never touched. A second project takes the screenshots in `docs/images` the same way.
  */
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig, devices } from '@playwright/test'
@@ -13,20 +13,23 @@ const repositoryRoot = fileURLToPath(new URL('..', import.meta.url))
 // With a path, so a shell that does not look in the current folder for commands still finds it.
 const gradle = process.platform === 'win32' ? '.\\gradlew.bat' : './gradlew'
 
-const testDir = defineBddConfig({
+const featuresDir = defineBddConfig({
   features: 'e2e/features/*.feature',
   steps: 'e2e/steps/*.ts',
 })
 
 export default defineConfig({
-  testDir,
   forbidOnly: Boolean(process.env.CI),
   reporter: 'list',
   use: {
+    ...devices['Desktop Chrome'],
     baseURL: `http://localhost:${String(APP_PORT)}`,
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    { name: 'e2e', testDir: featuresDir },
+    { name: 'screenshots', testDir: 'e2e/screenshots' },
+  ],
   webServer: [
     {
       // Without the Gradle daemon the server runs inside the process tree that Playwright stops at the end.

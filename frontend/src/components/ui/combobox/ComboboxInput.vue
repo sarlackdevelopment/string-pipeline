@@ -26,14 +26,17 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
 <template>
-  <InputGroup>
+  <!-- The group draws the focus ring: its own rules only look for an input-group-control (D15). -->
+  <InputGroup
+    class="has-[[data-slot=combobox-input]:focus-visible]:border-ring has-[[data-slot=combobox-input]:focus-visible]:ring-3 has-[[data-slot=combobox-input]:focus-visible]:ring-ring/50"
+  >
     <InputGroupAddon>
       <SearchIcon class="size-4 shrink-0 opacity-50" />
     </InputGroupAddon>
     <ComboboxInput
       data-slot="combobox-input"
       :class="
-        cn('flex-1 outline-hidden disabled:cursor-not-allowed disabled:opacity-50', props.class)
+        cn('flex-1 outline-none disabled:cursor-not-allowed disabled:opacity-50', props.class)
       "
       v-bind="{ ...$attrs, ...forwarded }"
     />

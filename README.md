@@ -2,6 +2,10 @@
 
 A no-code web app for chaining string transformations: pick transformations, configure each one in a form, see the result of every step. Built as a take-home assignment for the Full-Stack Software Engineer position at KNIME.
 
+![The editor running the chain of the brief: Replace, then Append, from "Fake Python" to "Real Python!"](docs/images/editor.png)
+
+More screenshots: [a step with an error, at phone width](docs/images/editor-phone.png), and [a Windows contrast theme](docs/images/editor-contrast.png).
+
 ## Documentation
 
 - [Requirements](docs/requirements.md): the brief as numbered requirements, R1.1–R4.4
@@ -91,6 +95,7 @@ From `frontend/`, after `npm ci`:
 | `npm test`                        | Runs every Vitest suite: unit, component and integration; `npm run test:coverage` adds a V8 coverage report |
 | `npm run test:unit`               | Runs only the unit tests: the model, the store, the API client, the queries and the controller              |
 | `npm run test:e2e`                | Runs the Gherkin features in `e2e/` in Chromium against the real API and the built app (needs a JDK)        |
+| `npm run screenshots`             | Takes the screenshots in `docs/images` from the real app, the same way as the end-to-end tests              |
 | `npm run lint`                    | Runs oxlint, then ESLint for Vue templates, template accessibility and type-aware rules                     |
 | `npm run typecheck`               | Type-checks the app, the tests and the config files with `vue-tsc`                                          |
 | `npm run format`                  | Formats with Prettier; `npm run format:check` only checks                                                   |

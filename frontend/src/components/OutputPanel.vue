@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
  * The chain's final output (D13, D32), with a button that copies it. While the next run is on its way, the previous
- * output stays and is marked as updating.
+ * output stays and is marked as updating. A live region under the heading speaks the latest run in one sentence, and
+ * another one confirms a copy, which a changed button label alone does not announce (D15).
  */
 import { CheckIcon, CopyIcon, LoaderCircleIcon } from '@lucide/vue'
 import { useClipboard } from '@vueuse/core'
@@ -12,6 +13,8 @@ import type { RunResult } from '@/model/run'
 const props = defineProps<{
   result: RunResult | undefined
   isUpdating: boolean
+  /** The latest run in one sentence. */
+  summary: string
 }>()
 
 const headingId = useId()
@@ -33,7 +36,13 @@ function copyOutput(): void {
     class="grid gap-2 rounded-xl border bg-card p-4 text-card-foreground shadow-xs"
   >
     <div class="flex min-h-7 items-center justify-between gap-2">
-      <h2 :id="headingId" class="text-sm font-semibold">Output</h2>
+      <div class="grid gap-0.5">
+        <h2 :id="headingId" class="text-sm font-semibold">Output</h2>
+        <!-- Always rendered, also while empty: a live region has to exist before its text changes. -->
+        <output aria-live="polite" aria-label="Run summary" class="text-xs text-muted-foreground">{{
+          summary
+        }}</output>
+      </div>
       <div class="flex items-center gap-3">
         <span
           v-if="isUpdating"
@@ -47,6 +56,7 @@ function copyOutput(): void {
           <CopyIcon v-else />
           {{ copied ? 'Copied' : 'Copy' }}
         </Button>
+        <span aria-live="polite" class="sr-only">{{ copied ? 'Copied the output.' : '' }}</span>
       </div>
     </div>
     <pre

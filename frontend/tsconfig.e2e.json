@@ -3,6 +3,7 @@
   "include": ["e2e/**/*"],
   "compilerOptions": {
     "module": "preserve",
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "moduleResolution": "bundler",
     "types": ["node"],
     "noEmit": true,

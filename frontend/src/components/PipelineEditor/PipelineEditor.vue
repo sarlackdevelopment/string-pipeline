@@ -14,6 +14,8 @@ const {
   result,
   isUpdating,
   runAlert,
+  summary,
+  focusTarget,
   retryCatalog,
   retryRun,
   setInput,
@@ -33,6 +35,8 @@ const {
     :result="result"
     :is-updating="isUpdating"
     :run-alert="runAlert"
+    :summary="summary"
+    :focus-target="focusTarget"
     @retry-catalog="retryCatalog"
     @retry-run="retryRun"
     @set-input="setInput"

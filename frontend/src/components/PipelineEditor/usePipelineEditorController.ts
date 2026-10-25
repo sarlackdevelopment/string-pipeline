@@ -2,17 +2,26 @@
  * The editor's controller (D26, D29): joins the chain in the store, the catalog query and the run query, and gives
  * the view plain data and handlers. Only controllers touch stores and queries.
  */
-import { computed } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { ApiErrorKind } from '@/api/client'
 import { findTransformation, type Catalog, type Transformation } from '@/model/catalog'
+import type { Direction } from '@/model/chain'
 import { locateErrors, type LocatedErrors } from '@/model/problem'
 import { toRunRequest } from '@/model/run'
 import { useCatalog } from '@/queries/catalog'
 import { ApiFailure } from '@/queries/client'
 import { usePipelineRun } from '@/queries/run'
 import { usePipelineStore } from '@/stores/pipeline'
+import { focusAfterAdding, focusAfterMoving, focusAfterRemoving } from './model/focus'
 import { failureMessage } from './model/messages'
-import { CatalogStatus, type CatalogState, type RunAlert, type StepItem } from './types'
+import { runSummary } from './model/summary'
+import {
+  CatalogStatus,
+  type CatalogState,
+  type FocusTarget,
+  type RunAlert,
+  type StepItem,
+} from './types'
 
 export function usePipelineEditorController() {
   const store = usePipelineStore()
@@ -65,12 +74,31 @@ export function usePipelineEditorController() {
     }))
   })
 
+  // While a run is on its way, the previous sentence stays, so the live region speaks once per result (D15).
+  const summary = computed<string>((previous) =>
+    run.isUpdating.value ? (previous ?? '') : runSummary(steps.value),
+  )
+
+  // Set after every edit that adds, removes or moves a step; the view hands it to the component that owns the place.
+  const focusTarget = shallowRef<FocusTarget | null>(null)
+
   function addStep(transformationId: string): void {
     const catalog = catalogQuery.data.value
     const transformation = catalog && findTransformation(catalog, transformationId)
     if (transformation !== undefined) {
-      store.addStep(transformation)
+      focusTarget.value = focusAfterAdding(store.addStep(transformation))
     }
+  }
+
+  function removeStep(id: string): void {
+    const target = focusAfterRemoving(store.chain, id)
+    store.removeStep(id)
+    focusTarget.value = target
+  }
+
+  function moveStep(id: string, direction: Direction): void {
+    store.moveStep(id, direction)
+    focusTarget.value = focusAfterMoving(store.chain, id, direction)
   }
 
   return {
@@ -81,6 +109,8 @@ export function usePipelineEditorController() {
     result: run.result,
     isUpdating: run.isUpdating,
     runAlert,
+    summary,
+    focusTarget,
     retryCatalog: () => {
       void catalogQuery.refetch()
     },
@@ -88,8 +118,8 @@ export function usePipelineEditorController() {
     // Pinia binds actions to their store, so they can be handed on as they are.
     setInput: store.setInput,
     addStep,
-    removeStep: store.removeStep,
-    moveStep: store.moveStep,
+    removeStep,
+    moveStep,
     setValue: store.setValue,
   }
 }

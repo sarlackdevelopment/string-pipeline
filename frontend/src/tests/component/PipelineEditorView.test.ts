@@ -2,8 +2,10 @@ import userEvent from '@testing-library/user-event'
 import { render, screen, within } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import PipelineEditorView from '@/components/PipelineEditor/PipelineEditorView.vue'
+import { StepPart } from '@/components/StepCard/types'
 import {
   CatalogStatus,
+  SEARCH,
   type CatalogState,
   type RunAlert,
   type StepItem,
@@ -49,7 +51,7 @@ function renderView(options: ViewOptions = {}) {
     onMoveStep: vi.fn<(id: string, direction: Direction) => void>(),
     onSetValue: vi.fn<(id: string, name: string, value: ParameterValue) => void>(),
   }
-  render(PipelineEditorView, {
+  const view = render(PipelineEditorView, {
     props: {
       catalogState: options.catalogState ?? ready,
       input: 'Fake Python',
@@ -58,10 +60,12 @@ function renderView(options: ViewOptions = {}) {
       result: { steps: new Map(), output: 'Real Python!' },
       isUpdating: false,
       runAlert: options.runAlert ?? null,
+      summary: 'All 2 steps ran.',
+      focusTarget: null,
       ...events,
     },
   })
-  return { user, ...events }
+  return { user, view, ...events }
 }
 
 describe('PipelineEditorView (D2, D26)', () => {
@@ -167,6 +171,27 @@ describe('PipelineEditorView (D2, D26)', () => {
       const alert = screen.getByRole('alert')
       expect(alert).toHaveTextContent('Invalid request content.')
       expect(within(alert).queryByRole('button')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('focus and announcements (D15)', () => {
+    it('hands the focus target to the step it names, or to the search field', async () => {
+      const { view } = renderView()
+
+      await view.rerender({ focusTarget: { stepId: 's2', part: StepPart.firstField } })
+      const append = screen.getByRole('group', { name: 'Step 2: Append' })
+      expect(within(append).getByRole('textbox', { name: 'Text' })).toHaveFocus()
+
+      await view.rerender({ focusTarget: { part: SEARCH } })
+      expect(screen.getByRole('combobox', { name: 'Add a step' })).toHaveFocus()
+    })
+
+    it('passes the summary of the run to the live region', () => {
+      renderView()
+
+      expect(screen.getByRole('status', { name: 'Run summary' })).toHaveTextContent(
+        'All 2 steps ran.',
+      )
     })
   })
 })

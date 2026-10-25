@@ -10,21 +10,31 @@ defineOptions({
 })
 
 const props = withDefaults(
-  defineProps<ComboboxContentProps & { class?: HTMLAttributes['class'] }>(),
+  defineProps<
+    ComboboxContentProps & {
+      class?: HTMLAttributes['class']
+      /**
+       * Renders the list at the end of the body. Without it the list stays next to its input, inside the page's
+       * landmarks; its fixed position still lets it overlap what follows.
+       */
+      portal?: boolean
+    }
+  >(),
   {
     position: 'popper',
     align: 'center',
     sideOffset: 4,
+    portal: true,
   },
 )
 const emits = defineEmits<ComboboxContentEmits>()
 
-const delegatedProps = reactiveOmit(props, 'class')
+const delegatedProps = reactiveOmit(props, 'class', 'portal')
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
 <template>
-  <ComboboxPortal>
+  <ComboboxPortal :disabled="!props.portal">
     <ComboboxContent
       data-slot="combobox-content"
       v-bind="{ ...$attrs, ...forwarded }"

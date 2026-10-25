@@ -232,13 +232,15 @@ queries/                           TanStack Query (D29)
   catalog.ts                       useCatalog: once per page
   run.ts                           usePipelineRun: runs the chain 300 ms after the last edit (D11)
 stores/pipeline.ts                 Pinia setup store: the chain being edited (D29)
+composables/useFocusRequest.ts     focuses the part a container asks for, after the DOM updated (D15)
 App.vue                            shell: header, error boundary, PipelineEditor
 components/
-  PipelineEditor/                  the editor: controller, view, container, types; model/messages.ts
+  PipelineEditor/                  the editor: controller, view, container, types; model/: messages, focus, summary
   InputPanel.vue                   input text, maxlength from the catalog limits
   StepCard/StepCard.vue            fieldset, legend "Step 2: Replace", status, move and remove, form, output
   StepCard/model/status.ts         status → label and tone (pure)
   StepCard/model/issues.ts         result and request errors → the message at each field (pure)
+  StepCard/types.ts                the parts of a card that can take the focus (D15)
   ParameterForm/ParameterForm.vue  fields from the schema (D27)
   ParameterForm/registry.ts        field kind → component
   ParameterForm/FieldShell.vue     label, description and issue, linked to the control (D15)
@@ -265,12 +267,15 @@ The UI kit (D28, step 12). shadcn-vue's components are copied into `components/u
 - The first match is highlighted at once: typing a name and pressing Enter picks it. Escape closes the list.
 - jsdom does not implement `scrollIntoView`, which Reka UI calls on the highlighted option, so the test setup stubs it. Nothing else needed a stub: floating-ui, which positions the list, uses a `ResizeObserver` only where one exists.
 
-Accessibility (D15):
+Accessibility (D15, built in step 16):
 
 - Each step is a `fieldset` whose legend names the step.
-- Descriptions and errors are linked to their fields through `aria-describedby`, with ids from `useId`.
-- An `<output aria-live="polite">` announces the run summary after the debounce.
-- After adding, removing or moving a step, focus goes to the new step's first field, the next step, or the moved step's button.
+- Descriptions and errors are linked to their fields through `aria-describedby`, with ids from `useId`; a wrong value also sets `aria-invalid`.
+- An `<output aria-live="polite">` under the Output heading says in one sentence how the latest run went: "All 2 steps ran." or "Step 2, Replace, needs a value." It leaves the output out, so typing does not repeat it at every pause, and it keeps the previous sentence while the next run is on its way. A second live region confirms a copy, which a changed button label alone does not announce.
+- After an edit the focus keeps the user's place. A new step's first field takes it (the step itself when it has no fields). After a removal, the step that took its place takes it, or the search field once the last step is gone. After a move, the button that moved the step keeps it, or the step itself once that button no longer applies at an end of the chain. The controller decides where (`model/focus.ts`); the component that owns the place focuses it once the DOM has updated (`composables/useFocusRequest.ts`).
+- The picker's list opens next to its search field, inside the page's landmarks, instead of in a portal at the end of the body.
+- Windows contrast themes drop box shadows, which carry the focus rings here; outlines in system colours take their place. The search field of the picker shows a focus ring too, which the copied combobox lacked.
+- The end-to-end tests run axe on the editor with an error and the list open, walk every stop of the Tab key and check that each one shows the focus, and check the focus outline in a contrast theme.
 
 Proof of R2.1 (D19): an integration test serves a catalog with a transformation the frontend has never seen, with an unfamiliar mix of parameters, and checks that its form renders and runs.
 
@@ -287,7 +292,7 @@ Proof of R2.1 (D19): an integration test serves a catalog with a transformation 
 
 The stand-in API (`src/tests/helpers/api.ts`) runs on MSW (D33). It serves a catalog and runs Replace and Append by the rules of D42, so a test reads like a session: type a text, add a step, read its output. It computes its answers instead of replaying canned ones, and the app parses them with its own contract schemas, so it cannot drift from the wire format unnoticed. A gate holds a response back to look at the editor while a run is on its way.
 
-The end-to-end tests (step 15) are Gherkin features, run by Playwright through playwright-bdd: the brief's chain (`@smoke`), a pattern that Java cannot compile, with the server's message at its field, and an emoji that Substring keeps whole. Playwright starts the API with Gradle on port 8091 and the built app with `vite preview` on port 4191, whose proxy reaches that API through `API_PROXY_TARGET`; development servers on 8080 and 5173 are never touched. The steps find elements by role and name, and read texts inside them.
+The end-to-end tests (step 15) are Gherkin features, run by Playwright through playwright-bdd: the brief's chain (`@smoke`), a pattern that Java cannot compile, with the server's message at its field, and an emoji that Substring keeps whole. Playwright starts the API with Gradle on port 8091 and the built app with `vite preview` on port 4191, whose proxy reaches that API through `API_PROXY_TARGET`; development servers on 8080 and 5173 are never touched. The steps find elements by role and name, and read texts inside them. A second feature (step 16) checks accessibility: axe, the stops of the Tab key and a contrast theme. A second Playwright project, `npm run screenshots`, takes the pictures in `docs/images` from the same running app.
 
 ## 9. Points to approve
 

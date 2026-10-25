@@ -4,15 +4,17 @@
  * it, the form of its parameters, and the step's own output.
  */
 import { ArrowDownIcon, ArrowUpIcon, LoaderCircleIcon, Trash2Icon } from '@lucide/vue'
-import { computed } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import ParameterForm from '@/components/ParameterForm/ParameterForm.vue'
 import { Button } from '@/components/ui/button'
+import { useFocusRequest, type FocusRequest } from '@/composables/useFocusRequest'
 import type { Transformation } from '@/model/catalog'
 import { Direction, type ParameterValue, type StepValues } from '@/model/chain'
 import type { StepErrors } from '@/model/problem'
 import { StepStatus, type StepResult } from '@/model/run'
 import { fieldIssues } from './model/issues'
 import { statusDisplay, Tone } from './model/status'
+import { StepPart } from './types'
 
 const props = defineProps<{
   /** The position in the chain, from 1. */
@@ -24,6 +26,8 @@ const props = defineProps<{
   isUpdating: boolean
   canMoveUp: boolean
   canMoveDown: boolean
+  /** Asks the card to focus one of its parts after an edit (D15). */
+  focusRequest: FocusRequest<StepPart> | null
 }>()
 
 const emit = defineEmits<{
@@ -35,6 +39,29 @@ const emit = defineEmits<{
 const status = computed(() => statusDisplay(props.result, props.isUpdating))
 const issues = computed(() => fieldIssues(props.result, props.errors))
 
+const card = useTemplateRef<HTMLFieldSetElement>('card')
+
+// The parts are marked with data-part in the template. A part the card does not have, such as the first field of a
+// step without parameters, falls back to the card itself.
+const partSelectors: Record<Exclude<StepPart, typeof StepPart.card>, string> = {
+  [StepPart.firstField]: '[data-part="fields"] :is(input, select, textarea, button)',
+  [StepPart.moveUp]: '[data-part="move-up"]',
+  [StepPart.moveDown]: '[data-part="move-down"]',
+}
+
+useFocusRequest(
+  () => props.focusRequest,
+  (part) => {
+    const root = card.value
+    if (root === null) {
+      return
+    }
+    const target =
+      part === StepPart.card ? root : (root.querySelector<HTMLElement>(partSelectors[part]) ?? root)
+    target.focus()
+  },
+)
+
 // Outlined on the white card: tinted backgrounds would push the coloured text below a 4.5:1 contrast.
 const toneClasses: Record<Tone, string> = {
   [Tone.success]: 'border-success/40 text-success',
@@ -45,7 +72,13 @@ const toneClasses: Record<Tone, string> = {
 </script>
 
 <template>
-  <fieldset class="min-w-0 rounded-xl border bg-card p-4 text-card-foreground shadow-xs">
+  <!-- tabindex="-1": the card takes the focus only from code, after the step before it was removed or after it moved
+       to an end of the chain. -->
+  <fieldset
+    ref="card"
+    tabindex="-1"
+    class="min-w-0 rounded-xl border bg-card p-4 text-card-foreground shadow-xs outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+  >
     <!-- Floated, so the legend sits inside the card instead of on its border. -->
     <legend class="float-left text-sm leading-7 font-semibold">
       Step {{ number }}: {{ transformation.name }}
@@ -64,6 +97,7 @@ const toneClasses: Record<Tone, string> = {
       <Button
         variant="ghost"
         size="icon-sm"
+        data-part="move-up"
         :disabled="!canMoveUp"
         :aria-label="`Move step ${number} up`"
         @click="emit('move', Direction.up)"
@@ -73,6 +107,7 @@ const toneClasses: Record<Tone, string> = {
       <Button
         variant="ghost"
         size="icon-sm"
+        data-part="move-down"
         :disabled="!canMoveDown"
         :aria-label="`Move step ${number} down`"
         @click="emit('move', Direction.down)"
@@ -95,6 +130,7 @@ const toneClasses: Record<Tone, string> = {
         {{ message }}
       </p>
       <ParameterForm
+        data-part="fields"
         :fields="transformation.fields"
         :values="values"
         :issues="issues"

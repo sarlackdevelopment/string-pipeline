@@ -4,18 +4,27 @@
  * out; the controller decides everything.
  */
 import { LoaderCircleIcon, TriangleAlertIcon } from '@lucide/vue'
-import { useId } from 'vue'
+import { computed, useId } from 'vue'
 import InputPanel from '@/components/InputPanel.vue'
 import OutputPanel from '@/components/OutputPanel.vue'
 import StepCard from '@/components/StepCard/StepCard.vue'
+import type { StepPart } from '@/components/StepCard/types'
 import TransformationPicker from '@/components/TransformationPicker/TransformationPicker.vue'
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import type { FocusRequest } from '@/composables/useFocusRequest'
 import type { Direction, ParameterValue } from '@/model/chain'
 import type { RunResult } from '@/model/run'
-import { CatalogStatus, type CatalogState, type RunAlert, type StepItem } from './types'
+import {
+  CatalogStatus,
+  SEARCH,
+  type CatalogState,
+  type FocusTarget,
+  type RunAlert,
+  type StepItem,
+} from './types'
 
-defineProps<{
+const props = defineProps<{
   catalogState: CatalogState
   input: string
   inputErrors: readonly string[]
@@ -23,6 +32,10 @@ defineProps<{
   result: RunResult | undefined
   isUpdating: boolean
   runAlert: RunAlert | null
+  /** The latest run in one sentence, for the live region (D15). */
+  summary: string
+  /** Where the focus goes after the latest edit (D15). */
+  focusTarget: FocusTarget | null
 }>()
 
 const emit = defineEmits<{
@@ -36,6 +49,15 @@ const emit = defineEmits<{
 }>()
 
 const stepsHeadingId = useId()
+
+// Each component gets the focus target only when it owns that place; the object stays the same between renders, so
+// only a new edit asks for the focus again.
+function focusOfStep(stepId: string): FocusRequest<StepPart> | null {
+  const target = props.focusTarget
+  return target !== null && 'stepId' in target && target.stepId === stepId ? target : null
+}
+
+const searchFocus = computed(() => (props.focusTarget?.part === SEARCH ? props.focusTarget : null))
 </script>
 
 <template>
@@ -88,6 +110,7 @@ const stepsHeadingId = useId()
             :is-updating="isUpdating"
             :can-move-up="index > 0"
             :can-move-down="index < steps.length - 1"
+            :focus-request="focusOfStep(step.id)"
             @move="emit('moveStep', step.id, $event)"
             @remove="emit('removeStep', step.id)"
             @change="(name, value) => emit('setValue', step.id, name, value)"
@@ -99,9 +122,10 @@ const stepsHeadingId = useId()
     <TransformationPicker
       :catalog="catalogState.catalog"
       :full="steps.length >= catalogState.catalog.limits.maxSteps"
+      :focus-request="searchFocus"
       @add="emit('addStep', $event)"
     />
 
-    <OutputPanel :result="result" :is-updating="isUpdating" />
+    <OutputPanel :result="result" :is-updating="isUpdating" :summary="summary" />
   </div>
 </template>
