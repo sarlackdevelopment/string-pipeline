@@ -276,14 +276,16 @@ Proof of R2.1 (D19): an integration test serves a catalog with a transformation 
 
 ## 8. Tests
 
-| Layer                | What                                                                                     | Where                            |
-| -------------------- | ---------------------------------------------------------------------------------------- | -------------------------------- |
-| Library              | each transformation, each trap (parameterized), parameter checks, pipeline rules, limits | `library/src/test`               |
-| Server               | catalog and runs against `contract/`, request errors, a `failed` run, ArchUnit           | `server/src/test`                |
-| Frontend unit        | model functions, zod parsers on `contract/`                                              | `frontend/src/tests/unit`        |
-| Frontend component   | views with props and `vi.fn()` events                                                    | `frontend/src/tests/component`   |
-| Frontend integration | containers with MSW, the keyboard path, the R2.1 proof                                   | `frontend/src/tests/integration` |
-| End to end           | one `@smoke` journey against the real backend (D23)                                      | later                            |
+| Layer                | What                                                                                                       | Where                            |
+| -------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| Library              | each transformation, each trap (parameterized), parameter checks, pipeline rules, limits                   | `library/src/test`               |
+| Server               | catalog and runs against `contract/`, request errors, a `failed` run, ArchUnit                             | `server/src/test`                |
+| Frontend unit        | model functions, zod parsers on `contract/`; the store; queries and the controller inside a test component | `frontend/src/tests/unit`        |
+| Frontend component   | each view with full props, events through `vi.fn()`, found by role and name                                | `frontend/src/tests/component`   |
+| Frontend integration | containers on a stand-in API: the keyboard path, the R2.1 proof, failures                                  | `frontend/src/tests/integration` |
+| End to end           | one `@smoke` journey against the real backend (D23)                                                        | later                            |
+
+The stand-in API (`src/tests/helpers/api.ts`) runs on MSW (D33). It serves a catalog and runs Replace and Append by the rules of D42, so a test reads like a session: type a text, add a step, read its output. It computes its answers instead of replaying canned ones, and the app parses them with its own contract schemas, so it cannot drift from the wire format unnoticed. A gate holds a response back to look at the editor while a run is on its way.
 
 ## 9. Points to approve
 

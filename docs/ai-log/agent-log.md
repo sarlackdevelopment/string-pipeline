@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: backend done; the UI works end to end. Next: step 14, the behaviour tests.
-- Last commit: `feat(ui): pipeline editor with schema-driven forms`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
+- Phase: backend done; the UI works end to end and has behaviour tests. Next: step 15, the end-to-end smoke test.
+- Last commit: `test: behaviour tests of views, controller and editor on a stand-in API`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green.
-- Tests: Java 161 in 19 classes (library 135, server 26); frontend 73 in 13 files.
+- Tests: Java 161 in 19 classes (library 135, server 26); frontend 141 in 22 files (unit 86, component 45, integration 10).
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+.
-- Next step: step 14, behaviour tests (design section 8). Component tests render each view with full props and check events with `vi.fn()`. Integration tests render containers with `renderWithProviders` (`src/tests/helpers/render.ts`) and MSW: the keyboard path (type in "Add a step", Enter adds the first match, fill the fields, move and remove), the R2.1 proof (a test catalog with a transformation the frontend has never seen and an unfamiliar mix of parameters renders and runs), the catalog failing and Try again, an unreachable server during a run, and a 400 whose pointers land at the input and at a field. Controllers are tested inside a test component. Reka's list opens in a portal at the end of `body`, so query it from `screen`, not from the container. Give every `<Input>` a `type`, or the label rule skips it. Do not let the shadcn-vue CLI overwrite `input`, `textarea`, `input-group` or `native-select`: they carry our fixes.
+- Next step: step 15, one `@smoke` journey end to end (PLAYBOOK §5.3, D23): Playwright with playwright-bdd against the real API and the built frontend, locators by role, its own port with `--strictPort`. A throwaway check in step 13 ran `playwright-core` with the installed Chrome (`channel: chrome`); the step decides between that and downloaded browsers. Vitest's `include` already stops at `src/tests`. Do not start anything on port 8080: the developer runs the API there.
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -167,6 +167,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: npm registry (pinia 4.1.0 and its new dependency `nostics`, @tanstack/vue-query 5.104.5, playwright-core, axe-core); the shadcn-vue registry entries of field, native-select, checkbox, alert, badge, spinner, label; Reka UI's `ComboboxInput` (how the search term resets after a pick) and `ComboboxRoot` (`onOpenChange`); VueUse's `refDebounced`; eslint-plugin-vuejs-accessibility's `label-has-for`.
 - Changed: `frontend/src/` (`main.ts`, `App.vue`, `queries/`, `stores/`, `components/` apart from `ui/`, and `ui/` checkbox, native-select, alert), `frontend/src/index.css` (`--success`), `frontend/vite.config.ts` (proxy), `frontend/eslint.config.ts`, package files, tests (`helpers/render.ts`, `integration/App.test.ts`, unit tests of the store, the queries and the component models), README, `docs/design.md`, `docs/decisions.md`, both journals.
 - Verified: format:check, lint, typecheck, 73 tests in 13 files, build; npm audit clean. A throwaway Playwright script in the scratchpad (headless Chrome, dev server on port 5199 proxying to the API on 8080) built the brief's chain and an invalid pattern and took screenshots at 1280 and 390 px; axe-core found no violations except `region` while the picker's portalled list is open.
-- Commit: `feat(ui): pipeline editor with schema-driven forms`.
+- Commit: `34be9ca`.
 - Open: the Turkish i trap (step 17); the picker's list outside the landmarks, focus after add, remove and move, and the live region (step 16).
 - Next: S14, the behaviour tests.
+
+### S14 The behaviour tests (2026-10-25)
+
+- Goal: behaviour tests of design section 8 for the UI of S13.
+- Requirements: R1.2, R1.3, R2.1.
+- Decisions: D11, D15, D19, D23, D26, D33, D41, D42 tested; D33 refined.
+- Read: VueUse's `useClipboard` and `usePermission` (API path only with `clipboard-write` granted, otherwise `document.execCommand`); user-event's clipboard stub and its `ClipboardItem` stand-in.
+- Changed: `frontend/src/tests/helpers/` (`api.ts` stand-in API with a gate, `composable.ts`, `contract.ts` with `contractCatalog` and `contractTransformation`), `frontend/src/tests/component/` (six view tests), `frontend/src/tests/unit/` (run query, controller; groups test on the contract helper), `frontend/src/tests/integration/` (editor; App with the error boundary), `frontend/eslint.config.ts` (`app/tests`), README, `docs/design.md`, `docs/decisions.md`, both journals.
+- Verified: format:check, lint, typecheck, 141 tests in 22 files (8.8 s), build; three runs in a row and one shuffled run green; V8 coverage 94.5 % of statements.
+- Commit: `test: behaviour tests of views, controller and editor on a stand-in API`.
+- Open: the Turkish i trap (step 17); the picker's list outside the landmarks, focus after add, remove and move, and the live region (step 16).
+- Next: S15, the end-to-end smoke test.

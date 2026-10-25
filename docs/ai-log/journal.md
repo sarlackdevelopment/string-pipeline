@@ -201,4 +201,26 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** `format:check`, `lint`, `typecheck`, 73 tests in 13 files, `build`; `npm audit` clean. In the browser, the brief's chain gives "Real Python!".
 
-**Commit.** `feat(ui): pipeline editor with schema-driven forms`
+**Commit.** `34be9ca feat(ui): pipeline editor with schema-driven forms`
+
+## Step 14. The behaviour tests (2026-10-25)
+
+**Asked.** Test how the UI behaves: views, containers, the whole path from the keyboard.
+
+**AI did.**
+
+- Wrote a stand-in API for the tests on MSW (D33). It serves a catalog and runs Replace and Append by the rules of D42, computing each answer from the request instead of replaying a canned one. The app parses its answers with its own contract schemas, so the stand-in cannot drift from the wire format unnoticed. A gate holds a response back, to look at the editor while a run is on its way.
+- Component tests render each view with full props and check its events with typed `vi.fn()` mocks, finding everything by role and name: the step card, the form with a field of every kind, the picker, the input, the output and the editor's view (45 tests).
+- Unit tests run the run query and the editor's controller inside a test component, Vue's counterpart of `renderHook`. They show that a burst of edits sends one request, that a request still on its way is aborted when a newer one goes out (D11), that the previous result stays meanwhile, and that undoing an edit shows the earlier result without a new call (14 tests).
+- Integration tests render the editor on the stand-in API. One builds the brief's chain and reorders it with the keyboard alone, asserting where the focus is at each step. One proves R2.1: a catalog with a transformation this frontend has never seen, with an integer, a one-character text, a three-way choice, a checkbox and a parameter of an unknown kind; its form renders, and the server receives the typed values. Others cover a catalog that fails to load, a server that cannot be reached during a run, and a rejected request whose errors land at the input and at a field. The App test now also checks the error boundary.
+- Every workaround from step 13 is pinned by a test that fails if a library changes under it: the picker's empty value (the same transformation twice in a row), the shallow ref behind "Updating", and Vue reading an empty number field as ''.
+- The copy test showed how VueUse copies: through the Clipboard API only where `clipboard-write` is granted, and through `document.execCommand` elsewhere. jsdom has neither, so that test grants the permission and provides `ClipboardItem`; user-event provides the clipboard.
+- One test first failed on its own order: TanStack Query drops the error of a query that never had data as soon as it fetches again, so the test now waits for the result.
+- oxlint asked for typed mocks; ESLint now accepts `waitFor(() => expect(...))` in tests, the usual way to wait for an assertion.
+- The suite passes three times in a row and in shuffled order. Coverage with V8: 94.5 % of statements; in the app's own code only the page reload and the guard against a programmer error stay unrun.
+
+**Decided.** D33 refined.
+
+**Checked.** `format:check`, `lint`, `typecheck`, 141 tests in 22 files, `build`.
+
+**Commit.** `test: behaviour tests of views, controller and editor on a stand-in API`

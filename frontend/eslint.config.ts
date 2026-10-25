@@ -63,6 +63,15 @@ export default defineConfigWithVueTs(
     files: ['src/tests/**'],
   },
 
+  {
+    name: 'app/tests',
+    files: ['src/tests/**'],
+    rules: {
+      // `waitFor(() => expect(...))` is how Testing Library and Vitest wait for an assertion to pass.
+      '@typescript-eslint/no-confusing-void-expression': ['error', { ignoreArrowShorthand: true }],
+    },
+  },
+
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
 
   skipFormatting,
