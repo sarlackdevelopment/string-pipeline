@@ -178,4 +178,27 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** `format:check`, `lint`, `typecheck`, 45 tests, `build`; `npm audit` clean.
 
-**Commit.** `chore(ui): shadcn-vue kit on Reka UI, checked by probe tests`
+**Commit.** `5fe6adf chore(ui): shadcn-vue kit on Reka UI, checked by probe tests`
+
+## Step 13. The UI (2026-10-25)
+
+**Asked.** Build the UI on the model.
+
+**AI did.**
+
+- Added Pinia 4.1 and TanStack Query 5.104 after checking them on the npm registry. Pinia 4 brings a new dependency, `nostics`, a diagnostics library maintained by the authors of Pinia, VueUse and Nuxt. npm 11 now blocks install scripts that `package.json` does not approve; vue-demi's, which only switches files for Vue 2, is denied in `allowScripts`.
+- Built the editor of design section 7: a Pinia store for the chain, queries for the catalog and the runs, and the editor's controller, view and container (D26). The controller is the only code that touches the store and the queries.
+- The parameter form comes from the catalog (R2.1, D27). A registry maps each field kind to a component, and its type fails the build when a kind has no component. `FieldShell` gives every field its label, description and message, linked with `aria-describedby`.
+- Added checkbox, native select and alert through the shadcn-vue CLI. This time the CLI changed neither `index.css` nor the dependencies. Fixed the emit type of the native select.
+- Failed calls: a query function throws them as `ApiFailure`, and only an unreachable server is retried, twice. A rejected request puts its messages at the input, the step or the field; anything else becomes a banner.
+- Ran the app against the real server in headless Chrome, through a throwaway Playwright script outside the repository, and looked at screenshots at desktop and phone width. That caught a bug the tests had not: the "Updating" mark never went away. `refDebounced` keeps its value in a deep `ref`, which wraps the request in a reactive proxy, so the sent request never equalled the latest one by identity; `watchDebounced` now writes into a shallow ref (D32 revised). The screenshots also showed a checkbox description pushed down by the grid, and a Copy button that was active for empty output.
+- Ran axe-core in the same browser: no violations in the editor, and one best-practice notice while the picker is open, because its list is rendered at the end of `body`, outside the page's landmarks. That is left for step 16.
+- Kept the status colours readable. On a tinted badge, red text drops to about 4.4:1, so the badges are outlined, and `--success` (Tailwind's green-700, 5:1 on white) joined the theme tokens.
+- ESLint's label rule wanted every label both to wrap its control and to point at it with `for`. It now accepts either, as HTML does.
+- Added 28 unit tests: the store, the retry policy, and the pure functions of the components. The App test now renders with the store and the query client and gets the catalog from MSW. Behaviour tests of the views and containers come in step 14.
+
+**Decided.** D29 refined, D32 revised, D39 extended.
+
+**Checked.** `format:check`, `lint`, `typecheck`, 73 tests in 13 files, `build`; `npm audit` clean. In the browser, the brief's chain gives "Real Python!".
+
+**Commit.** `feat(ui): pipeline editor with schema-driven forms`

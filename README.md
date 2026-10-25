@@ -5,7 +5,7 @@ A no-code web app for chaining string transformations: pick transformations, con
 ## Documentation
 
 - [Requirements](docs/requirements.md): the brief as numbered requirements, R1.1–R4.4
-- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D39
+- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D47
 - [Design](docs/design.md): the API, the transformations, the library, the server and the frontend
 - [API contract](contract/README.md): example requests and responses that the Java and TypeScript tests share
 - [AI usage log](docs/ai-log/README.md): every step taken with the AI assistant, for people and for agents
@@ -57,6 +57,17 @@ A problem inside a step comes back as that step's `status` with HTTP 200; a malf
 - Any JDK 17+ to start Gradle. The modules compile with JDK 25: Gradle uses an installed JDK 25 or downloads one.
 - Node.js 24.15+ with npm 11 for the frontend.
 
+## Running the app
+
+Start the API, then the frontend in a second terminal:
+
+```sh
+./gradlew :server:bootRun
+cd frontend && npm ci && npm run dev
+```
+
+The app runs on http://localhost:5173, and its dev server forwards `/api` to the API on port 8080. Type a text, add steps with the search field under the steps, and every step shows its own output.
+
 ## Commands
 
 ### Backend
@@ -73,16 +84,16 @@ From the repository root (`gradlew.bat` instead of `./gradlew` in cmd or PowerSh
 
 From `frontend/`, after `npm ci`:
 
-| Command                           | What it does                                                                             |
-| --------------------------------- | ---------------------------------------------------------------------------------------- |
-| `npm run dev`                     | Starts the dev server on http://localhost:5173                                           |
-| `npm run build`                   | Type-checks and builds the production bundle into `frontend/dist`                        |
-| `npm test`                        | Runs the Vitest suites; `npm run test:coverage` adds a V8 coverage report                |
-| `npm run test:unit`               | Runs only the unit tests: the model, the API client and the contract parsing             |
-| `npm run lint`                    | Runs oxlint, then ESLint for Vue templates, template accessibility and type-aware rules  |
-| `npm run typecheck`               | Type-checks the app, the tests and the config files with `vue-tsc`                       |
-| `npm run format`                  | Formats with Prettier; `npm run format:check` only checks                                |
-| `npx shadcn-vue@2.8.2 add <name>` | Copies a shadcn-vue component into `src/components/ui/`, where it becomes our code (D28) |
+| Command                           | What it does                                                                               |
+| --------------------------------- | ------------------------------------------------------------------------------------------ |
+| `npm run dev`                     | Starts the dev server on http://localhost:5173; it forwards `/api` to the API on port 8080 |
+| `npm run build`                   | Type-checks and builds the production bundle into `frontend/dist`                          |
+| `npm test`                        | Runs the Vitest suites; `npm run test:coverage` adds a V8 coverage report                  |
+| `npm run test:unit`               | Runs only the unit tests: pure functions, the store and the API client, without rendering  |
+| `npm run lint`                    | Runs oxlint, then ESLint for Vue templates, template accessibility and type-aware rules    |
+| `npm run typecheck`               | Type-checks the app, the tests and the config files with `vue-tsc`                         |
+| `npm run format`                  | Formats with Prettier; `npm run format:check` only checks                                  |
+| `npx shadcn-vue@2.8.2 add <name>` | Copies a shadcn-vue component into `src/components/ui/`, where it becomes our code (D28)   |
 
 ### Before every commit
 

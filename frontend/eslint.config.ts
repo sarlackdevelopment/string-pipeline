@@ -42,6 +42,8 @@ export default defineConfigWithVueTs(
         'error',
         { controlComponents: ['combobox-input', 'input-group-input', 'input-group-textarea'] },
       ],
+      // HTML links a label to its control by wrapping it or by `for`; the rule's default demands both at once.
+      'vuejs-accessibility/label-has-for': ['error', { required: { some: ['nesting', 'id'] } }],
     },
   },
 

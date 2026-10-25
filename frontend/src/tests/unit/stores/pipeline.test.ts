@@ -1,0 +1,74 @@
+// @vitest-environment node
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it } from 'vitest'
+import type { Transformation } from '@/model/catalog'
+import { Direction } from '@/model/chain'
+import { FieldKind } from '@/model/fields'
+import { usePipelineStore } from '@/stores/pipeline'
+
+const append: Transformation = {
+  id: 'append',
+  name: 'Append',
+  category: 'text',
+  description: '',
+  fields: [
+    {
+      kind: FieldKind.text,
+      name: 'text',
+      title: 'Text',
+      description: '',
+      required: false,
+      defaultValue: '!',
+      maxLength: null,
+    },
+  ],
+}
+
+beforeEach(() => {
+  setActivePinia(createPinia())
+})
+
+describe('the pipeline store (D29)', () => {
+  it('starts with an empty chain', () => {
+    expect(usePipelineStore().chain).toEqual({ input: '', steps: [] })
+  })
+
+  it('gives every new step an id of its own, also after a removal (D40)', () => {
+    const store = usePipelineStore()
+
+    const first = store.addStep(append)
+    store.removeStep(first)
+    const second = store.addStep(append)
+
+    expect(second).not.toBe(first)
+    expect(store.chain.steps.map((step) => step.id)).toEqual([second])
+  })
+
+  it('edits the chain through the model functions (R1.2)', () => {
+    const store = usePipelineStore()
+
+    store.setInput('Hello')
+    const first = store.addStep(append)
+    const second = store.addStep(append)
+    store.setValue(second, 'text', '?')
+    store.moveStep(second, Direction.up)
+
+    expect(store.chain).toEqual({
+      input: 'Hello',
+      steps: [
+        { id: second, transformationId: 'append', values: { text: '?' } },
+        { id: first, transformationId: 'append', values: { text: '!' } },
+      ],
+    })
+  })
+
+  it('keeps the same chain object when an edit changes nothing', () => {
+    const store = usePipelineStore()
+    const before = store.chain
+
+    store.setInput('')
+    store.removeStep('missing')
+
+    expect(store.chain).toBe(before)
+  })
+})

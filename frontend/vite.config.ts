@@ -13,6 +13,10 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    // In development the API runs on its own port; the app calls `/api` as it will in production (D22).
+    proxy: { '/api': 'http://localhost:8080' },
+  },
   test: {
     include: ['src/tests/**/*.test.ts'],
     environment: 'jsdom',

@@ -227,29 +227,36 @@ model/                             the domain, pure functions and types, no Vue 
 api/                               the network (step 11)
   contract.ts                      zod schemas of the wire format, turned into the domain in one pass (D20)
   client.ts                        fetchCatalog and postRun; every outcome is data, cancellation rejects
+queries/                           TanStack Query (D29)
+  client.ts                        the query client; a failed call becomes an ApiFailure; retries
+  catalog.ts                       useCatalog: once per page
+  run.ts                           usePipelineRun: runs the chain 300 ms after the last edit (D11)
+stores/pipeline.ts                 Pinia setup store: the chain being edited (D29)
 App.vue                            shell: header, error boundary, PipelineEditor
 components/
-  PipelineEditor/                  the editor: controller, view, container, types
+  PipelineEditor/                  the editor: controller, view, container, types; model/messages.ts
   InputPanel.vue                   input text, maxlength from the catalog limits
   StepCard/StepCard.vue            fieldset, legend "Step 2: Replace", status, move and remove, form, output
   StepCard/model/status.ts         status → label and tone (pure)
+  StepCard/model/issues.ts         result and request errors → the message at each field (pure)
   ParameterForm/ParameterForm.vue  fields from the schema (D27)
   ParameterForm/registry.ts        field kind → component
+  ParameterForm/FieldShell.vue     label, description and issue, linked to the control (D15)
   ParameterForm/fields/            TextField, IntegerField, BooleanField, ChoiceField, UnsupportedField
-  TransformationPicker/            combobox with search, groups and descriptions (D28)
+  TransformationPicker/            combobox with search, groups and descriptions (D28); model/groups.ts
   OutputPanel.vue                  final output and a copy button (D32)
   ui/                              shadcn-vue components (D28)
-stores/pipeline.ts                 Pinia setup store: input and steps (D29)
-queries/                           useCatalog and usePipelineRun (TanStack Query)
 ```
 
 Data flow:
 
 1. `useCatalog` loads the catalog once. `api/contract` validates it, and `model/fields` turns each parameter schema into field descriptors.
-2. The store holds the chain. Every edit goes through a pure function from `model/chain`.
-3. `model/run` builds the run request. After a 300 ms debounce (D11), `usePipelineRun` posts it with the query's `AbortSignal`, so a newer request cancels the older one.
+2. The store holds the chain. Every edit goes through a pure function from `model/chain`. Step ids come from a counter, so no id is reused while the page is open.
+3. `model/run` builds the run request. 300 ms after the last edit (D11), `usePipelineRun` posts it with the query's `AbortSignal`. The request is the query key: a newer request cancels the older one, and a request sent before shows its cached result at once.
 4. While a run is pending, the previous results stay visible, matched by step id. A removed step has no result; a new one shows that it is running.
-5. Problem Details pointers go to the matching field (section 2); anything else is a banner with Retry.
+5. A failed call becomes an `ApiFailure`, the query's error. An unreachable server is retried twice, then shown as a banner with Try again. Problem Details pointers go to the input, a step or a field (section 2); anything without such a place is a banner, without Try again, since the same request would fail the same way.
+
+The page (step 13) is one column, as D2 describes: the input, the steps, the search field that adds a step, and the output. Each step card shows its status as an outlined badge, so the coloured text keeps a 4.5:1 contrast on the white card; `--success` joins the shadcn-vue tokens for the executed state. A required field that is empty shows "Enter a value" as a grey hint; a wrong value turns the field red with the server's message under it.
 
 The UI kit (D28, step 12). shadcn-vue's components are copied into `components/ui/` and are our code from then on. `components.json` configures the shadcn-vue CLI, which runs through `npx`. It names no font, so the CLI adds no font import (D47), and it points the CLI at `lib/utils.ts` for `cn`, the class-name helper; the copied components import the `cn` package directly. Probe tests, deleted afterwards, showed how Reka UI's combobox behaves, which the transformation picker builds on:
 

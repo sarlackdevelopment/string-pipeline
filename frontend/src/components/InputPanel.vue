@@ -1,0 +1,50 @@
+<script setup lang="ts">
+/**
+ * The text the chain starts from (R1.2). Its length is capped by the catalog's limit (D21) and counted as the server
+ * counts it: in UTF-16 code units, like `maxlength`.
+ */
+import { computed, useId } from 'vue'
+import { Textarea } from '@/components/ui/textarea'
+
+const props = defineProps<{
+  maxLength: number
+  /** What a rejected request said about the input (D41). */
+  errors: readonly string[]
+}>()
+
+const text = defineModel<string>({ required: true })
+
+const id = useId()
+const countId = `${id}-count`
+const errorsId = `${id}-errors`
+
+const numbers = new Intl.NumberFormat('en')
+const count = computed(
+  () => `${numbers.format(text.value.length)} / ${numbers.format(props.maxLength)} characters`,
+)
+const describedBy = computed(() => (props.errors.length > 0 ? `${countId} ${errorsId}` : countId))
+</script>
+
+<template>
+  <section class="grid gap-2 rounded-xl border bg-card p-4 text-card-foreground shadow-xs">
+    <div class="flex items-baseline justify-between gap-2">
+      <h2 class="text-sm font-semibold"><label :for="id">Input</label></h2>
+      <span :id="countId" class="text-xs text-muted-foreground tabular-nums">{{ count }}</span>
+    </div>
+    <Textarea
+      :id="id"
+      :model-value="text"
+      :maxlength="maxLength"
+      rows="4"
+      class="max-h-80 font-mono"
+      spellcheck="false"
+      placeholder="Type or paste the text to transform"
+      :aria-invalid="errors.length > 0"
+      :aria-describedby="describedBy"
+      @update:model-value="text = String($event)"
+    />
+    <ul v-if="errors.length > 0" :id="errorsId" class="text-sm text-destructive">
+      <li v-for="message in errors" :key="message">{{ message }}</li>
+    </ul>
+  </section>
+</template>
