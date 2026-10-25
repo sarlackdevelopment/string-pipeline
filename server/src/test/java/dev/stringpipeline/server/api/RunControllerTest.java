@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
@@ -224,6 +225,74 @@ class RunControllerTest {
                               "instance": "/api/runs",
                               "errors": [{"pointer": "#/steps", "detail": "This value has the wrong type."}]
                             }""");
+        }
+    }
+
+    @Nested
+    @DisplayName("Answers in the language of Accept-Language (D52)")
+    class Languages {
+
+        private MvcTestResult run(String languages, String json) {
+            return mvc.post()
+                    .uri("/api/runs")
+                    .header(HttpHeaders.ACCEPT_LANGUAGE, languages)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(json)
+                    .exchange();
+        }
+
+        @Test
+        void writesStepResultsInTheLanguage() {
+            assertThat(run("ru-RU,ru;q=0.9,en;q=0.8", chain("""
+                            {"id": "s1", "transformation": "replace"}""")))
+                    .hasStatusOk()
+                    .hasHeader(HttpHeaders.CONTENT_LANGUAGE, "ru")
+                    .bodyJson()
+                    .isStrictlyEqualTo("""
+                            {
+                              "steps": [
+                                {
+                                  "id": "s1",
+                                  "status": "notConfigured",
+                                  "issues": [{"parameter": "old", "message": "Введите значение"}]
+                                }
+                              ],
+                              "output": null
+                            }""");
+        }
+
+        @Test
+        void writesRequestErrorsInTheLanguage() {
+            assertThat(run("de", """
+                            {"steps": [{"id": "s1", "transformation": "append", "parameters": {"colour": "red"}}]}"""))
+                    .hasStatus(HttpStatus.BAD_REQUEST)
+                    .hasHeader(HttpHeaders.CONTENT_LANGUAGE, "de")
+                    .bodyJson()
+                    .isLenientlyEqualTo("""
+                            {
+                              "detail": "Ungültiger Inhalt der Anfrage.",
+                              "errors": [
+                                {"pointer": "#/input", "detail": "Die Eingabe fehlt."},
+                                {"pointer": "#/steps/0/parameters/colour", "detail": "Anhängen hat keinen Parameter colour."}
+                              ]
+                            }""");
+        }
+
+        @Test
+        void explainsMalformedJsonInTheLanguage() {
+            assertThat(run("ru", "{\"input\": "))
+                    .hasStatus(HttpStatus.BAD_REQUEST)
+                    .bodyJson()
+                    .extractingPath("$.detail")
+                    .isEqualTo("Тело запроса не является корректным JSON или имеет не ту структуру.");
+        }
+
+        @Test
+        void speaksEnglishToAnyOtherLanguage() {
+            assertThat(run("fr", chain()))
+                    .hasStatusOk()
+                    .hasHeader(HttpHeaders.CONTENT_LANGUAGE, "en")
+                    .hasHeader(HttpHeaders.VARY, HttpHeaders.ACCEPT_LANGUAGE);
         }
     }
 }

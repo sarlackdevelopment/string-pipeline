@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, four extras beyond the brief (turning a step off, the chain in the URL, example chains, themes) and the final check. Languages (D52) are in progress: the library's texts are done, the server and the frontend follow. The delivery is a zip of a fresh clone of the last commit (D24).
-- Last commit: `feat(library): texts as messages in English, German and Russian`. Branch `main`, no remote. Commits use the repository's own `user.email`.
+- Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, four extras beyond the brief (turning a step off, the chain in the URL, example chains, themes) and the final check. Languages (D52) are in progress: the library and the server are done, the frontend follows. The delivery is a zip of a fresh clone of the last commit (D24).
+- Last commit: `feat(server): answer in the language of Accept-Language`. Branch `main`, no remote. Commits use the repository's own `user.email`.
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once). `docker compose up --build` serves the app on 8080, or on `PORT`; `E2E_BASE_URL=http://localhost:<port> npm run test:e2e` runs the features against it.
-- Tests: Java 264 (library 238, server 26); frontend 215 in 29 files (unit 130, component 68, integration 17); end to end 19 scenarios in 5 features.
+- Tests: Java 275 (library 238, server 37); frontend 215 in 29 files (unit 130, component 68, integration 17); end to end 19 scenarios in 5 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+. Docker Desktop with Compose for the image.
-- Next step: S22.2, the server's language from `Accept-Language`; then S22.3, the frontend with vue-i18n. After them, a new zip of a fresh clone, made with the script that keeps Unix permissions (S20).
+- Next step: S22.3, the frontend with vue-i18n. After it, a new zip of a fresh clone, made with the script that keeps Unix permissions (S20).
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -299,6 +299,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: `java.text.MessageFormat` (quotes, `{0,number,integer}`, `{0,number,#}`, choice formats); `ResourceBundle.Control.getNoFallbackControl` (no fallback to the default locale); with jshell, JDK 25's wording of `PatternSyntaxException.getDescription()` and of `DateTimeFormatter.ofPattern` errors for typical mistakes, and its Russian grouping separator, U+00A0.
 - Changed: library `Message` (`Keyed`, `Verbatim`), `Messages` (`render`, `LANGUAGES`), `messages.properties`, `messages_de.properties`, `messages_ru.properties` (147 texts each); messages instead of strings in `Category`, `Parameter` and its four records, `ChoiceParameter.Option`, `TransformationInfo`, `Example`, `ParameterIssue`, `StepResult.Failed`, `ParameterChecks`; `Formats` removed; every transformation, `Encoding`, `Replacement`, `Regex` (`SYNTAX_ERRORS`), `ReformatDates` (`PATTERN_ERRORS`), `transformations/JdkMessage` (new). Tests: `English` (results read in English), `MessagesTest`, `JdkMessageTest`, `BuiltInsTest` (texts in every language), and the fakes and tests that build parameters or compare messages. Server: `ParameterSchemas`, `CatalogResponse`, `RunResponse` render in a given language; `CatalogController` and `RunController` pass English; `RunRequestReader` names the transformation in English. Decisions, both journals.
 - Verified: `./gradlew build`: library 238 (18 new), server 26; the catalog is still `contract/catalog.json` byte for byte (`isStrictlyEqualTo`). Broken on purpose, then restored: a lone apostrophe in a German text, a missing Russian text, a Russian count without its number format; the message tests failed on each.
-- Commit: `feat(library): texts as messages in English, German and Russian`.
+- Commit: `18af4db`.
 - Open: none.
 - Next: S22.2, the server.
+
+### S22.2 Languages: the server (2026-10-25)
+
+- Goal: D52, part 2 of 3: every response in the language of `Accept-Language` (en, de, ru, else English), named in `Content-Language`, with `Vary: Accept-Language`.
+- Requirements: beyond the brief (requirements, last section).
+- Decisions: D52 as written in S22.1.
+- Read: Spring's `AcceptHeaderLocaleResolver` (supported locales, a language match for a regional tag, the default locale without the header); Spring Boot's `localeResolver` bean (replaced when one of that name exists) and `MessageSourceAutoConfiguration` (`spring.messages.*`, texts without values used as they are); `ResponseEntityExceptionHandler.handleExceptionInternal` (an `ErrorResponse` body updated from the `MessageSource` with the detail code); springdoc's `OperationCustomizer`; `ErrorResponseException`'s constructor with a detail message code.
+- Changed: server `LanguageConfiguration` (new: the resolver, an interceptor that sets the two headers on the controllers' answers), `OpenApiConfiguration` (`Accept-Language` on every operation), `CatalogController` (one response per language, built at startup), `RunController` (`Locale` argument), `RunRequestReader` (errors written in the request's language through a `MessageSourceAccessor`), `InvalidRequestException` (detail from `problem.invalidRequest`), `ApiExceptionHandler` (texts from the `MessageSource`); `messages.properties`, `messages_de.properties`, `messages_ru.properties` (16 texts each); `application.properties` (`spring.messages.fallback-to-system-locale=false`). Tests: `CatalogControllerTest`, `RunControllerTest` (`Languages`), `ApiExceptionHandlerTest`, `ApplicationTest` (the header documented), `ServerTextsTest` (new). Docs: design (sections 2, 4, 5, 6, 8; section 5 now also covers S22.1), `contract/README.md`, both journals.
+- Verified: `./gradlew build`: library 238, server 37 (11 new). The contract tests still pass in English. Without the supported locales on the resolver, four of the new tests fail (a 500 for the catalog in French, `Content-Language` "ru-RU" and "fr"); restored afterwards.
+- Commit: `feat(server): answer in the language of Accept-Language`.
+- Open: none.
+- Next: S22.3, the frontend.

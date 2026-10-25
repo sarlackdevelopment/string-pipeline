@@ -7,6 +7,8 @@ Example requests and responses of the web API ([design](../docs/design.md), sect
 
 A change to the API starts with a change here.
 
+The responses are the English ones, which a request without `Accept-Language` gets. In German or Russian only the texts differ (D52).
+
 | File                                | Shows                                                                                            |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------ |
 | `catalog.json`                      | limits, the four categories, all eleven transformations and the five example chains              |

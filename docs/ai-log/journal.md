@@ -425,4 +425,22 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** 238 library tests, 18 of them new, and the 26 server tests; the catalog is still `contract/catalog.json` byte for byte. Each new check was broken on purpose once: a lone apostrophe in a German text, a missing Russian text, a Russian count without its number format.
 
-**Commit.** `feat(library): texts as messages in English, German and Russian`
+**Commit.** `18af4db feat(library): texts as messages in English, German and Russian`
+
+## Step 22.2. Languages: the server, beyond the brief (2026-10-25)
+
+**Asked.** The second of the three commits of step 22: the server answers in the reader's language.
+
+**AI did.**
+
+- The server takes the language of each request from `Accept-Language`, the header a browser sends with the languages its user prefers. It answers in the first one it speaks: English, German or Russian, and a regional variant such as Austrian German counts as German. Any other language, or none, gets English. Spring Boot's own resolver would have taken any language a request names, and without the header the server's own; it is replaced by one that knows the three.
+- The catalog is built once for each language at startup, as it was built once before. A run renders its step messages in the request's language.
+- The server's own texts, the request errors and the generic 500, moved into Spring's message bundles, again in three languages. Spring fills the detail of an invalid request from them by itself; the other texts come from the same bundles.
+- A response names its language in `Content-Language` and says with `Vary: Accept-Language` that it depends on that header, so a cache does not serve a German catalog to an English reader. Spring's own answers, such as a 404 for an unknown path, stay English and name no language.
+- The OpenAPI document describes the header on both endpoints, and the contract's examples stay the English answers.
+
+**Decided.** Nothing new: D52 as written in step 22.1.
+
+**Checked.** 37 server tests, 11 of them new: the catalog in German for "fr, de-AT;q=0.8", English for French, a step message in Russian, request errors in German, malformed JSON in Russian, the 500 in Russian, the header in the OpenAPI document, and every server text in every language. Without the list of languages on the resolver, four of them fail. The 238 library tests are unchanged.
+
+**Commit.** `feat(server): answer in the language of Accept-Language`

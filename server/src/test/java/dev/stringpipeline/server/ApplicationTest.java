@@ -34,6 +34,16 @@ class ApplicationTest {
     }
 
     @Test
+    @DisplayName("documents Accept-Language as the only parameter of both endpoints (D52)")
+    void documentsTheLanguageHeader() {
+        assertThat(mvc.get().uri("/v3/api-docs"))
+                .bodyJson()
+                .extractingPath("$.paths.*.*.parameters[*].name")
+                .asArray()
+                .containsExactly("Accept-Language", "Accept-Language");
+    }
+
+    @Test
     void servesSwaggerUi() {
         assertThat(mvc.get().uri("/swagger-ui/index.html")).hasStatusOk();
     }

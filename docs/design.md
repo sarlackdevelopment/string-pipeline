@@ -100,6 +100,10 @@ Problems inside a step (its values or its execution) are step results with HTTP 
 
 There is no `type` member: RFC 9457 defines a missing `type` as `about:blank`, and Spring leaves it out. The frontend shows an error at the field its pointer names (`#/input` at the input, `#/steps/1/...` at that step) and anything else as a banner. Unexpected failures are a generic 500 Problem Details without internals.
 
+### Languages
+
+The texts of both endpoints, from the catalog's names and descriptions to step messages and request errors, are in the language that `Accept-Language` asks for, as a browser sends it (`de-DE,de;q=0.9,en;q=0.8`): English, German or Russian. Any other language, or none, gets English. A response names its language in `Content-Language` and has `Vary: Accept-Language` (D52, step 22). Ids, values and pointers are the same in every language; the examples in `contract/` are the English answers.
+
 ## 3. Parameters
 
 Four kinds, each mapped to a small subset of JSON Schema 2020-12 (D43). The frontend renders exactly these; anything else shows a notice instead of a field.
@@ -162,16 +166,16 @@ Second set, built in step 17 (D10), each showing something new:
 
 Checks of the second set:
 
-- A pattern that Java cannot read is `invalidParameters` at its field, with Java's words: "Unknown pattern letter: b". Both date patterns are checked at once.
+- A pattern that Java cannot read is `invalidParameters` at its field, with Java's words: "Unknown pattern letter: b", translated for the usual mistakes (D52). Both date patterns are checked at once.
 - An output pattern that needs a field the input does not have, such as the hour for dates, is `failed`: "The output pattern needs more than the input pattern reads (Unsupported field: HourOfDay)."
 - A case change can make a text longer (ß becomes SS), and so can encoding; both check the output cap (D45).
 
 ## 5. Library
 
-| Package                                      | Visibility                                  | Contents                                                                        |
-| -------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------- |
-| `dev.stringpipeline.library`                 | public API                                  | `Catalog`, `Example`, `Pipeline`, `Transformation`, parameters, values, results |
-| `dev.stringpipeline.library.transformations` | package-private, plus one public `BuiltIns` | the transformations and their text helpers (graphemes, lines, regex deadline)   |
+| Package                                      | Visibility                                  | Contents                                                                                                  |
+| -------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `dev.stringpipeline.library`                 | public API                                  | `Catalog`, `Example`, `Pipeline`, `Transformation`, parameters, values, results, `Message` and `Messages` |
+| `dev.stringpipeline.library.transformations` | package-private, plus one public `BuiltIns` | the transformations and their text helpers (graphemes, lines, regex deadline)                             |
 
 The server may use only the API package and `BuiltIns`, and an ArchUnit test checks it (D31). The transformation classes are package-private, so the compiler already prevents direct use. `BuiltIns.catalog()` is the one way in, which also keeps the API package free of references to the implementations.
 
@@ -199,6 +203,8 @@ Each step goes through three stages, and each one returns data rather than throw
 
 Exceptions remain only for programmer errors. Adding a transformation means one package-private class and one line in `BuiltIns`; the frontend needs nothing (D19).
 
+Texts (D52, step 22). Every text in the API package is a `Message`: a key into the library's bundles, `messages.properties` in English with `_de` and `_ru` beside it, and the values for its placeholders; or a verbatim text, such as a message of Java's. The library knows no language. `Messages.render(message, locale)` formats a message with `MessageFormat` for one language, English when the library does not speak it, so a count gets the language's thousands separator. Java's messages are in English only, so `JdkMessage` translates the regex and date-pattern errors made while typing, matched by their exact wording, and passes any other on as Java wrote it.
+
 Examples (D50, step 19). An `Example` is an id, a name, an input and library `Step`s. `BuiltIns` builds the transformations first and the examples from those very objects, and `Catalog` checks it with an identity set: a client opens an example by its transformation ids and runs the catalog's own transformations, so the example has to run the same ones. `ExamplesTest` runs every example through the real pipeline and pins its output.
 
 Text rules:
@@ -214,12 +220,13 @@ Limits (D21, D45). `Pipeline` takes a `Limits` value with production defaults; t
 
 ## 6. Server
 
-- `CatalogController` (`GET /api/catalog`) builds its response once at startup. It maps each `Parameter` to JSON Schema with an exhaustive `switch` (D30), so a new parameter kind does not compile until the mapping handles it. The examples' values become JSON through an exhaustive `switch` over `ArgumentValue`, in the transformation's display order, so the JSON is the same at every start.
+- `CatalogController` (`GET /api/catalog`) builds its response once at startup, for each language. It maps each `Parameter` to JSON Schema with an exhaustive `switch` (D30), so a new parameter kind does not compile until the mapping handles it. The examples' values become JSON through an exhaustive `switch` over `ArgumentValue`, in the transformation's display order, so the JSON is the same at every start.
 - `RunController` (`POST /api/runs`) hands the request to `RunRequestReader`, then calls `Pipeline` and maps every `StepResult` to the response with an exhaustive `switch`. The reader:
   - collects every request error with its JSON pointer before it answers. The rules need the catalog or several fields at once, so they are plain code rather than Bean Validation annotations;
   - maps JSON values to `ArgumentValue`: string to text, number to number, boolean to boolean, `null` to absent, object or array to 400.
 - Wire types live in the server, and the library has no Jackson annotations. The parts of a request end in `Request`, the parts of a response in `Response`.
 - `InvalidRequestException` is a Spring `ErrorResponseException`, so Spring renders it as Problem Details. `ApiExceptionHandler` adds a clearer message for unreadable JSON, with the pointer Jackson reports but not its message, which names Java types; and a generic 500 that shows nothing of the server.
+- Languages (D52, step 22). `LanguageConfiguration` replaces Spring Boot's `LocaleResolver` with one that gives only the library's languages and English by default, so a controller takes the request's language as a `Locale` argument and renders the library's messages in it. An interceptor names it in `Content-Language` and adds `Vary: Accept-Language`. The server's own texts, the request errors, are in `messages.properties` and its `_de` and `_ru` files, read by Spring's `MessageSource`; `spring.messages.fallback-to-system-locale=false` makes English the fallback there too.
 - springdoc-openapi 3.1 serves the OpenAPI document at `/v3/api-docs` and Swagger UI at `/swagger-ui.html` (D17); the `status` union is documented with a discriminator.
 - ArchUnit checks that the server uses only the library's API package and `BuiltIns`, and that the library depends on nothing but the JDK and JSpecify (D31).
 - The server tests run the real library and mock nothing. Mockito is off the test classpath, so Spring's test support does not attach Mockito's agent at runtime, which the JVM would warn about.
@@ -317,8 +324,8 @@ Proof of R2.1 (D19): an integration test serves a catalog with a transformation 
 
 | Layer                | What                                                                                                       | Where                            |
 | -------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| Library              | each transformation, each trap (parameterized), parameter checks, pipeline rules, limits                   | `library/src/test`               |
-| Server               | catalog and runs against `contract/`, request errors, a `failed` run, ArchUnit                             | `server/src/test`                |
+| Library              | each transformation, each trap (parameterized), parameter checks, pipeline rules, limits, texts            | `library/src/test`               |
+| Server               | catalog and runs against `contract/`, request errors, a `failed` run, languages, ArchUnit                  | `server/src/test`                |
 | Frontend unit        | model functions, zod parsers on `contract/`; the store; queries and the controller inside a test component | `frontend/src/tests/unit`        |
 | Frontend component   | each view with full props, events through `vi.fn()`, found by role and name                                | `frontend/src/tests/component`   |
 | Frontend integration | containers on a stand-in API: the keyboard path, the R2.1 proof, failures                                  | `frontend/src/tests/integration` |
