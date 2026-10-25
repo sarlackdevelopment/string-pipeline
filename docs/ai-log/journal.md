@@ -223,4 +223,23 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** `format:check`, `lint`, `typecheck`, 141 tests in 22 files, `build`.
 
-**Commit.** `test: behaviour tests of views, controller and editor on a stand-in API`
+**Commit.** `2f18d97 test: behaviour tests of views, controller and editor on a stand-in API`
+
+## Step 15. The end-to-end smoke test (2026-10-25)
+
+**Asked.** One `@smoke` journey against the real backend.
+
+**AI did.**
+
+- Added Playwright 1.64 and playwright-bdd 9.2 after checking them on the npm registry; `npm audit` stays clean. Playwright's headless Chromium shell is enough for these tests and is a smaller download than the full browser; the README says how to install it.
+- Wrote one feature with the header the plan asks for (As a / I want / So that, with requirement IDs) and three scenarios against the real Java code: the brief's chain, replace then append (`@smoke`); a pattern that Java cannot compile, whose message the server places at the Pattern field; and an emoji with a skin tone that Substring keeps whole.
+- The steps find elements by role and name and read texts inside them.
+- Playwright starts the API through Gradle on port 8091 and the built app with `vite preview` on port 4191. The developer's API on 8080 kept running throughout, and nothing on 8091 or 4191 was left behind. `vite preview` takes its proxy from the dev server's settings, so the proxy target now comes from `API_PROXY_TARGET`, defaulting to 8080. Gradle runs without its daemon here: a daemon would start the server outside the process tree that Playwright stops.
+- The first run did not start at all: the shell had `NoDefaultCurrentDirectoryInExePath` set, which keeps cmd.exe from running commands from the current folder, so the config now calls the wrapper as `.\gradlew.bat`.
+- Checked that the steps can fail: a throwaway scenario expecting the wrong output failed with a clear message, and was deleted.
+
+**Decided.** D23 refined.
+
+**Checked.** The three scenarios pass twice in a row, in about 25 s with the server start and the build. `format:check`, `lint`, `typecheck`, 141 Vitest tests, `build`; `npm audit` clean.
+
+**Commit.** `test(e2e): Gherkin smoke journey against the real API with Playwright`

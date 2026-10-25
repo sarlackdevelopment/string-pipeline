@@ -90,14 +90,19 @@ From `frontend/`, after `npm ci`:
 | `npm run build`                   | Type-checks and builds the production bundle into `frontend/dist`                                           |
 | `npm test`                        | Runs every Vitest suite: unit, component and integration; `npm run test:coverage` adds a V8 coverage report |
 | `npm run test:unit`               | Runs only the unit tests: the model, the store, the API client, the queries and the controller              |
+| `npm run test:e2e`                | Runs the Gherkin features in `e2e/` in Chromium against the real API and the built app (needs a JDK)        |
 | `npm run lint`                    | Runs oxlint, then ESLint for Vue templates, template accessibility and type-aware rules                     |
 | `npm run typecheck`               | Type-checks the app, the tests and the config files with `vue-tsc`                                          |
 | `npm run format`                  | Formats with Prettier; `npm run format:check` only checks                                                   |
 | `npx shadcn-vue@2.8.2 add <name>` | Copies a shadcn-vue component into `src/components/ui/`, where it becomes our code (D28)                    |
 
+The end-to-end tests start their own API (port 8091, through Gradle) and serve the built app with `vite preview` (port 4191), so servers on 8080 and 5173 keep running. Once per machine, they need Playwright's headless Chromium: `npx playwright install --only-shell chromium`.
+
 ### Before every commit
 
 ```sh
 ./gradlew build
-cd frontend && npm run format:check && npm run lint && npm run typecheck && npm test && npm run build
+cd frontend
+npm run format:check && npm run lint && npm run typecheck && npm test && npm run build
+npm run test:e2e
 ```

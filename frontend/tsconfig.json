@@ -3,7 +3,8 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.vitest.json" },
-    { "path": "./tsconfig.node.json" }
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.e2e.json" }
   ],
   // Read only by tools that look at the root file, such as the shadcn-vue CLI. The referenced projects compile
   // everything and declare the same alias themselves.

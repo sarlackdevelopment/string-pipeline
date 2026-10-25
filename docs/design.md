@@ -283,9 +283,11 @@ Proof of R2.1 (D19): an integration test serves a catalog with a transformation 
 | Frontend unit        | model functions, zod parsers on `contract/`; the store; queries and the controller inside a test component | `frontend/src/tests/unit`        |
 | Frontend component   | each view with full props, events through `vi.fn()`, found by role and name                                | `frontend/src/tests/component`   |
 | Frontend integration | containers on a stand-in API: the keyboard path, the R2.1 proof, failures                                  | `frontend/src/tests/integration` |
-| End to end           | one `@smoke` journey against the real backend (D23)                                                        | later                            |
+| End to end           | Gherkin features against the real API and the built app (D23)                                              | `frontend/e2e`                   |
 
 The stand-in API (`src/tests/helpers/api.ts`) runs on MSW (D33). It serves a catalog and runs Replace and Append by the rules of D42, so a test reads like a session: type a text, add a step, read its output. It computes its answers instead of replaying canned ones, and the app parses them with its own contract schemas, so it cannot drift from the wire format unnoticed. A gate holds a response back to look at the editor while a run is on its way.
+
+The end-to-end tests (step 15) are Gherkin features, run by Playwright through playwright-bdd: the brief's chain (`@smoke`), a pattern that Java cannot compile, with the server's message at its field, and an emoji that Substring keeps whole. Playwright starts the API with Gradle on port 8091 and the built app with `vite preview` on port 4191, whose proxy reaches that API through `API_PROXY_TARGET`; development servers on 8080 and 5173 are never touched. The steps find elements by role and name, and read texts inside them.
 
 ## 9. Points to approve
 

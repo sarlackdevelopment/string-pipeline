@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: backend done; the UI works end to end and has behaviour tests. Next: step 15, the end-to-end smoke test.
-- Last commit: `test: behaviour tests of views, controller and editor on a stand-in API`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
-- Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green.
-- Tests: Java 161 in 19 classes (library 135, server 26); frontend 141 in 22 files (unit 86, component 45, integration 10).
+- Phase: backend done; the UI works end to end, with behaviour tests and an end-to-end smoke test. Next: step 16, accessibility.
+- Last commit: `test(e2e): Gherkin smoke journey against the real API with Playwright`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
+- Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once).
+- Tests: Java 161 in 19 classes (library 135, server 26); frontend 141 in 22 files (unit 86, component 45, integration 10); end to end 3 scenarios.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+.
-- Next step: step 15, one `@smoke` journey end to end (PLAYBOOK §5.3, D23): Playwright with playwright-bdd against the real API and the built frontend, locators by role, its own port with `--strictPort`. A throwaway check in step 13 ran `playwright-core` with the installed Chrome (`channel: chrome`); the step decides between that and downloaded browsers. Vitest's `include` already stops at `src/tests`. Do not start anything on port 8080: the developer runs the API there.
+- Next step: step 16, accessibility (D15, PLAYBOOK row 16): after adding a step, focus goes to its first field; after removing one, to the next step or the search field; after moving one, back to its button. An `<output aria-live="polite">` announces a short summary of each run after the pause. The picker's list sits in a portal at the end of `body`, outside the landmarks (axe `region`). Check forced-colors mode and take screenshots. Behaviour tests from step 14 assert today's focus in the keyboard path; update them with the new focus rules.
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -179,6 +179,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: VueUse's `useClipboard` and `usePermission` (API path only with `clipboard-write` granted, otherwise `document.execCommand`); user-event's clipboard stub and its `ClipboardItem` stand-in.
 - Changed: `frontend/src/tests/helpers/` (`api.ts` stand-in API with a gate, `composable.ts`, `contract.ts` with `contractCatalog` and `contractTransformation`), `frontend/src/tests/component/` (six view tests), `frontend/src/tests/unit/` (run query, controller; groups test on the contract helper), `frontend/src/tests/integration/` (editor; App with the error boundary), `frontend/eslint.config.ts` (`app/tests`), README, `docs/design.md`, `docs/decisions.md`, both journals.
 - Verified: format:check, lint, typecheck, 141 tests in 22 files (8.8 s), build; three runs in a row and one shuffled run green; V8 coverage 94.5 % of statements.
-- Commit: `test: behaviour tests of views, controller and editor on a stand-in API`.
+- Commit: `2f18d97`.
 - Open: the Turkish i trap (step 17); the picker's list outside the landmarks, focus after add, remove and move, and the live region (step 16).
 - Next: S15, the end-to-end smoke test.
+
+### S15 The end-to-end smoke test (2026-10-25)
+
+- Goal: one `@smoke` journey against the real backend (PLAYBOOK §5.3, D23).
+- Requirements: R1.1, R1.2, R1.3, R2.1.
+- Decisions: D23 refined; D7, D9, D12, D42 checked end to end.
+- Read: npm registry (@playwright/test 1.64.1, playwright-bdd 9.2.1); `npx playwright install --dry-run chromium` (build 1248; the cached 1243 is older).
+- Changed: `frontend/playwright.config.ts`, `frontend/e2e/` (feature and steps), `frontend/tsconfig.e2e.json`, `frontend/tsconfig.json`, `frontend/tsconfig.node.json`, `frontend/vite.config.ts` (`API_PROXY_TARGET`), `frontend/eslint.config.ts` (ignores), `frontend/.gitignore`, package files (`test:e2e`), README, `docs/design.md`, `docs/decisions.md`, both journals.
+- Verified: `npm run test:e2e` green twice (3 scenarios, about 25 s); a throwaway wrong-output scenario failed as it should; ports 8091 and 4191 free afterwards, the developer's API on 8080 untouched; format:check, lint, typecheck, 141 Vitest tests, build; npm audit clean.
+- Commit: `test(e2e): Gherkin smoke journey against the real API with Playwright`.
+- Open: the Turkish i trap (step 17); the picker's list outside the landmarks, focus after add, remove and move, and the live region (step 16).
+- Next: S16, accessibility.

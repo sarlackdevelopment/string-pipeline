@@ -14,8 +14,9 @@ export default defineConfig({
     },
   },
   server: {
-    // In development the API runs on its own port; the app calls `/api` as it will in production (D22).
-    proxy: { '/api': 'http://localhost:8080' },
+    // In development the API runs on its own port; the app calls `/api` as it will in production (D22). `vite
+    // preview` uses the same proxy; the end-to-end tests point it at their own API with API_PROXY_TARGET.
+    proxy: { '/api': process.env.API_PROXY_TARGET ?? 'http://localhost:8080' },
   },
   test: {
     include: ['src/tests/**/*.test.ts'],
