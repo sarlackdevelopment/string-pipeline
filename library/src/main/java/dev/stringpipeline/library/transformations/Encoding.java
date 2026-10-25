@@ -1,6 +1,7 @@
 package dev.stringpipeline.library.transformations;
 
 import dev.stringpipeline.library.ChoiceParameter;
+import dev.stringpipeline.library.Message;
 import dev.stringpipeline.library.StepResult;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -14,21 +15,19 @@ import java.util.regex.Pattern;
 /// The formats of Encode and Decode (D4). A text is always encoded as its UTF-8 bytes, and decoding must give valid
 /// UTF-8 again.
 enum Encoding implements ChoiceParameter.Option {
-    BASE64("base64", "Base64"),
-    BASE64_URL("base64Url", "Base64, URL-safe"),
-    URL("url", "URL (percent-encoding)"),
-    HEX("hex", "Hexadecimal");
+    BASE64("base64"),
+    BASE64_URL("base64Url"),
+    URL("url"),
+    HEX("hex");
 
     private static final Pattern WHITESPACE = Pattern.compile("\\s+");
     private static final HexFormat HEX_DIGITS = HexFormat.of();
     private static final HexFormat UPPER_HEX_DIGITS = HexFormat.of().withUpperCase();
 
     private final String value;
-    private final String title;
 
-    Encoding(String value, String title) {
+    Encoding(String value) {
         this.value = value;
-        this.title = title;
     }
 
     @Override
@@ -37,8 +36,8 @@ enum Encoding implements ChoiceParameter.Option {
     }
 
     @Override
-    public String title() {
-        return title;
+    public Message title() {
+        return Message.of("options.encoding." + value);
     }
 
     /// The encoded text, or a failure when it would be longer than `maxLength` characters (D45).
@@ -117,13 +116,13 @@ enum Encoding implements ChoiceParameter.Option {
                     || specialCharacters.indexOf(character) >= 0
                     || character == '=';
             if (!allowed) {
-                return new StepResult.Failed("This is not Base64: it contains \"" + character + "\".");
+                return failed("encoding.notBase64Character", character);
             }
         }
         try {
             return utf8(decoder.decode(compact));
         } catch (IllegalArgumentException _) {
-            return new StepResult.Failed("This is not Base64: it ends too early, or = appears before the end.");
+            return failed("encoding.base64EndsEarly");
         }
     }
 
@@ -131,12 +130,11 @@ enum Encoding implements ChoiceParameter.Option {
         String compact = WHITESPACE.matcher(text).replaceAll("");
         for (int index = 0; index < compact.length(); index++) {
             if (Character.digit(compact.charAt(index), 16) < 0) {
-                return new StepResult.Failed(
-                        "This is not hexadecimal: \"" + compact.charAt(index) + "\" is not a digit from 0 to f.");
+                return failed("encoding.notHexDigit", compact.charAt(index));
             }
         }
         if (compact.length() % 2 != 0) {
-            return new StepResult.Failed("This is not hexadecimal: every byte needs two digits, and one is missing.");
+            return failed("encoding.hexDigitMissing");
         }
         return utf8(HEX_DIGITS.parseHex(compact));
     }
@@ -155,8 +153,7 @@ enum Encoding implements ChoiceParameter.Option {
             if (index + 2 >= text.length()
                     || Character.digit(text.charAt(index + 1), 16) < 0
                     || Character.digit(text.charAt(index + 2), 16) < 0) {
-                return new StepResult.Failed("At character " + (index + 1)
-                        + ", % is not followed by two hexadecimal digits. Write %25 for a percent sign.");
+                return failed("encoding.percentNotFollowed", index + 1);
             }
             bytes.write(HexFormat.fromHexDigits(text, index + 1, index + 3));
             index += 3;
@@ -174,7 +171,11 @@ enum Encoding implements ChoiceParameter.Option {
                     .toString();
             return new StepResult.Executed(text);
         } catch (CharacterCodingException _) {
-            return new StepResult.Failed("The decoded bytes are not UTF-8 text, so they cannot be shown as text.");
+            return failed("encoding.notUtf8");
         }
+    }
+
+    private static StepResult.Failed failed(String key, Object... arguments) {
+        return new StepResult.Failed(Message.of(key, arguments));
     }
 }

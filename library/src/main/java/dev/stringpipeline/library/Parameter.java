@@ -10,8 +10,8 @@ public sealed interface Parameter permits TextParameter, IntegerParameter, Boole
     String name();
 
     /// The field label, such as `Find`.
-    String title();
+    Message title();
 
     /// The help text under the field.
-    String description();
+    Message description();
 }

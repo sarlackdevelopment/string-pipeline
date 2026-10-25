@@ -406,4 +406,23 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** 215 Vitest tests, 12 of them new; 19 end-to-end scenarios, 6 of them new: the system's theme, a theme kept after a reload and shown before the app runs, the theme from the keyboard, axe in the dark theme, the chosen theme in a contrast theme, and no motion. `format:check`, `lint`, `typecheck`, `build`, `npm audit`; `./gradlew build`, unchanged.
 
-**Commit.** `feat(ui): light, dark and system themes`
+**Commit.** `54acce3 feat(ui): light, dark and system themes`
+
+## Step 22.1. Languages: the library's texts, beyond the brief (2026-10-25)
+
+**Asked.** After the themes, the developer asked for the interface in English, German and Russian, with i18n. Asked how far it should go, they chose everything: the frontend and the backend. The step is built in three commits: the library, the server, the frontend.
+
+**AI did.**
+
+- Every text the library shows is now a message: a key and its values, such as `check.atLeast` and 0 (D52). The library returns messages as data and knows no language; whoever shows them renders them. `Messages.render` looks the key up in a ResourceBundle, one per language, and formats the text with `MessageFormat`, so a count is written 10,000 in English, 10.000 in German and 10 000 in Russian. A language the library does not speak gets English, whatever the server's own language is.
+- Wrote the German and Russian texts, 147 each. Russian has three plural forms that `java.text` cannot choose between, so a Russian text puts a count after a colon, where it needs none: "Максимум символов: 10 000".
+- Java's own messages are in English only. The regex errors people make while typing a pattern, such as an unclosed group, and the date-pattern errors, such as an unknown letter, have translations; a test pins each one to Java's exact wording, so a newer Java that words them differently fails a test instead of quietly showing English. Rarer ones stay as Java wrote them.
+- The tests compare what people read: a helper renders each result in English first, so the existing tests kept their expectations and now check the English texts too. New tests check that every language has every text with the same values, that quotes are written the way `MessageFormat` needs them, and that every text of the catalog exists in every language.
+- The server renders the messages in English for now, so the API does not change.
+- An empty line had cut the table of section J in the decisions in two, leaving D50 and D51 outside it; it is one table again.
+
+**Decided.** D52, with the rejected alternatives: translating the catalog in the frontend, ICU4J for its plural rules, month names in the reader's language.
+
+**Checked.** 238 library tests, 18 of them new, and the 26 server tests; the catalog is still `contract/catalog.json` byte for byte. Each new check was broken on purpose once: a lone apostrophe in a German text, a missing Russian text, a Russian count without its number format.
+
+**Commit.** `feat(library): texts as messages in English, German and Russian`

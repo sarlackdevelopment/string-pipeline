@@ -1,5 +1,7 @@
 package dev.stringpipeline.library;
 
+import static dev.stringpipeline.library.Message.verbatim;
+
 import java.util.List;
 import java.util.function.Function;
 
@@ -13,7 +15,7 @@ final class Fakes {
         return new Transformation() {
             @Override
             public TransformationInfo info() {
-                return new TransformationInfo(id, id, "A test transformation.", Category.TEXT);
+                return new TransformationInfo(id, verbatim(id), verbatim("A test transformation."), Category.TEXT);
             }
 
             @Override
@@ -44,19 +46,22 @@ final class Fakes {
 
     /// Fails on every text.
     static Transformation failing(String message) {
-        return transformation("failing", List.of(), _ -> Configuration.ready((_, _) -> new StepResult.Failed(message)));
+        return transformation(
+                "failing", List.of(), _ -> Configuration.ready((_, _) -> new StepResult.Failed(verbatim(message))));
     }
 
     /// Rejects every configuration, as a transformation does when its regex does not compile.
     static Transformation rejecting(String parameter, String message) {
-        TextParameter text = TextParameter.withDefault(parameter, "Text", "Some text.", "");
+        TextParameter text = TextParameter.withDefault(parameter, verbatim("Text"), verbatim("Some text."), "");
         return transformation(
-                "rejecting", List.of(text), _ -> Configuration.invalid(new ParameterIssue(parameter, message)));
+                "rejecting",
+                List.of(text),
+                _ -> Configuration.invalid(new ParameterIssue(parameter, verbatim(message))));
     }
 
     /// Needs a non-empty text and appends it.
     static Transformation requiringText(String name) {
-        TextParameter text = TextParameter.required(name, "Text", "Some text.");
+        TextParameter text = TextParameter.required(name, verbatim("Text"), verbatim("Some text."));
         return transformation("requiringText", List.of(text), arguments -> {
             String suffix = arguments.text(text);
             return Configuration.ready((input, _) -> new StepResult.Executed(input + suffix));

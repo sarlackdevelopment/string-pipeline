@@ -1,5 +1,6 @@
 package dev.stringpipeline.library;
 
+import static dev.stringpipeline.library.Message.verbatim;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -37,7 +38,7 @@ class CatalogTest {
 
     @Test
     void rejectsTwoParametersWithTheSameName() {
-        TextParameter text = TextParameter.required("text", "Text", "Some text.");
+        TextParameter text = TextParameter.required("text", verbatim("Text"), verbatim("Some text."));
         Transformation twice = Fakes.transformation("twice", List.of(text, text), _ -> {
             throw new AssertionError("not configured in this test");
         });
@@ -49,7 +50,8 @@ class CatalogTest {
 
     @Test
     void rejectsAnIdThatIsNotLowerCamelCase() {
-        assertThatThrownBy(() -> new TransformationInfo("regex-replace", "Regex replace", "A test.", Category.REGEX))
+        assertThatThrownBy(() -> new TransformationInfo(
+                        "regex-replace", verbatim("Regex replace"), verbatim("A test."), Category.REGEX))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -89,14 +91,17 @@ class CatalogTest {
         @Test
         void needsAnIdInLowerCamelCaseAndAtLeastOneStep() {
             assertThatThrownBy(() -> example("two-steps", appending)).isInstanceOf(IllegalArgumentException.class);
-            assertThatThrownBy(() -> new Example("empty", "Empty", "a", List.of()))
+            assertThatThrownBy(() -> new Example("empty", verbatim("Empty"), "a", List.of()))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("empty");
         }
 
         private static Example example(String id, Transformation transformation) {
             return new Example(
-                    id, id, "a", List.of(new Step(transformation, Map.of()), new Step(transformation, Map.of())));
+                    id,
+                    verbatim(id),
+                    "a",
+                    List.of(new Step(transformation, Map.of()), new Step(transformation, Map.of())));
         }
     }
 }

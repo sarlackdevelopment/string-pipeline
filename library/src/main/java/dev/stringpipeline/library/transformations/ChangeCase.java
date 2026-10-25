@@ -4,6 +4,7 @@ import dev.stringpipeline.library.Arguments;
 import dev.stringpipeline.library.Category;
 import dev.stringpipeline.library.ChoiceParameter;
 import dev.stringpipeline.library.Configuration;
+import dev.stringpipeline.library.Message;
 import dev.stringpipeline.library.Parameter;
 import dev.stringpipeline.library.StepResult;
 import dev.stringpipeline.library.Transformation;
@@ -22,21 +23,19 @@ final class ChangeCase implements Transformation {
 
     /// The case to change to.
     enum Case implements ChoiceParameter.Option {
-        UPPER("upper", "UPPER CASE"),
-        LOWER("lower", "lower case"),
-        TITLE("title", "Title Case"),
-        CAMEL("camel", "camelCase"),
-        PASCAL("pascal", "PascalCase"),
-        SNAKE("snake", "snake_case"),
-        KEBAB("kebab", "kebab-case"),
-        CONSTANT("constant", "CONSTANT_CASE");
+        UPPER("upper"),
+        LOWER("lower"),
+        TITLE("title"),
+        CAMEL("camel"),
+        PASCAL("pascal"),
+        SNAKE("snake"),
+        KEBAB("kebab"),
+        CONSTANT("constant");
 
         private final String value;
-        private final String title;
 
-        Case(String value, String title) {
+        Case(String value) {
             this.value = value;
-            this.title = title;
         }
 
         @Override
@@ -45,23 +44,21 @@ final class ChangeCase implements Transformation {
         }
 
         @Override
-        public String title() {
-            return title;
+        public Message title() {
+            return Message.of("options.case." + value);
         }
     }
 
     /// The language whose case rules apply.
     enum Language implements ChoiceParameter.Option {
-        ANY("any", "Any language", Locale.ROOT),
-        TURKISH("turkish", "Turkish or Azerbaijani", Locale.forLanguageTag("tr"));
+        ANY("any", Locale.ROOT),
+        TURKISH("turkish", Locale.forLanguageTag("tr"));
 
         private final String value;
-        private final String title;
         private final Locale locale;
 
-        Language(String value, String title, Locale locale) {
+        Language(String value, Locale locale) {
             this.value = value;
-            this.title = title;
             this.locale = locale;
         }
 
@@ -71,31 +68,23 @@ final class ChangeCase implements Transformation {
         }
 
         @Override
-        public String title() {
-            return title;
+        public Message title() {
+            return Message.of("options.language." + value);
         }
     }
 
     static final ChoiceParameter<Case> TO = new ChoiceParameter<>(
-            "to",
-            "Case",
-            "camelCase and the other identifier styles turn each line into one name, made of its words.",
-            Case.class,
-            Case.UPPER);
+            "to", Message.of("changeCase.to.title"), Message.of("changeCase.to.description"), Case.class, Case.UPPER);
 
     static final ChoiceParameter<Language> LANGUAGE = new ChoiceParameter<>(
             "language",
-            "Language",
-            "Turkish and Azerbaijani have a dotted İ and a dotless ı, so i and I change differently there.",
+            Message.of("changeCase.language.title"),
+            Message.of("changeCase.language.description"),
             Language.class,
             Language.ANY);
 
     private static final TransformationInfo INFO = new TransformationInfo(
-            "changeCase",
-            "Change case",
-            "Writes the text in upper, lower or title case, or turns each line into a name such as camelCase or"
-                    + " snake_case.",
-            Category.TEXT);
+            "changeCase", Message.of("changeCase.name"), Message.of("changeCase.description"), Category.TEXT);
 
     // A word is a run of letters, marks and digits. Inside a run, a capital after a small letter or a digit starts a
     // new word (camelCase), and so does the last capital of an acronym before a small letter (HTTPResponse).

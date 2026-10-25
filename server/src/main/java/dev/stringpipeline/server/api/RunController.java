@@ -2,6 +2,7 @@ package dev.stringpipeline.server.api;
 
 import dev.stringpipeline.library.Catalog;
 import dev.stringpipeline.library.Limits;
+import dev.stringpipeline.library.Messages;
 import dev.stringpipeline.library.Pipeline;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +33,6 @@ class RunController {
                     + " itself are a 400 with Problem Details and JSON pointers.")
     RunResponse run(@RequestBody RunRequest request) {
         RunRequestReader.Run run = reader.read(request);
-        return RunResponse.of(run.ids(), pipeline.run(run.input(), run.steps()));
+        return RunResponse.of(run.ids(), pipeline.run(run.input(), run.steps()), Messages.ENGLISH);
     }
 }

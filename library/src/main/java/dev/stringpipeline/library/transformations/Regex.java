@@ -3,10 +3,12 @@ package dev.stringpipeline.library.transformations;
 import dev.stringpipeline.library.Arguments;
 import dev.stringpipeline.library.BooleanParameter;
 import dev.stringpipeline.library.Limits;
+import dev.stringpipeline.library.Message;
 import dev.stringpipeline.library.ParameterIssue;
 import dev.stringpipeline.library.StepResult;
 import dev.stringpipeline.library.TextParameter;
 import java.time.Duration;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -15,23 +17,35 @@ import java.util.regex.PatternSyntaxException;
 /// D21).
 final class Regex {
 
-    static final TextParameter PATTERN =
-            TextParameter.required("pattern", "Pattern", "A Java regular expression, for example \\d+ for numbers.");
+    static final TextParameter PATTERN = TextParameter.required(
+            "pattern", Message.of("regex.pattern.title"), Message.of("regex.pattern.description"));
 
     static final BooleanParameter IGNORE_CASE = new BooleanParameter(
-            "ignoreCase",
-            "Ignore case",
-            "Treats upper and lower case as the same, also for letters such as Ä and ä.",
-            false);
+            "ignoreCase", Message.of("regex.ignoreCase.title"), Message.of("regex.ignoreCase.description"), false);
 
     static final BooleanParameter MULTILINE = new BooleanParameter(
-            "multiline",
-            "Multiline",
-            "^ and $ match at the start and end of every line, not only of the whole text.",
-            false);
+            "multiline", Message.of("regex.multiline.title"), Message.of("regex.multiline.description"), false);
 
-    static final BooleanParameter DOT_ALL =
-            new BooleanParameter("dotAll", "Dot matches line breaks", "Lets . match line breaks too.", false);
+    static final BooleanParameter DOT_ALL = new BooleanParameter(
+            "dotAll", Message.of("regex.dotAll.title"), Message.of("regex.dotAll.description"), false);
+
+    /// Java's syntax errors for a pattern that is still being typed, such as `(`, `[a-`, `*` or `a{2,`.
+    static final List<JdkMessage> SYNTAX_ERRORS = List.of(
+            new JdkMessage("Unclosed group", "jdk.regex.unclosedGroup"),
+            new JdkMessage("Unclosed character class", "jdk.regex.unclosedCharacterClass"),
+            new JdkMessage("Unmatched closing '\\)'", "jdk.regex.unmatchedClosingParenthesis"),
+            new JdkMessage("Dangling meta character '(.)'", "jdk.regex.danglingMetaCharacter"),
+            new JdkMessage("Illegal repetition", "jdk.regex.illegalRepetition"),
+            new JdkMessage("Illegal repetition range", "jdk.regex.illegalRepetitionRange"),
+            new JdkMessage("Unclosed counted closure", "jdk.regex.unclosedCountedClosure"),
+            new JdkMessage("Unescaped trailing backslash", "jdk.regex.trailingBackslash"),
+            new JdkMessage("Illegal character range", "jdk.regex.illegalCharacterRange"),
+            new JdkMessage("Unknown inline modifier", "jdk.regex.unknownInlineModifier"),
+            new JdkMessage("Illegal/unsupported escape sequence", "jdk.regex.illegalEscapeSequence"),
+            new JdkMessage("capturing group name does not start with a Latin letter", "jdk.regex.groupNameStart"),
+            new JdkMessage("named capturing group is missing trailing '>'", "jdk.regex.groupNameEnd"),
+            new JdkMessage("named capturing group <(.+)> does not exist", "jdk.regex.noSuchGroupName"),
+            new JdkMessage("\\\\k is not followed by '<' for named capturing group", "jdk.regex.backReferenceName"));
 
     private Regex() {}
 
@@ -68,22 +82,20 @@ final class Regex {
     }
 
     static StepResult.Failed timedOut(Duration limit) {
-        return new StepResult.Failed(
-                "The pattern took longer than " + describe(limit) + " on this text. Try a simpler pattern.");
+        return new StepResult.Failed(Message.of("regex.timedOut", describe(limit)));
     }
 
     // Java's description with a 1-based position (D9): "Unclosed group at character 4".
-    private static String describe(PatternSyntaxException e) {
-        return e.getIndex() >= 0 ? e.getDescription() + " at character " + (e.getIndex() + 1) : e.getDescription();
+    private static Message describe(PatternSyntaxException e) {
+        Message description = JdkMessage.translate(e.getDescription(), SYNTAX_ERRORS);
+        return e.getIndex() >= 0 ? Message.of("regex.syntax", description, e.getIndex() + 1) : description;
     }
 
     // "2 seconds", "1 second", "50 milliseconds".
-    private static String describe(Duration duration) {
+    private static Message describe(Duration duration) {
         long millis = duration.toMillis();
-        if (millis % 1000 == 0) {
-            long seconds = millis / 1000;
-            return seconds == 1 ? "1 second" : seconds + " seconds";
-        }
-        return millis == 1 ? "1 millisecond" : millis + " milliseconds";
+        return millis > 0 && millis % 1000 == 0
+                ? Message.of("regex.seconds", millis / 1000)
+                : Message.of("regex.milliseconds", millis);
     }
 }

@@ -5,6 +5,7 @@ import dev.stringpipeline.library.BooleanParameter;
 import dev.stringpipeline.library.Category;
 import dev.stringpipeline.library.ChoiceParameter;
 import dev.stringpipeline.library.Configuration;
+import dev.stringpipeline.library.Message;
 import dev.stringpipeline.library.Parameter;
 import dev.stringpipeline.library.StepResult;
 import dev.stringpipeline.library.Transformation;
@@ -22,18 +23,16 @@ final class LineOperations implements Transformation {
 
     /// What to do with the lines.
     enum Operation implements ChoiceParameter.Option {
-        SORT("sort", "Sort A to Z"),
-        SORT_DESCENDING("sortDescending", "Sort Z to A"),
-        UNIQUE("unique", "Remove duplicates"),
-        REMOVE_BLANK("removeBlank", "Remove blank lines"),
-        REVERSE("reverse", "Reverse the order");
+        SORT("sort"),
+        SORT_DESCENDING("sortDescending"),
+        UNIQUE("unique"),
+        REMOVE_BLANK("removeBlank"),
+        REVERSE("reverse");
 
         private final String value;
-        private final String title;
 
-        Operation(String value, String title) {
+        Operation(String value) {
             this.value = value;
-            this.title = title;
         }
 
         @Override
@@ -42,29 +41,28 @@ final class LineOperations implements Transformation {
         }
 
         @Override
-        public String title() {
-            return title;
+        public Message title() {
+            return Message.of("options.operation." + value);
         }
     }
 
     static final ChoiceParameter<Operation> OPERATION = new ChoiceParameter<>(
             "operation",
-            "Operation",
-            "Sorting puts numbers in order of their value, so line 2 comes before line 10. Removing duplicates keeps"
-                    + " the first of them.",
+            Message.of("lineOperations.operation.title"),
+            Message.of("lineOperations.operation.description"),
             Operation.class,
             Operation.SORT);
 
     static final BooleanParameter IGNORE_CASE = new BooleanParameter(
             "ignoreCase",
-            "Ignore case",
-            "Treats upper and lower case as the same when sorting or finding duplicates.",
+            Message.of("lineOperations.ignoreCase.title"),
+            Message.of("lineOperations.ignoreCase.description"),
             false);
 
     private static final TransformationInfo INFO = new TransformationInfo(
             "lineOperations",
-            "Line operations",
-            "Sorts the lines, removes duplicate or blank ones, or reverses their order.",
+            Message.of("lineOperations.name"),
+            Message.of("lineOperations.description"),
             Category.LINES);
 
     @Override

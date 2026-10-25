@@ -10,7 +10,7 @@ import java.util.Optional;
 /// @param type the enum whose constants are the options, in display order
 /// @param defaultValue the option used when none is given
 public record ChoiceParameter<E extends Enum<E> & ChoiceParameter.Option>(
-        String name, String title, String description, Class<E> type, E defaultValue) implements Parameter {
+        String name, Message title, Message description, Class<E> type, E defaultValue) implements Parameter {
 
     /// One option: the value in requests and the label shown to people.
     public interface Option {
@@ -19,7 +19,7 @@ public record ChoiceParameter<E extends Enum<E> & ChoiceParameter.Option>(
         String value();
 
         /// The label, such as `All matches`.
-        String title();
+        Message title();
     }
 
     public ChoiceParameter {

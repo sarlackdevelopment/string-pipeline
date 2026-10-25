@@ -3,6 +3,7 @@ package dev.stringpipeline.server.api;
 import dev.stringpipeline.library.ArgumentValue;
 import dev.stringpipeline.library.Catalog;
 import dev.stringpipeline.library.Limits;
+import dev.stringpipeline.library.Messages;
 import dev.stringpipeline.library.Parameter;
 import dev.stringpipeline.library.Step;
 import dev.stringpipeline.library.Transformation;
@@ -130,7 +131,9 @@ final class RunRequestReader {
             String name = entry.getKey();
             String pointer = RequestError.pointer("steps", index, "parameters", name);
             if (!known.contains(name)) {
-                errors.add(new RequestError(pointer, transformation.info().name() + " has no parameter " + name + "."));
+                String transformationName =
+                        Messages.render(transformation.info().name(), Messages.ENGLISH);
+                errors.add(new RequestError(pointer, transformationName + " has no parameter " + name + "."));
                 continue;
             }
             // JSON null means "no value"; objects and arrays are never parameter values.

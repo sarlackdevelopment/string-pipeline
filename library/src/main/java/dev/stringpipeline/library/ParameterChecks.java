@@ -16,11 +16,11 @@ import org.jspecify.annotations.Nullable;
 /// A missing required value is a neutral "not configured"; a value that is present but wrong is an error (D42).
 final class ParameterChecks {
 
-    static final String ENTER_A_VALUE = "Enter a value";
-    static final String ENTER_TEXT = "Enter text";
-    static final String ENTER_A_WHOLE_NUMBER = "Enter a whole number";
-    static final String ENTER_TRUE_OR_FALSE = "Enter true or false";
-    static final String CHOOSE_AN_OPTION = "Choose one of the options";
+    static final Message ENTER_A_VALUE = Message.of("check.enterValue");
+    static final Message ENTER_TEXT = Message.of("check.enterText");
+    static final Message ENTER_A_WHOLE_NUMBER = Message.of("check.enterWholeNumber");
+    static final Message ENTER_TRUE_OR_FALSE = Message.of("check.enterTrueOrFalse");
+    static final Message CHOOSE_AN_OPTION = Message.of("check.chooseOption");
 
     private static final BigDecimal INT_MIN = BigDecimal.valueOf(Integer.MIN_VALUE);
     private static final BigDecimal INT_MAX = BigDecimal.valueOf(Integer.MAX_VALUE);
@@ -45,7 +45,7 @@ final class ParameterChecks {
 
     private record Missing() implements Check {}
 
-    private record Rejected(String message) implements Check {}
+    private record Rejected(Message message) implements Check {}
 
     static Result check(List<Parameter> parameters, Map<String, ArgumentValue> raw, Limits limits) {
         var values = new HashMap<String, Object>();
@@ -63,7 +63,7 @@ final class ParameterChecks {
                 case Accepted(Object accepted) -> values.put(parameter.name(), accepted);
                 case Absent() -> {}
                 case Missing() -> issues.add(new ParameterIssue(parameter.name(), ENTER_A_VALUE));
-                case Rejected(String message) -> {
+                case Rejected(Message message) -> {
                     issues.add(new ParameterIssue(parameter.name(), message));
                     invalid = true;
                 }
@@ -81,7 +81,7 @@ final class ParameterChecks {
             case TextValue(String text) when text.isEmpty() && parameter.required() -> new Missing();
             case TextValue(String text)
             when text.length() > limits.maxTextParameterLength() ->
-                new Rejected("Use at most " + Formats.count(limits.maxTextParameterLength()) + " characters");
+                new Rejected(Message.of("check.textTooLong", limits.maxTextParameterLength()));
             case TextValue(String text) -> new Accepted(text);
             case NumberValue _, BooleanValue _ -> new Rejected(ENTER_TEXT);
         };
@@ -113,18 +113,18 @@ final class ParameterChecks {
     }
 
     // "Enter 0 or more", "Enter 9 or less", or the full range when both or neither bound is set.
-    private static String outOfRange(IntegerParameter parameter) {
+    private static Message outOfRange(IntegerParameter parameter) {
         Integer minimum = parameter.minimum();
         Integer maximum = parameter.maximum();
         if (minimum != null && maximum == null) {
-            return "Enter " + Formats.count(minimum) + " or more";
+            return Message.of("check.atLeast", minimum);
         }
         if (minimum == null && maximum != null) {
-            return "Enter " + Formats.count(maximum) + " or less";
+            return Message.of("check.atMost", maximum);
         }
-        long lowest = minimum != null ? minimum : Integer.MIN_VALUE;
-        long highest = maximum != null ? maximum : Integer.MAX_VALUE;
-        return "Enter a number from " + Formats.count(lowest) + " to " + Formats.count(highest);
+        int lowest = minimum != null ? minimum : Integer.MIN_VALUE;
+        int highest = maximum != null ? maximum : Integer.MAX_VALUE;
+        return Message.of("check.between", lowest, highest);
     }
 
     private static Check checkBoolean(BooleanParameter parameter, @Nullable ArgumentValue value) {

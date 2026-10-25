@@ -4,6 +4,7 @@ import dev.stringpipeline.library.Arguments;
 import dev.stringpipeline.library.Category;
 import dev.stringpipeline.library.Configuration;
 import dev.stringpipeline.library.IntegerParameter;
+import dev.stringpipeline.library.Message;
 import dev.stringpipeline.library.Parameter;
 import dev.stringpipeline.library.StepResult;
 import dev.stringpipeline.library.Transformation;
@@ -15,23 +16,13 @@ import java.util.OptionalInt;
 final class Substring implements Transformation {
 
     static final IntegerParameter START = IntegerParameter.withDefault(
-            "start",
-            "Start",
-            "Position of the first character to keep, counting from 0. Negative numbers count from the end: -1 is"
-                    + " the last character.",
-            0);
+            "start", Message.of("substring.start.title"), Message.of("substring.start.description"), 0);
 
     static final IntegerParameter END = IntegerParameter.optional(
-            "end",
-            "End",
-            "Position of the first character to leave out. Leave empty to keep everything up to the end.");
+            "end", Message.of("substring.end.title"), Message.of("substring.end.description"));
 
     private static final TransformationInfo INFO = new TransformationInfo(
-            "substring",
-            "Substring",
-            "Keeps part of the text, counting characters as you see them. Works like a Python slice:"
-                    + " text[start:end].",
-            Category.TEXT);
+            "substring", Message.of("substring.name"), Message.of("substring.description"), Category.TEXT);
 
     @Override
     public TransformationInfo info() {

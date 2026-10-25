@@ -1,6 +1,8 @@
 package dev.stringpipeline.library;
 
 import static dev.stringpipeline.library.ArgumentValue.text;
+import static dev.stringpipeline.library.English.inEnglish;
+import static dev.stringpipeline.library.Message.verbatim;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -45,7 +47,8 @@ class PipelineTest {
         PipelineResult result = pipeline.run(
                 "a", List.of(step(Fakes.appending("b")), step(Fakes.failing("Broken")), step(Fakes.appending("c"))));
 
-        assertThat(result.steps()).containsExactly(new Executed("ab"), new Failed("Broken"), new NotRun());
+        assertThat(inEnglish(result.steps()))
+                .containsExactly(new Executed("ab"), new Failed(verbatim("Broken")), new NotRun());
         assertThat(result.output()).isEmpty();
     }
 
@@ -60,11 +63,11 @@ class PipelineTest {
                         step(Fakes.requiringText("suffix")),
                         step(Fakes.appending("c"))));
 
-        assertThat(result.steps())
+        assertThat(inEnglish(result.steps()))
                 .containsExactly(
-                        new Failed("Broken"),
-                        new InvalidParameters(List.of(new ParameterIssue("pattern", "Bad pattern"))),
-                        new NotConfigured(List.of(new ParameterIssue("suffix", "Enter a value"))),
+                        new Failed(verbatim("Broken")),
+                        new InvalidParameters(List.of(new ParameterIssue("pattern", verbatim("Bad pattern")))),
+                        new NotConfigured(List.of(new ParameterIssue("suffix", verbatim("Enter a value")))),
                         new NotRun());
     }
 
@@ -75,14 +78,15 @@ class PipelineTest {
                 .steps()
                 .getFirst();
 
-        assertThat(result).isEqualTo(new NotConfigured(List.of(new ParameterIssue("suffix", "Enter a value"))));
+        assertThat(inEnglish(result))
+                .isEqualTo(new NotConfigured(List.of(new ParameterIssue("suffix", verbatim("Enter a value")))));
     }
 
     @Test
     @DisplayName("reports every issue as invalid once one value is wrong (D42)")
     void aWrongValueOutweighsAMissingOne() {
-        TextParameter first = TextParameter.required("first", "First", "Some text.");
-        IntegerParameter count = IntegerParameter.withDefault("count", "Count", "A number.", 1);
+        TextParameter first = TextParameter.required("first", verbatim("First"), verbatim("Some text."));
+        IntegerParameter count = IntegerParameter.withDefault("count", verbatim("Count"), verbatim("A number."), 1);
         Transformation transformation = Fakes.transformation(
                 "twoParameters", List.of(first, count), _ -> Configuration.ready((input, _) -> new Executed(input)));
 
@@ -90,10 +94,10 @@ class PipelineTest {
                 .steps()
                 .getFirst();
 
-        assertThat(result)
+        assertThat(inEnglish(result))
                 .isEqualTo(new InvalidParameters(List.of(
-                        new ParameterIssue("first", "Enter a value"),
-                        new ParameterIssue("count", "Enter a whole number"))));
+                        new ParameterIssue("first", verbatim("Enter a value")),
+                        new ParameterIssue("count", verbatim("Enter a whole number")))));
     }
 
     @Test
@@ -101,8 +105,9 @@ class PipelineTest {
     void capsTheOutputOfAStep() {
         Pipeline small = new Pipeline(Limits.DEFAULT.withMaxOutputLength(3));
 
-        assertThat(small.run("", List.of(step(Fakes.producing("four")))).steps())
-                .containsExactly(new Failed("The result would be longer than 3 characters."));
+        assertThat(inEnglish(
+                        small.run("", List.of(step(Fakes.producing("four")))).steps()))
+                .containsExactly(new Failed(verbatim("The result would be longer than 3 characters.")));
     }
 
     @Test
@@ -110,10 +115,11 @@ class PipelineTest {
     void capsTheTotalOutputOfARun() {
         Pipeline small = new Pipeline(Limits.DEFAULT.withMaxTotalOutputLength(5));
 
-        assertThat(small.run("", List.of(step(Fakes.producing("abc")), step(Fakes.producing("abc"))))
-                        .steps())
+        assertThat(inEnglish(small.run("", List.of(step(Fakes.producing("abc")), step(Fakes.producing("abc"))))
+                        .steps()))
                 .containsExactly(
-                        new Executed("abc"), new Failed("The steps so far produced more than 5 characters in total."));
+                        new Executed("abc"),
+                        new Failed(verbatim("The steps so far produced more than 5 characters in total.")));
     }
 
     @Test

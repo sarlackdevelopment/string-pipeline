@@ -2,6 +2,8 @@ package dev.stringpipeline.library.transformations;
 
 import static dev.stringpipeline.library.ArgumentValue.number;
 import static dev.stringpipeline.library.ArgumentValue.text;
+import static dev.stringpipeline.library.English.inEnglish;
+import static dev.stringpipeline.library.Message.verbatim;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.stringpipeline.library.ArgumentValue;
@@ -59,12 +61,12 @@ class ContractExamplesTest {
                         step("regexReplace", Map.of("pattern", text("\\d+"), "replacement", text("$5 off"))),
                         step("append", Map.of("text", text("!")))));
 
-        assertThat(result.steps())
+        assertThat(inEnglish(result.steps()))
                 .containsExactly(
                         new Executed("Price: €5"),
-                        new NotConfigured(List.of(new ParameterIssue("old", "Enter a value"))),
+                        new NotConfigured(List.of(new ParameterIssue("old", verbatim("Enter a value")))),
                         new InvalidParameters(List.of(new ParameterIssue(
-                                "replacement", "The pattern has no group 5. Write \\$ for a dollar sign."))),
+                                "replacement", verbatim("The pattern has no group 5. Write \\$ for a dollar sign.")))),
                         new NotRun());
         assertThat(result.output()).isEmpty();
     }

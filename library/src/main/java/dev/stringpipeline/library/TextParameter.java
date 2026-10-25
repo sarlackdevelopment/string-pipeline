@@ -7,8 +7,8 @@ import org.jspecify.annotations.Nullable;
 /// @param defaultValue the value used when none is given, or `null` when a value is required
 public record TextParameter(
         String name,
-        String title,
-        String description,
+        Message title,
+        Message description,
         @Nullable String defaultValue) implements Parameter {
 
     public TextParameter {
@@ -16,12 +16,12 @@ public record TextParameter(
     }
 
     /// A text that must not be empty.
-    public static TextParameter required(String name, String title, String description) {
+    public static TextParameter required(String name, Message title, Message description) {
         return new TextParameter(name, title, description, null);
     }
 
     /// A text that falls back to `defaultValue`.
-    public static TextParameter withDefault(String name, String title, String description, String defaultValue) {
+    public static TextParameter withDefault(String name, Message title, Message description, String defaultValue) {
         return new TextParameter(name, title, description, defaultValue);
     }
 

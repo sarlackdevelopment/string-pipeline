@@ -2,17 +2,15 @@ package dev.stringpipeline.library;
 
 /// The groups of the transformation picker, in display order (D28, D40).
 public enum Category {
-    TEXT("text", "Text"),
-    LINES("lines", "Lines"),
-    CONVERSIONS("conversions", "Conversions"),
-    REGEX("regex", "Regular expressions");
+    TEXT("text"),
+    LINES("lines"),
+    CONVERSIONS("conversions"),
+    REGEX("regex");
 
     private final String id;
-    private final String displayName;
 
-    Category(String id, String displayName) {
+    Category(String id) {
         this.id = id;
-        this.displayName = displayName;
     }
 
     /// The identifier in the API, such as `text`.
@@ -21,7 +19,7 @@ public enum Category {
     }
 
     /// The name shown to people, such as `Text`.
-    public String displayName() {
-        return displayName;
+    public Message displayName() {
+        return Message.of("category." + id);
     }
 }

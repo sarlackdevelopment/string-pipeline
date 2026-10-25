@@ -3,6 +3,8 @@ package dev.stringpipeline.library;
 import static dev.stringpipeline.library.ArgumentValue.bool;
 import static dev.stringpipeline.library.ArgumentValue.number;
 import static dev.stringpipeline.library.ArgumentValue.text;
+import static dev.stringpipeline.library.English.issuesInEnglish;
+import static dev.stringpipeline.library.Message.verbatim;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
@@ -14,15 +16,13 @@ import org.junit.jupiter.api.Test;
 class ParameterChecksTest {
 
     private enum Fruit implements ChoiceParameter.Option {
-        APPLE("apple", "Apple"),
-        PEAR("pear", "Pear");
+        APPLE("apple"),
+        PEAR("pear");
 
         private final String value;
-        private final String title;
 
-        Fruit(String value, String title) {
+        Fruit(String value) {
             this.value = value;
-            this.title = title;
         }
 
         @Override
@@ -31,13 +31,17 @@ class ParameterChecksTest {
         }
 
         @Override
-        public String title() {
-            return title;
+        public Message title() {
+            return verbatim(value);
         }
     }
 
+    // The result with its messages in English.
     private static ParameterChecks.Result check(Parameter parameter, Map<String, ArgumentValue> raw) {
-        return ParameterChecks.check(List.of(parameter), raw, Limits.DEFAULT);
+        ParameterChecks.Result result = ParameterChecks.check(List.of(parameter), raw, Limits.DEFAULT);
+        return result instanceof ParameterChecks.Problems(List<ParameterIssue> issues, boolean invalid)
+                ? new ParameterChecks.Problems(issuesInEnglish(issues), invalid)
+                : result;
     }
 
     private static Arguments valid(ParameterChecks.Result result) {
@@ -48,18 +52,19 @@ class ParameterChecksTest {
     }
 
     private static ParameterChecks.Problems missing(String parameter) {
-        return new ParameterChecks.Problems(List.of(new ParameterIssue(parameter, "Enter a value")), false);
+        return new ParameterChecks.Problems(List.of(new ParameterIssue(parameter, verbatim("Enter a value"))), false);
     }
 
     private static ParameterChecks.Problems invalid(String parameter, String message) {
-        return new ParameterChecks.Problems(List.of(new ParameterIssue(parameter, message)), true);
+        return new ParameterChecks.Problems(List.of(new ParameterIssue(parameter, verbatim(message))), true);
     }
 
     @Nested
     class TextFields {
 
-        private final TextParameter required = TextParameter.required("old", "Find", "Some text.");
-        private final TextParameter optional = TextParameter.withDefault("new", "Replace with", "Some text.", "-");
+        private final TextParameter required = TextParameter.required("old", verbatim("Find"), verbatim("Some text."));
+        private final TextParameter optional =
+                TextParameter.withDefault("new", verbatim("Replace with"), verbatim("Some text."), "-");
 
         @Test
         void aMissingRequiredValueIsNotConfiguredRatherThanWrong() {
@@ -107,10 +112,12 @@ class ParameterChecksTest {
     @Nested
     class IntegerFields {
 
-        private final IntegerParameter start = IntegerParameter.withDefault("start", "Start", "A number.", 0);
-        private final IntegerParameter end = IntegerParameter.optional("end", "End", "A number.");
-        private final IntegerParameter group =
-                IntegerParameter.withDefault("group", "Group", "A number.", 0).withMinimum(0);
+        private final IntegerParameter start =
+                IntegerParameter.withDefault("start", verbatim("Start"), verbatim("A number."), 0);
+        private final IntegerParameter end = IntegerParameter.optional("end", verbatim("End"), verbatim("A number."));
+        private final IntegerParameter group = IntegerParameter.withDefault(
+                        "group", verbatim("Group"), verbatim("A number."), 0)
+                .withMinimum(0);
 
         @Test
         void aMissingValueFallsBackToTheDefault() {
@@ -158,7 +165,7 @@ class ParameterChecksTest {
 
         @Test
         void namesBothBoundsWhenThereAreTwo() {
-            IntegerParameter bounded = new IntegerParameter("count", "Count", "A number.", 1, 1, 9);
+            IntegerParameter bounded = new IntegerParameter("count", verbatim("Count"), verbatim("A number."), 1, 1, 9);
 
             assertThat(check(bounded, Map.of("count", number(10))))
                     .isEqualTo(invalid("count", "Enter a number from 1 to 9"));
@@ -168,7 +175,8 @@ class ParameterChecksTest {
     @Nested
     class BooleanFields {
 
-        private final BooleanParameter ignoreCase = new BooleanParameter("ignoreCase", "Ignore case", "A flag.", false);
+        private final BooleanParameter ignoreCase =
+                new BooleanParameter("ignoreCase", verbatim("Ignore case"), verbatim("A flag."), false);
 
         @Test
         void aMissingValueFallsBackToTheDefault() {
@@ -193,7 +201,7 @@ class ParameterChecksTest {
     class ChoiceFields {
 
         private final ChoiceParameter<Fruit> fruit =
-                new ChoiceParameter<>("fruit", "Fruit", "A choice.", Fruit.class, Fruit.APPLE);
+                new ChoiceParameter<>("fruit", verbatim("Fruit"), verbatim("A choice."), Fruit.class, Fruit.APPLE);
 
         @Test
         void aMissingValueFallsBackToTheDefault() {

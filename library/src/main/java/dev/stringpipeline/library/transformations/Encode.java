@@ -4,6 +4,7 @@ import dev.stringpipeline.library.Arguments;
 import dev.stringpipeline.library.Category;
 import dev.stringpipeline.library.ChoiceParameter;
 import dev.stringpipeline.library.Configuration;
+import dev.stringpipeline.library.Message;
 import dev.stringpipeline.library.Parameter;
 import dev.stringpipeline.library.Transformation;
 import dev.stringpipeline.library.TransformationInfo;
@@ -14,16 +15,13 @@ final class Encode implements Transformation {
 
     static final ChoiceParameter<Encoding> FORMAT = new ChoiceParameter<>(
             "format",
-            "Format",
-            "URL encoding writes a space as %20 and keeps only letters, digits and - . _ ~ as they are.",
+            Message.of("encode.format.title"),
+            Message.of("encode.format.description"),
             Encoding.class,
             Encoding.BASE64);
 
     private static final TransformationInfo INFO = new TransformationInfo(
-            "encode",
-            "Encode",
-            "Encodes the text as Base64, for a URL, or as hexadecimal digits. The text is read as UTF-8.",
-            Category.CONVERSIONS);
+            "encode", Message.of("encode.name"), Message.of("encode.description"), Category.CONVERSIONS);
 
     @Override
     public TransformationInfo info() {

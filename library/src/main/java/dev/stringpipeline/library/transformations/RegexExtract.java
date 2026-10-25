@@ -6,6 +6,7 @@ import dev.stringpipeline.library.ChoiceParameter;
 import dev.stringpipeline.library.Configuration;
 import dev.stringpipeline.library.IntegerParameter;
 import dev.stringpipeline.library.Limits;
+import dev.stringpipeline.library.Message;
 import dev.stringpipeline.library.Parameter;
 import dev.stringpipeline.library.ParameterIssue;
 import dev.stringpipeline.library.StepResult;
@@ -20,15 +21,13 @@ final class RegexExtract implements Transformation {
 
     /// Which matches to output.
     enum Matches implements ChoiceParameter.Option {
-        FIRST("first", "First match"),
-        ALL("all", "All matches");
+        FIRST("first"),
+        ALL("all");
 
         private final String value;
-        private final String title;
 
-        Matches(String value, String title) {
+        Matches(String value) {
             this.value = value;
-            this.title = title;
         }
 
         @Override
@@ -37,27 +36,24 @@ final class RegexExtract implements Transformation {
         }
 
         @Override
-        public String title() {
-            return title;
+        public Message title() {
+            return Message.of("options.matches." + value);
         }
     }
 
     static final IntegerParameter GROUP = IntegerParameter.withDefault(
-                    "group",
-                    "Group",
-                    "0 outputs the whole match; 1 and up output what that pair of parentheses matched.",
-                    0)
+                    "group", Message.of("regexExtract.group.title"), Message.of("regexExtract.group.description"), 0)
             .withMinimum(0);
 
     static final ChoiceParameter<Matches> MATCHES = new ChoiceParameter<>(
-            "matches", "Matches", "Output the first match only, or all of them.", Matches.class, Matches.ALL);
+            "matches",
+            Message.of("regexExtract.matches.title"),
+            Message.of("regexExtract.matches.description"),
+            Matches.class,
+            Matches.ALL);
 
     private static final TransformationInfo INFO = new TransformationInfo(
-            "regexExtract",
-            "Regex extract",
-            "Finds the matches of a regular expression and outputs them one per line. Outputs empty text when"
-                    + " nothing matches.",
-            Category.REGEX);
+            "regexExtract", Message.of("regexExtract.name"), Message.of("regexExtract.description"), Category.REGEX);
 
     @Override
     public TransformationInfo info() {
@@ -87,11 +83,11 @@ final class RegexExtract implements Transformation {
         return Configuration.ready((input, limits) -> extract(pattern, group, matches, input, limits));
     }
 
-    private static String noSuchGroup(int groupCount) {
+    private static Message noSuchGroup(int groupCount) {
         return switch (groupCount) {
-            case 0 -> "The pattern has no groups, so use 0 for the whole match";
-            case 1 -> "The pattern has 1 group, so use 0 or 1";
-            default -> "The pattern has " + groupCount + " groups, so use a number from 0 to " + groupCount;
+            case 0 -> Message.of("regexExtract.noGroups");
+            case 1 -> Message.of("regexExtract.oneGroup");
+            default -> Message.of("regexExtract.groups", groupCount);
         };
     }
 

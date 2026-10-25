@@ -76,18 +76,22 @@ class RegexReplaceTest {
 
     @Test
     void explainsADollarSignWithoutAGroup() {
+        String dollarWithoutGroup = "A $ must be followed by a group number or {name}. Write \\$ for a dollar sign.";
         assertThat(run(replace, "abc", Map.of("pattern", text("b"), "replacement", text("costs $"))))
-                .isEqualTo(invalid("replacement", Replacement.DOLLAR_WITHOUT_GROUP));
+                .isEqualTo(invalid("replacement", dollarWithoutGroup));
         assertThat(run(replace, "abc", Map.of("pattern", text("b"), "replacement", text("$x"))))
-                .isEqualTo(invalid("replacement", Replacement.DOLLAR_WITHOUT_GROUP));
+                .isEqualTo(invalid("replacement", dollarWithoutGroup));
         assertThat(run(replace, "abc", Map.of("pattern", text("b"), "replacement", text("${}"))))
-                .isEqualTo(invalid("replacement", Replacement.GROUP_NAME_NEEDED));
+                .isEqualTo(invalid(
+                        "replacement",
+                        "Write a group name of letters and digits between ${ and }. Write \\$ for a dollar sign."));
     }
 
     @Test
     void explainsABackslashAtTheEnd() {
         assertThat(run(replace, "abc", Map.of("pattern", text("b"), "replacement", text("x\\"))))
-                .isEqualTo(invalid("replacement", Replacement.TRAILING_BACKSLASH));
+                .isEqualTo(invalid(
+                        "replacement", "A \\ at the end must be followed by a character. Write \\\\ for a backslash."));
     }
 
     @Test

@@ -1,6 +1,7 @@
 package dev.stringpipeline.library.transformations;
 
 import static dev.stringpipeline.library.ArgumentValue.text;
+import static dev.stringpipeline.library.Message.verbatim;
 import static dev.stringpipeline.library.transformations.Runs.executed;
 import static dev.stringpipeline.library.transformations.Runs.failed;
 import static dev.stringpipeline.library.transformations.Runs.run;
@@ -70,8 +71,8 @@ class ReformatDatesTest {
     void reportsBothPatternsWhenJavaCannotReadThem() {
         assertThat(reformat("2026-10-25", Map.of("from", text("yyyy-bb"), "to", text("dd.qqqqqq"))))
                 .isEqualTo(new StepResult.InvalidParameters(List.of(
-                        new ParameterIssue("from", "Unknown pattern letter: b"),
-                        new ParameterIssue("to", "Too many pattern letters: q"))));
+                        new ParameterIssue("from", verbatim("Unknown pattern letter: b")),
+                        new ParameterIssue("to", verbatim("Too many pattern letters: q")))));
     }
 
     @Test

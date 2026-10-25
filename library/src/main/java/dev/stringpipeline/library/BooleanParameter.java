@@ -1,7 +1,7 @@
 package dev.stringpipeline.library;
 
 /// A checkbox.
-public record BooleanParameter(String name, String title, String description, boolean defaultValue)
+public record BooleanParameter(String name, Message title, Message description, boolean defaultValue)
         implements Parameter {
 
     public BooleanParameter {

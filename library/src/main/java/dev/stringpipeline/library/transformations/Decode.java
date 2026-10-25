@@ -4,6 +4,7 @@ import dev.stringpipeline.library.Arguments;
 import dev.stringpipeline.library.Category;
 import dev.stringpipeline.library.ChoiceParameter;
 import dev.stringpipeline.library.Configuration;
+import dev.stringpipeline.library.Message;
 import dev.stringpipeline.library.Parameter;
 import dev.stringpipeline.library.Transformation;
 import dev.stringpipeline.library.TransformationInfo;
@@ -15,16 +16,13 @@ final class Decode implements Transformation {
 
     static final ChoiceParameter<Encoding> FORMAT = new ChoiceParameter<>(
             "format",
-            "Format",
-            "Spaces and line breaks in Base64 and hexadecimal are ignored. In URL encoding, + stays a +.",
+            Message.of("decode.format.title"),
+            Message.of("decode.format.description"),
             Encoding.class,
             Encoding.BASE64);
 
     private static final TransformationInfo INFO = new TransformationInfo(
-            "decode",
-            "Decode",
-            "Decodes Base64, URL encoding or hexadecimal digits back into text. The bytes must be UTF-8.",
-            Category.CONVERSIONS);
+            "decode", Message.of("decode.name"), Message.of("decode.description"), Category.CONVERSIONS);
 
     @Override
     public TransformationInfo info() {

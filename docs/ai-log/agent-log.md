@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, four extras beyond the brief (turning a step off, the chain in the URL, example chains, themes) and the final check. The delivery is a zip of a fresh clone of the last commit (D24).
-- Last commit: `feat(ui): light, dark and system themes`. Branch `main`, no remote. Commits use the repository's own `user.email`.
+- Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, four extras beyond the brief (turning a step off, the chain in the URL, example chains, themes) and the final check. Languages (D52) are in progress: the library's texts are done, the server and the frontend follow. The delivery is a zip of a fresh clone of the last commit (D24).
+- Last commit: `feat(library): texts as messages in English, German and Russian`. Branch `main`, no remote. Commits use the repository's own `user.email`.
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once). `docker compose up --build` serves the app on 8080, or on `PORT`; `E2E_BASE_URL=http://localhost:<port> npm run test:e2e` runs the features against it.
-- Tests: Java 246 (library 220, server 26); frontend 215 in 29 files (unit 130, component 68, integration 17); end to end 19 scenarios in 5 features.
+- Tests: Java 264 (library 238, server 26); frontend 215 in 29 files (unit 130, component 68, integration 17); end to end 19 scenarios in 5 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+. Docker Desktop with Compose for the image.
-- Next step: none planned. Any later change is a new commit with the full checks, then a new zip of a fresh clone, made with the script that keeps Unix permissions (S20).
+- Next step: S22.2, the server's language from `Accept-Language`; then S22.3, the frontend with vue-i18n. After them, a new zip of a fresh clone, made with the script that keeps Unix permissions (S20).
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -287,6 +287,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: VueUse 15 `useColorMode` (store `light`/`dark`/`auto`, class on `html`, `useStorage` catches storage errors, `useMediaQuery` checks `matchMedia`); Reka UI 2.11 `RadioGroupRoot`/`RadioGroupItem` (roles radiogroup and radio, `aria-checked`, `data-state`, roving focus, an arrow key checks the radio it focuses while the key is down).
 - Changed: `frontend/index.html` (the script before the first paint), `src/index.css` (`.dark` tokens, `color-scheme`, the reduced-motion rule), `composables/useTheme.ts`, `components/ThemeSwitcher.vue`, `App.vue`; tests: `tests/component/ThemeSwitcher.test.ts`, `tests/unit/theme-script.test.ts` (runs the script with `node:vm`), `tests/helpers/setup.ts` (clears the stored theme and the class of `html`); `e2e/features/themes.feature`, `e2e/steps/theme.ts`, the accessibility feature and steps (axe in the dark theme, the chosen theme in forced colours, no motion, the Tab walk from the header), `e2e/support/editor.ts` (`themeOption`), the screenshots (`editor-dark.png` added); README, requirements, decisions, design (section 7), both journals.
 - Verified: 215 Vitest tests (unit 130, component 68, integration 17); 19 e2e scenarios in 5 features. Broken on purpose once each, with the files restored afterwards: the storage key in `index.html` (the unit test and "before the app runs" fail), the reduced-motion rule ("no motion" fails), the forced-colours fill (passed at first; the check was made strict, then failed, then passed with the fix). Contrast of the tokens computed from OKLCH; the screenshots looked at. Ports 8091 and 4191 free; the developer's server on 8080 untouched.
-- Commit: `feat(ui): light, dark and system themes`.
+- Commit: `54acce3`.
 - Open: none.
 - Next: none planned; a new zip of a fresh clone with the delivery script.
+
+### S22.1 Languages: the library's texts (2026-10-25)
+
+- Goal: D52, beyond the brief, part 1 of 3: the library returns its texts as messages, with English, German and Russian bundles. The server still renders English, so the API does not change.
+- Requirements: beyond the brief (requirements, last section).
+- Decisions: D52, with the rejected alternatives under section J. The table of section J mended: an empty line had cut D50 and D51 off from it.
+- Read: `java.text.MessageFormat` (quotes, `{0,number,integer}`, `{0,number,#}`, choice formats); `ResourceBundle.Control.getNoFallbackControl` (no fallback to the default locale); with jshell, JDK 25's wording of `PatternSyntaxException.getDescription()` and of `DateTimeFormatter.ofPattern` errors for typical mistakes, and its Russian grouping separator, U+00A0.
+- Changed: library `Message` (`Keyed`, `Verbatim`), `Messages` (`render`, `LANGUAGES`), `messages.properties`, `messages_de.properties`, `messages_ru.properties` (147 texts each); messages instead of strings in `Category`, `Parameter` and its four records, `ChoiceParameter.Option`, `TransformationInfo`, `Example`, `ParameterIssue`, `StepResult.Failed`, `ParameterChecks`; `Formats` removed; every transformation, `Encoding`, `Replacement`, `Regex` (`SYNTAX_ERRORS`), `ReformatDates` (`PATTERN_ERRORS`), `transformations/JdkMessage` (new). Tests: `English` (results read in English), `MessagesTest`, `JdkMessageTest`, `BuiltInsTest` (texts in every language), and the fakes and tests that build parameters or compare messages. Server: `ParameterSchemas`, `CatalogResponse`, `RunResponse` render in a given language; `CatalogController` and `RunController` pass English; `RunRequestReader` names the transformation in English. Decisions, both journals.
+- Verified: `./gradlew build`: library 238 (18 new), server 26; the catalog is still `contract/catalog.json` byte for byte (`isStrictlyEqualTo`). Broken on purpose, then restored: a lone apostrophe in a German text, a missing Russian text, a Russian count without its number format; the message tests failed on each.
+- Commit: `feat(library): texts as messages in English, German and Russian`.
+- Open: none.
+- Next: S22.2, the server.

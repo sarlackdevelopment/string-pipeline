@@ -3,6 +3,7 @@ package dev.stringpipeline.library.transformations;
 import dev.stringpipeline.library.Arguments;
 import dev.stringpipeline.library.Category;
 import dev.stringpipeline.library.Configuration;
+import dev.stringpipeline.library.Message;
 import dev.stringpipeline.library.Parameter;
 import dev.stringpipeline.library.TextParameter;
 import dev.stringpipeline.library.Transformation;
@@ -12,11 +13,11 @@ import java.util.List;
 /// Adds text to the end (R1.1).
 final class Append implements Transformation {
 
-    static final TextParameter TEXT =
-            TextParameter.withDefault("text", "Text", "Added after the last character. Spaces are kept.", "");
+    static final TextParameter TEXT = TextParameter.withDefault(
+            "text", Message.of("append.text.title"), Message.of("append.text.description"), "");
 
-    private static final TransformationInfo INFO =
-            new TransformationInfo("append", "Append", "Adds text to the end.", Category.TEXT);
+    private static final TransformationInfo INFO = new TransformationInfo(
+            "append", Message.of("append.name"), Message.of("append.description"), Category.TEXT);
 
     @Override
     public TransformationInfo info() {

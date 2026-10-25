@@ -4,6 +4,7 @@ import dev.stringpipeline.library.ArgumentValue;
 import dev.stringpipeline.library.Catalog;
 import dev.stringpipeline.library.Example;
 import dev.stringpipeline.library.Limits;
+import dev.stringpipeline.library.Messages;
 import dev.stringpipeline.library.Parameter;
 import dev.stringpipeline.library.Step;
 import dev.stringpipeline.library.Transformation;
@@ -11,9 +12,11 @@ import dev.stringpipeline.library.TransformationInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
-/// The response of `GET /api/catalog`: everything the frontend needs to build the editor (R2.1, D40).
+/// The response of `GET /api/catalog`: everything the frontend needs to build the editor (R2.1, D40), with its texts
+/// in one language (D52).
 ///
 /// @param limits the request limits, so the UI can enforce them before it sends a run (D21)
 /// @param categories the groups of the transformation picker, in display order
@@ -49,32 +52,36 @@ record CatalogResponse(
             @Schema(description = "The values the example sets, by parameter name; the others keep their defaults")
             Map<String, Object> parameters) {}
 
-    static CatalogResponse of(Catalog catalog, Limits limits) {
+    static CatalogResponse of(Catalog catalog, Limits limits, Locale language) {
         return new CatalogResponse(
                 new LimitsResponse(limits.maxInputLength(), limits.maxSteps()),
                 catalog.categories().stream()
-                        .map(category -> new CategoryResponse(category.id(), category.displayName()))
+                        .map(category ->
+                                new CategoryResponse(category.id(), Messages.render(category.displayName(), language)))
                         .toList(),
                 catalog.transformations().stream()
-                        .map(transformation -> transformation(transformation, limits))
+                        .map(transformation -> transformation(transformation, limits, language))
                         .toList(),
-                catalog.examples().stream().map(CatalogResponse::example).toList());
+                catalog.examples().stream()
+                        .map(example -> example(example, language))
+                        .toList());
     }
 
-    private static TransformationResponse transformation(Transformation transformation, Limits limits) {
+    private static TransformationResponse transformation(
+            Transformation transformation, Limits limits, Locale language) {
         TransformationInfo info = transformation.info();
         return new TransformationResponse(
                 info.id(),
-                info.name(),
+                Messages.render(info.name(), language),
                 info.category().id(),
-                info.description(),
-                ParameterSchemas.of(transformation.parameters(), limits));
+                Messages.render(info.description(), language),
+                ParameterSchemas.of(transformation.parameters(), limits, language));
     }
 
-    private static ExampleResponse example(Example example) {
+    private static ExampleResponse example(Example example, Locale language) {
         return new ExampleResponse(
                 example.id(),
-                example.name(),
+                Messages.render(example.name(), language),
                 example.input(),
                 example.steps().stream().map(CatalogResponse::exampleStep).toList());
     }

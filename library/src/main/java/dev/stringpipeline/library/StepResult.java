@@ -12,17 +12,16 @@ public sealed interface StepResult {
     record Executed(String output) implements Outcome {}
 
     /// The step could not process this text, for example because a regex ran out of time.
-    record Failed(String message) implements Outcome {
+    record Failed(Message message) implements Outcome {
 
         /// The step's output would be longer than the cap (D45).
         public static Failed outputTooLong(int maxOutputLength) {
-            return new Failed("The result would be longer than " + Formats.count(maxOutputLength) + " characters.");
+            return new Failed(Message.of("result.outputTooLong", maxOutputLength));
         }
 
         /// The outputs of the run would together be longer than the cap (D45).
         public static Failed totalOutputTooLong(long maxTotalOutputLength) {
-            return new Failed("The steps so far produced more than " + Formats.count(maxTotalOutputLength)
-                    + " characters in total.");
+            return new Failed(Message.of("result.totalOutputTooLong", maxTotalOutputLength));
         }
     }
 

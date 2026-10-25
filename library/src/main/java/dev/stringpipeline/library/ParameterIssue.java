@@ -4,4 +4,4 @@ package dev.stringpipeline.library;
 ///
 /// @param parameter the parameter's name
 /// @param message what to fix, written for the person filling in the form
-public record ParameterIssue(String parameter, String message) {}
+public record ParameterIssue(String parameter, Message message) {}

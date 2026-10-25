@@ -4,6 +4,7 @@ import dev.stringpipeline.library.Arguments;
 import dev.stringpipeline.library.Category;
 import dev.stringpipeline.library.Configuration;
 import dev.stringpipeline.library.Limits;
+import dev.stringpipeline.library.Message;
 import dev.stringpipeline.library.Parameter;
 import dev.stringpipeline.library.ParameterIssue;
 import dev.stringpipeline.library.StepResult;
@@ -19,15 +20,12 @@ final class RegexReplace implements Transformation {
 
     static final TextParameter REPLACEMENT = TextParameter.withDefault(
             "replacement",
-            "Replace with",
-            "Use $1 or ${name} to insert a group and \\$ for a dollar sign. Leave empty to delete every match.",
+            Message.of("regexReplace.replacement.title"),
+            Message.of("regexReplace.replacement.description"),
             "");
 
     private static final TransformationInfo INFO = new TransformationInfo(
-            "regexReplace",
-            "Regex replace",
-            "Replaces every match of a regular expression. The replacement can insert parts of the match.",
-            Category.REGEX);
+            "regexReplace", Message.of("regexReplace.name"), Message.of("regexReplace.description"), Category.REGEX);
 
     @Override
     public TransformationInfo info() {
@@ -45,7 +43,7 @@ final class RegexReplace implements Transformation {
             case Regex.NotCompiled(ParameterIssue issue) -> Configuration.invalid(issue);
             case Regex.Compiled(Pattern pattern) ->
                 switch (Replacement.parse(arguments.text(REPLACEMENT), pattern)) {
-                    case Replacement.NotParsed(String message) ->
+                    case Replacement.NotParsed(Message message) ->
                         Configuration.invalid(new ParameterIssue(REPLACEMENT.name(), message));
                     case Replacement.Parsed(Replacement replacement) ->
                         Configuration.ready((input, limits) -> replaceAll(pattern, replacement, input, limits));

@@ -2,6 +2,7 @@ package dev.stringpipeline.server.api;
 
 import dev.stringpipeline.library.Catalog;
 import dev.stringpipeline.library.Limits;
+import dev.stringpipeline.library.Messages;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +18,7 @@ class CatalogController {
     private final CatalogResponse catalog;
 
     CatalogController(Catalog catalog, Limits limits) {
-        this.catalog = CatalogResponse.of(catalog, limits);
+        this.catalog = CatalogResponse.of(catalog, limits, Messages.ENGLISH);
     }
 
     @GetMapping("/catalog")

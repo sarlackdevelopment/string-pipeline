@@ -9,8 +9,8 @@ import org.jspecify.annotations.Nullable;
 /// @param maximum the largest allowed value, or `null` for none
 public record IntegerParameter(
         String name,
-        String title,
-        String description,
+        Message title,
+        Message description,
         @Nullable Integer defaultValue,
         @Nullable Integer minimum,
         @Nullable Integer maximum)
@@ -29,12 +29,12 @@ public record IntegerParameter(
     }
 
     /// A number that falls back to `defaultValue`.
-    public static IntegerParameter withDefault(String name, String title, String description, int defaultValue) {
+    public static IntegerParameter withDefault(String name, Message title, Message description, int defaultValue) {
         return new IntegerParameter(name, title, description, defaultValue, null, null);
     }
 
     /// A number that may stay empty.
-    public static IntegerParameter optional(String name, String title, String description) {
+    public static IntegerParameter optional(String name, Message title, Message description) {
         return new IntegerParameter(name, title, description, null, null, null);
     }
 

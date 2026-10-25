@@ -4,6 +4,7 @@ import dev.stringpipeline.library.Arguments;
 import dev.stringpipeline.library.Category;
 import dev.stringpipeline.library.Configuration;
 import dev.stringpipeline.library.Limits;
+import dev.stringpipeline.library.Message;
 import dev.stringpipeline.library.Parameter;
 import dev.stringpipeline.library.StepResult;
 import dev.stringpipeline.library.TextParameter;
@@ -15,17 +16,14 @@ import java.util.List;
 /// (R1.1, D5).
 final class Replace implements Transformation {
 
-    static final TextParameter OLD = TextParameter.required("old", "Find", "The text to look for.");
+    static final TextParameter OLD =
+            TextParameter.required("old", Message.of("replace.old.title"), Message.of("replace.old.description"));
 
-    static final TextParameter NEW =
-            TextParameter.withDefault("new", "Replace with", "Leave empty to delete every match.", "");
+    static final TextParameter NEW = TextParameter.withDefault(
+            "new", Message.of("replace.new.title"), Message.of("replace.new.description"), "");
 
     private static final TransformationInfo INFO = new TransformationInfo(
-            "replace",
-            "Replace",
-            "Replaces every occurrence of a text with another text. The match is exact, including upper and lower"
-                    + " case.",
-            Category.TEXT);
+            "replace", Message.of("replace.name"), Message.of("replace.description"), Category.TEXT);
 
     @Override
     public TransformationInfo info() {

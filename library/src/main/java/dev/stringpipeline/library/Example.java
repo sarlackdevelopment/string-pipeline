@@ -8,7 +8,7 @@ import java.util.List;
 /// @param name the name shown to people
 /// @param input the text the chain starts from
 /// @param steps at least one step, in order
-public record Example(String id, String name, String input, List<Step> steps) {
+public record Example(String id, Message name, String input, List<Step> steps) {
 
     public Example {
         Identifiers.requireLowerCamelCase(id, "Example id");

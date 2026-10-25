@@ -1,5 +1,6 @@
 package dev.stringpipeline.library.transformations;
 
+import dev.stringpipeline.library.Message;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,11 +14,9 @@ import java.util.regex.Pattern;
 /// the text has a match, so "$5 off" would fail on some texts and pass silently on others.
 record Replacement(List<Part> parts) {
 
-    static final String DOLLAR_HINT = " Write \\$ for a dollar sign.";
-    static final String DOLLAR_WITHOUT_GROUP = "A $ must be followed by a group number or {name}." + DOLLAR_HINT;
-    static final String GROUP_NAME_NEEDED = "Write a group name of letters and digits between ${ and }." + DOLLAR_HINT;
-    static final String TRAILING_BACKSLASH =
-            "A \\ at the end must be followed by a character. Write \\\\ for a backslash.";
+    private static final Message DOLLAR_WITHOUT_GROUP = Message.of("replacement.dollarWithoutGroup");
+    private static final Message GROUP_NAME_NEEDED = Message.of("replacement.groupNameNeeded");
+    private static final Message TRAILING_BACKSLASH = Message.of("replacement.trailingBackslash");
 
     Replacement {
         parts = List.copyOf(parts);
@@ -35,7 +34,7 @@ record Replacement(List<Part> parts) {
 
     record Parsed(Replacement replacement) implements Parsing {}
 
-    record NotParsed(String message) implements Parsing {}
+    record NotParsed(Message message) implements Parsing {}
 
     static Parsing parse(String replacement, Pattern pattern) {
         int groupCount = pattern.matcher("").groupCount();
@@ -75,7 +74,7 @@ record Replacement(List<Part> parts) {
                 }
                 Integer named = namedGroups.get(name);
                 if (named == null) {
-                    return new NotParsed("The pattern has no group named " + name + "." + DOLLAR_HINT);
+                    return new NotParsed(Message.of("replacement.noGroupNamed", name));
                 }
                 group = named;
                 cursor = nameEnd + 1;
@@ -93,7 +92,7 @@ record Replacement(List<Part> parts) {
                     cursor++;
                 }
                 if (group > groupCount) {
-                    return new NotParsed("The pattern has no group " + group + "." + DOLLAR_HINT);
+                    return new NotParsed(Message.of("replacement.noGroup", group));
                 }
             } else {
                 return new NotParsed(DOLLAR_WITHOUT_GROUP);

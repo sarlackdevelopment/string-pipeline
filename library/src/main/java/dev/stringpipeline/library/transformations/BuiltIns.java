@@ -4,6 +4,7 @@ import static dev.stringpipeline.library.ArgumentValue.text;
 
 import dev.stringpipeline.library.Catalog;
 import dev.stringpipeline.library.Example;
+import dev.stringpipeline.library.Message;
 import dev.stringpipeline.library.Step;
 import java.util.List;
 import java.util.Map;
@@ -42,33 +43,33 @@ public final class BuiltIns {
                 List.of(
                         new Example(
                                 "brief",
-                                "The brief's chain",
+                                Message.of("example.brief"),
                                 "Fake Python",
                                 List.of(
                                         new Step(replace, Map.of("old", text("Fake"), "new", text("Real"))),
                                         new Step(append, Map.of("text", text("!"))))),
                         new Example(
                                 "titleToSlug",
-                                "Title to URL slug",
+                                Message.of("example.titleToSlug"),
                                 "10 Tips for Better Regular Expressions",
                                 List.of(
                                         new Step(changeCase, Map.of("to", text("kebab"))),
                                         new Step(prepend, Map.of("text", text("/blog/"))))),
                         new Example(
                                 "sortFileNames",
-                                "Sort file names",
+                                Message.of("example.sortFileNames"),
                                 "file10.txt\nfile2.txt\nfile1.txt\nfile2.txt",
                                 List.of(
                                         new Step(lineOperations, Map.of("operation", text("unique"))),
                                         new Step(lineOperations, Map.of("operation", text("sort"))))),
                         new Example(
                                 "reformatDates",
-                                "Reformat dates",
+                                Message.of("example.reformatDates"),
                                 "2026-10-29\n2026-12-31",
                                 List.of(new Step(reformatDates, Map.of("to", text("d MMMM yyyy"))))),
                         new Example(
                                 "findEmailAddresses",
-                                "Find e-mail addresses",
+                                Message.of("example.findEmailAddresses"),
                                 "Write to anna@example.com or bob@example.org; anna@example.com reads both.",
                                 List.of(
                                         new Step(

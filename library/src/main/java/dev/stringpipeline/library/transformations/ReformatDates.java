@@ -4,6 +4,7 @@ import dev.stringpipeline.library.Arguments;
 import dev.stringpipeline.library.Category;
 import dev.stringpipeline.library.Configuration;
 import dev.stringpipeline.library.Limits;
+import dev.stringpipeline.library.Message;
 import dev.stringpipeline.library.Parameter;
 import dev.stringpipeline.library.ParameterIssue;
 import dev.stringpipeline.library.StepResult;
@@ -34,19 +35,25 @@ import java.util.stream.Stream;
 /// rejects on its own: it reads the year of an era, so the era defaults to ours.
 final class ReformatDates implements Transformation {
 
-    private static final String LETTERS =
-            " yyyy year, MM month, MMM month name, dd day, HH hour, mm minute. Put other text in single quotes.";
-
     static final TextParameter FROM = TextParameter.withDefault(
-            "from", "Input pattern", "How the dates are written now, such as yyyy-MM-dd:" + LETTERS, "yyyy-MM-dd");
+            "from", Message.of("reformatDates.from.title"), Message.of("reformatDates.from.description"), "yyyy-MM-dd");
 
     static final TextParameter TO = TextParameter.withDefault(
-            "to", "Output pattern", "How to write them, such as dd.MM.yyyy or d MMMM yyyy.", "dd.MM.yyyy");
+            "to", Message.of("reformatDates.to.title"), Message.of("reformatDates.to.description"), "dd.MM.yyyy");
+
+    /// Java's errors for a pattern that is still being typed, such as `b` or `yyyy-MM-dd'T`.
+    static final List<JdkMessage> PATTERN_ERRORS = List.of(
+            new JdkMessage("Unknown pattern letter: (.)", "jdk.datePattern.unknownLetter"),
+            new JdkMessage("Too many pattern letters: (.)", "jdk.datePattern.tooManyLetters"),
+            new JdkMessage("Pattern includes reserved character: '(.)'", "jdk.datePattern.reservedCharacter"),
+            new JdkMessage("Pattern ends with an incomplete string literal: (.*)", "jdk.datePattern.unclosedQuote"),
+            new JdkMessage(
+                    "Pattern invalid as it contains \\] without previous \\[", "jdk.datePattern.unopenedBracket"));
 
     private static final TransformationInfo INFO = new TransformationInfo(
             "reformatDates",
-            "Reformat dates",
-            "Reads each line as a date or time in one pattern and writes it in another. Empty lines stay empty.",
+            Message.of("reformatDates.name"),
+            Message.of("reformatDates.description"),
             Category.CONVERSIONS);
 
     @Override
@@ -96,8 +103,11 @@ final class ReformatDates implements Transformation {
             return Optional.empty();
         } catch (IllegalArgumentException e) {
             String message = e.getMessage();
-            return Optional.of(
-                    new ParameterIssue(parameter.name(), message == null ? "This pattern cannot be read" : message));
+            return Optional.of(new ParameterIssue(
+                    parameter.name(),
+                    message == null
+                            ? Message.of("reformatDates.patternUnreadable")
+                            : JdkMessage.translate(message, PATTERN_ERRORS)));
         }
     }
 
@@ -116,15 +126,15 @@ final class ReformatDates implements Transformation {
             try {
                 value = reader.parseBest(line, LocalDateTime::from, LocalDate::from, LocalTime::from);
             } catch (DateTimeParseException e) {
-                return new StepResult.Failed(
-                        "Line " + (index + 1) + " is not a date in the pattern " + from + ": " + reason(e));
+                return new StepResult.Failed(Message.of("reformatDates.notADate", index + 1, from, reason(e)));
             }
             String written;
             try {
                 written = writer.format(value);
             } catch (DateTimeException e) {
+                // Java names what is missing, such as "Unsupported field: HourOfDay", in English only.
                 return new StepResult.Failed(
-                        "The output pattern needs more than the input pattern reads (" + e.getMessage() + ").");
+                        Message.of("reformatDates.outputNeedsMore", String.valueOf(e.getMessage())));
             }
             length += written.length() + 1;
             if (length > limits.maxOutputLength()) {
@@ -135,13 +145,13 @@ final class ReformatDates implements Transformation {
         return new StepResult.Executed(lines.with(reformatted).text());
     }
 
-    // Java says either what was wrong, such as "Invalid date 'February 29' as '2026' is not a leap year", or only
-    // where reading stopped.
-    private static String reason(DateTimeParseException e) {
+    // Java says either what was wrong, such as "Invalid date 'February 29' as '2026' is not a leap year", in English
+    // only, or just where reading stopped.
+    private static Message reason(DateTimeParseException e) {
         Throwable cause = e.getCause();
         if (cause != null && cause.getMessage() != null) {
-            return cause.getMessage() + ".";
+            return Message.verbatim(cause.getMessage() + ".");
         }
-        return "it differs from the pattern at character " + (e.getErrorIndex() + 1) + ".";
+        return Message.of("reformatDates.differsAt", e.getErrorIndex() + 1);
     }
 }
