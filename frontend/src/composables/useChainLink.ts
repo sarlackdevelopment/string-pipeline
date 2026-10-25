@@ -7,7 +7,7 @@ import { useDebounceFn, useEventListener } from '@vueuse/core'
 import { onScopeDispose, shallowRef, watch, type Ref } from 'vue'
 import type { Catalog } from '@/model/catalog'
 import { emptyChain, type Chain, type ChainContent } from '@/model/chain'
-import { fromFragment, LinkStatus, toFragment } from '@/model/link'
+import { fromFragment, LinkStatus, toFragment, type LinkProblem } from '@/model/link'
 
 /** The pause after the last edit before the address follows: Safari allows 100 changes of it in 10 seconds. */
 export const LINK_DELAY_MS = 300
@@ -21,9 +21,9 @@ export interface ChainLinkOptions {
 
 export function useChainLink(options: ChainLinkOptions): {
   /** Why the link the editor was opened with could not be opened; cleared by the next edit. */
-  readonly problem: Readonly<Ref<string | null>>
+  readonly problem: Readonly<Ref<LinkProblem | null>>
 } {
-  const problem = shallowRef<string | null>(null)
+  const problem = shallowRef<LinkProblem | null>(null)
 
   // `followed` is false for the link the page was opened with. A fragment without a chain then means a page without
   // one; after following a link, as with Back, it means an empty chain.
@@ -44,7 +44,7 @@ export function useChainLink(options: ChainLinkOptions): {
         options.load(reading.chain)
         return
       case LinkStatus.invalid:
-        problem.value = reading.message
+        problem.value = reading.problem
         return
     }
   }

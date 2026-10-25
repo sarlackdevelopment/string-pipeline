@@ -443,4 +443,29 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** 37 server tests, 11 of them new: the catalog in German for "fr, de-AT;q=0.8", English for French, a step message in Russian, request errors in German, malformed JSON in Russian, the 500 in Russian, the header in the OpenAPI document, and every server text in every language. Without the list of languages on the resolver, four of them fail. The 238 library tests are unchanged.
 
-**Commit.** `feat(server): answer in the language of Accept-Language`
+**Commit.** `213e1fb feat(server): answer in the language of Accept-Language`
+
+## Step 22.3. Languages: the frontend, beyond the brief (2026-10-26)
+
+**Asked.** The last of the three commits of step 22: the interface itself in English, German and Russian. Halfway through, the developer asked whether the step was done yet; it was not, and the assistant said so and went on.
+
+**AI did.**
+
+- Added vue-i18n 11, MIT-licensed and depending only on its own packages, and wrote the app's own texts in three languages (D52). English is the type of the other two, so a text missing from German or Russian does not compile; a unit test checks that each one takes the same values. A select in the header lists English, Deutsch and Русский, each language named in itself, so a reader finds theirs whatever the page is in. A first visit follows the browser's languages, a choice is kept for the next one, and `<html lang>` follows it, so a screen reader reads the page in the right voice.
+- Every call to the API sends the chosen language, and the language is part of each query's key: choosing another one fetches the catalog and runs the chain again in it, while the editor keeps showing what it has until the answer arrives. The transformations, their fields and the server's messages then change language too.
+- Russian has three plural forms. vue-i18n picks one through a rule that asks the browser's `Intl.PluralRules`, which knows them from Unicode's data: "не больше 21 шага", "не больше 50 шагов". Where any form could be needed, the Russian text puts the count after a colon, as on the server.
+- Models that write sentences, such as the run summary for screen readers, take the translation function as an argument and stay plain functions, testable in any language.
+- The end-to-end helpers now find buttons and fields by their names in any of the three languages, taken from the app's own texts. A new feature opens the editor in German, as a browser set to German would, and in Russian, where the server's message "Введите значение" appears at the field. Playwright now runs in English explicitly: it would otherwise take the computer's language, and on a computer set to German or Russian the English features would meet a German or Russian page.
+- The tests found three things:
+  - The new select is the first stop of the Tab key, so the keyboard scenarios that expected the theme there had to take one more step. The walk over every stop of the Tab key now starts at the select.
+  - axe, run on the German page after the list of transformations had been opened and closed, reported the search field: Reka UI kept `aria-controls` and `aria-activedescendant` pointing at a list that had left the page. Keeping the list in the page instead put Reka UI's invisible focus guards into the Tab order, so the copied input now sets both only while the list shows, as WAI-ARIA asks; a component test fails without it.
+  - The search's placeholder suggests "Regex", but no German or Russian name or description contained the word; the descriptions of the two regex transformations now do, and the German scenario searches for it.
+- With vue-i18n the app's single bundle passed Vite's warning size of 500 kB, so the libraries now go into a file of their own, which browsers keep cached across the app's updates.
+- The screenshots were taken again, since the header changed, with a new one of the editor in German.
+- The first end-to-end run lost seven scenarios to timeouts while the machine was busy: the traces showed the catalog taking 5 to 40 seconds, and the same scenarios passed in seconds once it was quiet. A timing test of the library, which allows 2 seconds for a regex stopped after 0.1, took 2.8 seconds once in the same period and 0.1 in three runs after.
+
+**Decided.** Nothing new: D52 as written in step 22.1.
+
+**Checked.** 243 Vitest tests, 28 of them new; 22 end-to-end scenarios, 3 of them new; format, lint, typecheck, `npm audit` with 0 vulnerabilities, and a build without the size warning. `./gradlew build`: 238 and 37 tests. The Docker image built and passed the 22 scenarios on port 8095, with the catalog in German and a regex error in Russian; Docker Desktop was stopped afterwards. Ports 8091, 4191 and 8095 were free, and the developer's server on 8080 was not touched.
+
+**Commit.** `feat(ui): the interface in English, German and Russian`

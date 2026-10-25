@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/vue'
+import userEvent from '@testing-library/user-event'
+import { screen, waitFor } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
 import App from '@/App.vue'
@@ -15,6 +16,23 @@ describe('App', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'String Pipeline' })).toBeInTheDocument()
     expect(await screen.findByRole('combobox', { name: 'Add a step' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Input' })).toBeInTheDocument()
+  })
+
+  it('speaks the chosen language: its own texts at once, the catalog’s once it is fetched in that language (D52)', async () => {
+    const languages = serveCatalog()
+    serveRuns()
+    const user = userEvent.setup()
+    renderWithProviders(App)
+    await screen.findByRole('combobox', { name: 'Add a step' })
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Language' }), 'Deutsch')
+
+    expect(screen.getByRole('combobox', { name: 'Schritt hinzufügen' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Eingabe' })).toBeInTheDocument()
+    expect(document.documentElement).toHaveAttribute('lang', 'de')
+    await waitFor(() => {
+      expect(languages).toEqual(['en', 'de'])
+    })
   })
 
   it('replaces a broken editor with a message, instead of half a page that no longer reacts', async () => {

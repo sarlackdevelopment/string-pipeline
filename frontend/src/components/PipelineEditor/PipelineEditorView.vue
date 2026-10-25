@@ -5,6 +5,7 @@
  */
 import { LoaderCircleIcon, TriangleAlertIcon } from '@lucide/vue'
 import { computed, useId } from 'vue'
+import { useI18n } from 'vue-i18n'
 import InputPanel from '@/components/InputPanel.vue'
 import OutputPanel from '@/components/OutputPanel.vue'
 import StepCard from '@/components/StepCard/StepCard.vue'
@@ -56,6 +57,7 @@ const emit = defineEmits<{
   setEnabled: [id: string, enabled: boolean]
 }>()
 
+const { t } = useI18n()
 const stepsHeadingId = useId()
 const examplesLabelId = useId()
 
@@ -75,22 +77,24 @@ const searchFocus = computed(() => (props.focusTarget?.part === SEARCH ? props.f
     class="flex items-center gap-2 text-sm text-muted-foreground"
   >
     <LoaderCircleIcon class="size-4 animate-spin" />
-    Loading the transformations…
+    {{ t('editor.loading') }}
   </p>
 
   <Alert v-else-if="catalogState.status === CatalogStatus.failed" variant="destructive">
     <TriangleAlertIcon />
-    <AlertTitle>The transformations could not be loaded</AlertTitle>
+    <AlertTitle>{{ t('editor.catalogFailed') }}</AlertTitle>
     <AlertDescription>{{ catalogState.message }}</AlertDescription>
     <AlertAction>
-      <Button variant="outline" size="sm" @click="emit('retryCatalog')">Try again</Button>
+      <Button variant="outline" size="sm" @click="emit('retryCatalog')">{{
+        t('editor.tryAgain')
+      }}</Button>
     </AlertAction>
   </Alert>
 
   <div v-else class="flex flex-col gap-4">
     <Alert v-if="linkProblem !== null" variant="destructive">
       <TriangleAlertIcon />
-      <AlertTitle>This link could not be opened</AlertTitle>
+      <AlertTitle>{{ t('editor.linkFailed') }}</AlertTitle>
       <AlertDescription>{{ linkProblem }}</AlertDescription>
     </Alert>
 
@@ -103,17 +107,19 @@ const searchFocus = computed(() => (props.focusTarget?.part === SEARCH ? props.f
 
     <Alert v-if="runAlert !== null" variant="destructive">
       <TriangleAlertIcon />
-      <AlertTitle>The chain could not run</AlertTitle>
+      <AlertTitle>{{ t('editor.runFailed') }}</AlertTitle>
       <AlertDescription>
         <p v-for="message in runAlert.messages" :key="message">{{ message }}</p>
       </AlertDescription>
       <AlertAction v-if="runAlert.canRetry">
-        <Button variant="outline" size="sm" @click="emit('retryRun')">Try again</Button>
+        <Button variant="outline" size="sm" @click="emit('retryRun')">{{
+          t('editor.tryAgain')
+        }}</Button>
       </AlertAction>
     </Alert>
 
     <section v-if="steps.length > 0" :aria-labelledby="stepsHeadingId">
-      <h2 :id="stepsHeadingId" class="sr-only">Steps</h2>
+      <h2 :id="stepsHeadingId" class="sr-only">{{ t('editor.steps') }}</h2>
       <ol class="flex flex-col gap-4">
         <li v-for="(step, index) in steps" :key="step.id">
           <StepCard
@@ -148,7 +154,7 @@ const searchFocus = computed(() => (props.focusTarget?.part === SEARCH ? props.f
       v-if="examples.length > 0"
       class="-mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1 text-sm"
     >
-      <span :id="examplesLabelId" class="text-muted-foreground">Or open an example:</span>
+      <span :id="examplesLabelId" class="text-muted-foreground">{{ t('editor.examples') }}</span>
       <ul :aria-labelledby="examplesLabelId" class="flex flex-wrap gap-x-3 gap-y-1">
         <li v-for="example in examples" :key="example.id">
           <a

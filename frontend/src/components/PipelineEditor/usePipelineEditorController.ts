@@ -1,8 +1,10 @@
 /**
  * The editor's controller (D26, D29): joins the chain in the store, the catalog query and the run query, and gives
- * the view plain data and handlers. Only controllers touch stores and queries.
+ * the view plain data and handlers. Only controllers touch stores and queries. The texts it writes are in the
+ * interface's language (D52).
  */
 import { computed, shallowRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ApiErrorKind } from '@/api/client'
 import { useChainLink } from '@/composables/useChainLink'
 import { findTransformation, type Catalog, type Transformation } from '@/model/catalog'
@@ -15,7 +17,7 @@ import { ApiFailure } from '@/queries/client'
 import { usePipelineRun } from '@/queries/run'
 import { usePipelineStore } from '@/stores/pipeline'
 import { focusAfterAdding, focusAfterMoving, focusAfterRemoving } from './model/focus'
-import { failureMessage } from './model/messages'
+import { failureMessage, linkProblemMessage } from './model/messages'
 import { runSummary } from './model/summary'
 import {
   CatalogStatus,
@@ -27,6 +29,7 @@ import {
 } from './types'
 
 export function usePipelineEditorController() {
+  const { t } = useI18n()
   const store = usePipelineStore()
   const catalogQuery = useCatalog()
   const run = usePipelineRun(() => toRunRequest(store.chain))
@@ -60,7 +63,7 @@ export function usePipelineEditorController() {
     const error = catalogQuery.error.value
     return error === null
       ? { status: CatalogStatus.loading }
-      : { status: CatalogStatus.failed, message: failureMessage(error) }
+      : { status: CatalogStatus.failed, message: failureMessage(error, t) }
   })
 
   // A rejected request (D41) points at what was wrong in it: in the request that was sent, not in the chain as it is
@@ -79,7 +82,7 @@ export function usePipelineEditorController() {
     }
     const located = requestErrors.value
     if (located === null) {
-      return { messages: [failureMessage(error)], canRetry: true }
+      return { messages: [failureMessage(error, t)], canRetry: true }
     }
     return located.general.length > 0 ? { messages: located.general, canRetry: false } : null
   })
@@ -102,7 +105,7 @@ export function usePipelineEditorController() {
 
   // While a run is on its way, the previous sentence stays, so the live region speaks once per result (D15).
   const summary = computed<string>((previous) =>
-    run.isUpdating.value ? (previous ?? '') : runSummary(steps.value),
+    run.isUpdating.value ? (previous ?? '') : runSummary(steps.value, t),
   )
 
   // Set after every edit that adds, removes or moves a step; the view hands it to the component that owns the place.
@@ -138,7 +141,9 @@ export function usePipelineEditorController() {
     summary,
     focusTarget,
     shareLink,
-    linkProblem: link.problem,
+    linkProblem: computed(() =>
+      link.problem.value === null ? null : linkProblemMessage(link.problem.value, t),
+    ),
     examples,
     retryCatalog: () => {
       void catalogQuery.refetch()

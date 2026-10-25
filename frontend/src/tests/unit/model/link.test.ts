@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { Catalog } from '@/model/catalog'
 import { defaultValues, emptyChain, type ChainContent } from '@/model/chain'
 import { FieldKind } from '@/model/fields'
-import { fromFragment, LinkStatus, toFragment } from '@/model/link'
+import { fromFragment, LinkProblemKind, LinkStatus, toFragment } from '@/model/link'
 import { contractCatalog, contractTransformation } from '@/tests/helpers/contract'
 
 const catalog = contractCatalog()
@@ -19,8 +19,6 @@ const chain: ChainContent = {
 
 /** A fragment that holds `json` the way a link does, encoded by Node rather than by the app. */
 const fragmentOf = (json: string) => `#chain=${Buffer.from(json).toString('base64url')}`
-
-const unreadable = 'It does not hold a chain that this app can read.'
 
 describe('the chain in a link (D49)', () => {
   it('opens the chain it was made from, with its steps that are off', () => {
@@ -60,7 +58,7 @@ describe('the chain in a link (D49)', () => {
 
     expect(reading).toEqual({
       status: LinkStatus.invalid,
-      message: expect.stringContaining(unreadable) as unknown,
+      problem: { kind: LinkProblemKind.unreadable },
     })
   })
 
@@ -71,7 +69,7 @@ describe('the chain in a link (D49)', () => {
 
     expect(fromFragment(fragment, catalog)).toEqual({
       status: LinkStatus.invalid,
-      message: 'It uses a transformation that this app does not have: "reverse".',
+      problem: { kind: LinkProblemKind.unknownTransformation, transformation: 'reverse' },
     })
   })
 

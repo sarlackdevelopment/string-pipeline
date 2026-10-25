@@ -1,15 +1,48 @@
 /**
  * The editor as the end-to-end tests see it: elements found by role and name, as assistive technology finds them.
  * The steps of the features and the screenshots share these helpers.
+ *
+ * The names come from the app's own texts in every language it speaks (D52), so a helper finds its element whatever
+ * language the page is in; a feature names what it expects to read in the language it chose.
  */
 import { expect, type Locator, type Page } from '@playwright/test'
+import { de } from '../../src/i18n/de'
+import { en, type Messages } from '../../src/i18n/en'
+import { ru } from '../../src/i18n/ru'
 
 export const escapeForRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-export const search = (page: Page): Locator => page.getByRole('combobox', { name: 'Add a step' })
+const languages: readonly Messages[] = [en, de, ru]
+
+/** One of the app's texts in any of its languages, with `{number}` filled in, as a pattern that matches it whole. */
+function inAnyLanguage(text: (messages: Messages) => string, number?: number): RegExp {
+  const texts = languages.map((messages) =>
+    escapeForRegExp(text(messages).replace('{number}', String(number))),
+  )
+  return new RegExp(`^(?:${texts.join('|')})$`)
+}
+
+// The start of a step's legend, up to the transformation's name: "Step 2: ", "Schritt 2: ", "Шаг 2: ". `number` is a
+// number, or a pattern such as \d+.
+function stepLegend(number: string): string {
+  const starts = languages.map((messages) => {
+    const [before = '', after = ''] = (messages.step.legend.split('{name}')[0] ?? '').split(
+      '{number}',
+    )
+    return `${escapeForRegExp(before)}${number}${escapeForRegExp(after)}`
+  })
+  return `^(?:${starts.join('|')})`
+}
+
+export const search = (page: Page): Locator =>
+  page.getByRole('combobox', { name: inAnyLanguage((messages) => messages.picker.label) })
 
 export const step = (page: Page, position: number): Locator =>
-  page.getByRole('group', { name: new RegExp(`^Step ${String(position)}: `) })
+  page.getByRole('group', { name: new RegExp(stepLegend(String(position))) })
+
+/** Every step of the chain. */
+export const steps = (page: Page): Locator =>
+  page.getByRole('group', { name: new RegExp(stepLegend('\\d+')) })
 
 // A parameter is a text field or a number field, both named by the parameter's title.
 export const field = (page: Page, position: number, title: string): Locator =>
@@ -19,15 +52,28 @@ export const field = (page: Page, position: number, title: string): Locator =>
 
 /** The switch that turns a step on and off (D48). */
 export const runSwitch = (page: Page, position: number): Locator =>
-  step(page, position).getByRole('switch', { name: `Run step ${String(position)}`, exact: true })
+  step(page, position).getByRole('switch', {
+    name: inAnyLanguage((messages) => messages.step.run, position),
+  })
 
 /** One option of the theme in the header (D51). */
 export const themeOption = (page: Page, name: string): Locator =>
-  page.getByRole('radiogroup', { name: 'Theme' }).getByRole('radio', { name, exact: true })
+  page
+    .getByRole('radiogroup', { name: inAnyLanguage((messages) => messages.theme.label) })
+    .getByRole('radio', { name, exact: true })
 
-export const output = (page: Page): Locator => page.getByRole('region', { name: 'Output' })
+/** The language in the header (D52): its options are named in themselves, whatever the page is in. */
+export const languageSelect = (page: Page): Locator =>
+  page.getByRole('combobox', { name: inAnyLanguage((messages) => messages.language.label) })
 
-export const runSummary = (page: Page): Locator => page.getByRole('status', { name: 'Run summary' })
+export const input = (page: Page): Locator =>
+  page.getByRole('textbox', { name: inAnyLanguage((messages) => messages.input.label) })
+
+export const output = (page: Page): Locator =>
+  page.getByRole('region', { name: inAnyLanguage((messages) => messages.output.label) })
+
+export const runSummary = (page: Page): Locator =>
+  page.getByRole('status', { name: inAnyLanguage((messages) => messages.output.summary) })
 
 export async function openEditor(page: Page): Promise<void> {
   await page.goto('/')
@@ -35,7 +81,7 @@ export async function openEditor(page: Page): Promise<void> {
 }
 
 export async function typeInput(page: Page, text: string): Promise<void> {
-  await page.getByRole('textbox', { name: 'Input' }).fill(text)
+  await input(page).fill(text)
 }
 
 // An option is named by the transformation's name followed by its description.
@@ -64,6 +110,8 @@ export async function setField(
 }
 
 async function nextStep(page: Page, name: string): Promise<Locator> {
-  const count = await page.getByRole('group', { name: /^Step \d+: / }).count()
-  return page.getByRole('group', { name: `Step ${String(count + 1)}: ${name}`, exact: true })
+  const count = await steps(page).count()
+  return page.getByRole('group', {
+    name: new RegExp(`${stepLegend(String(count + 1))}${escapeForRegExp(name)}$`),
+  })
 }

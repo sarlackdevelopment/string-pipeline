@@ -23,6 +23,7 @@ Feature: Choose a light or a dark theme
   Scenario: The theme can be chosen with the keyboard
     Given the editor is open
     When I press Tab
+    And I press Tab
     And I press the left arrow key
     Then the theme "Dark" is chosen
     And the editor is dark

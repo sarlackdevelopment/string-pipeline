@@ -3,7 +3,7 @@
  */
 import { expect } from '@playwright/test'
 import { createBdd } from 'playwright-bdd'
-import { search } from '../support/editor'
+import { input, search, steps } from '../support/editor'
 
 const { When, Then } = createBdd()
 
@@ -38,11 +38,11 @@ Then('the address holds the chain', async ({ page }) => {
 })
 
 Then('the input is {string}', async ({ page }, text: string) => {
-  await expect(page.getByRole('textbox', { name: 'Input' })).toHaveValue(text)
+  await expect(input(page)).toHaveValue(text)
 })
 
 Then('the chain has no steps', async ({ page }) => {
-  await expect(page.getByRole('group', { name: /^Step \d+: / })).toHaveCount(0)
+  await expect(steps(page)).toHaveCount(0)
 })
 
 Then('the page says {string}', async ({ page }, text: string) => {

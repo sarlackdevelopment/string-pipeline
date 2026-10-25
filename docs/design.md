@@ -248,20 +248,25 @@ model/                             the domain, pure functions and types, no Vue 
   link.ts                          the chain in the address's fragment: written, read, checked against the catalog (D49)
 api/                               the network (step 11)
   contract.ts                      zod schemas of the wire format, turned into the domain in one pass (D20)
-  client.ts                        fetchCatalog and postRun; every outcome is data, cancellation rejects
+  client.ts                        fetchCatalog and postRun, with Accept-Language; every outcome is data, cancellation rejects
 queries/                           TanStack Query (D29)
   client.ts                        the query client; a failed call becomes an ApiFailure; retries
-  catalog.ts                       useCatalog: once per page
+  catalog.ts                       useCatalog: once per page and language (D52)
   run.ts                           usePipelineRun: runs the chain 300 ms after the last edit (D11)
 stores/pipeline.ts                 Pinia setup store: the chain being edited (D29)
 composables/useFocusRequest.ts     focuses the part a container asks for, after the DOM updated (D15)
 composables/useChainLink.ts        opens the chain of a link, and writes the chain back into the address (D49)
 composables/useTheme.ts            light, dark or the system's theme, kept in localStorage (D51)
-App.vue                            shell: header with the theme, error boundary, PipelineEditor
+composables/useLanguage.ts         the interface's language: switches the texts and keeps the choice (D52)
+i18n/                              the app's own texts in vue-i18n (D52)
+  index.ts                         the languages, the first one, the Russian plural rule, createAppI18n
+  en.ts, de.ts, ru.ts              the texts; English is the type of the others
+App.vue                            shell: header with the language and the theme, <html lang>, error boundary, PipelineEditor
 components/
   PipelineEditor/                  the editor: controller, view, container, types; model/: messages, focus, summary
   CopyLinkButton.vue               copies a link to the chain (D49)
   ThemeSwitcher.vue                light, dark or the system's theme, a radio group in the header (D51)
+  LanguageSwitcher.vue             English, Deutsch or Русский, the browser's own select in the header (D52)
   InputPanel.vue                   input text, maxlength from the catalog limits
   StepCard/StepCard.vue            fieldset, legend "Step 2: Replace", status, on/off switch, move and remove, form, output
   StepCard/model/status.ts         status → label and tone (pure)
@@ -278,7 +283,7 @@ components/
 
 Data flow:
 
-1. `useCatalog` loads the catalog once. `api/contract` validates it, and `model/fields` turns each parameter schema into field descriptors.
+1. `useCatalog` loads the catalog once for each language. `api/contract` validates it, and `model/fields` turns each parameter schema into field descriptors.
 2. The store holds the chain. Every edit goes through a pure function from `model/chain`. Step ids come from a counter, so no id is reused while the page is open.
 3. `model/run` builds the run request. 300 ms after the last edit (D11), `usePipelineRun` posts it with the query's `AbortSignal`. The request is the query key: a newer request cancels the older one, and a request sent before shows its cached result at once.
 4. While a run is pending, the previous results stay visible, matched by step id. A removed step has no result; a new one shows that it is running.
@@ -303,6 +308,7 @@ Accessibility (D15, built in step 16):
 - Windows contrast themes drop box shadows, which carry the focus rings here; outlines in system colours take their place. The search field of the picker shows a focus ring too, which the copied combobox lacked.
 - The end-to-end tests run axe on the editor with an error and the list open, walk every stop of the Tab key and check that each one shows the focus, and check the focus outline in a contrast theme.
 - Since step 21: the theme is a radio group, a single stop of the Tab key before the input, where the arrow keys move the choice. axe runs in the dark theme too. For people who ask their system for less motion, a rule outside the cascade layers stops every animation and transition.
+- Since step 22: the language select is the first stop of the Tab key, and axe runs on the page in German. The copied combobox input sets `aria-controls` and `aria-activedescendant` only while its list shows, as WAI-ARIA asks: Reka UI kept both after the list had closed and left the page, pointing at nothing, which axe reported once a scenario ran it after the list was closed.
 
 Turning a step off (D48, step 19). Each step has a switch named "Run step 2". A step that is off keeps its place and its values, and `model/run` leaves it out of the request, so the text passes through it unchanged; an older result for its id is not shown. Its card says Off, gets a dashed border instead of a lighter colour, which would push its text below 4.5:1, and says that the text passes through. The live region counts it: "1 of 2 steps ran; 1 is off." The kit's switch was changed in two ways. Off, shadcn-vue draws a light grey track, 1.26:1 against the card, below the 3:1 that WCAG 1.4.11 asks of a control; ours is outlined in the muted text colour, 4.75:1. In a Windows contrast theme, system colours paint the thumb and the track that is on, which the theme would otherwise paint in the card's colour: an end-to-end test checks the thumb.
 
@@ -317,6 +323,17 @@ Copy link copies a link built from the chain itself, not from the address, which
 Examples (D50, step 19). `api/contract` checks the catalog's examples like its transformations: unique ids, and only transformations and parameters that the catalog has. Each step then gets a value for every field, the example's or the field's default, as a step added from the picker has. The controller turns each example into a link to its chain (`model/link`), and the view lists those links under the search that adds steps: a click follows the link, `useChainLink` opens the chain, and Back returns to the one before. They sit after the search, not above the input, so the input stays the first stop of the Tab key; for the same reason Copy link moved from above the input to the output's header, next to Copy.
 
 Themes (D51, step 21). `useTheme` wraps VueUse's `useColorMode`: the choice, `light`, `dark` or `auto`, is kept in `localStorage`, and `light` or `dark` goes on `<html>`. The tokens under `.dark` are shadcn-vue's neutral dark palette, with Tailwind's green-500 for an executed step; the copied components' `dark:` utilities, idle until now, follow the same class, and `color-scheme` darkens what the browser draws itself. A small script in `index.html` applies the same rule before the first paint, so a dark page does not flash white while the app loads; a unit test runs that script in a Node sandbox, and an end-to-end test blocks the app's own scripts and finds the page dark all the same. The switcher is Reka UI's radio group in the look of a segmented control. In a Windows contrast theme the chosen option is filled with Highlight and opts out of the backplate the theme draws behind text, which otherwise hid its label.
+
+Languages (D52, step 22). The app's own texts are in `src/i18n/`, one file per language. English is the type of the others, so a text missing from German or Russian does not compile, and a unit test checks that each one takes the same values. vue-i18n runs with the Composition API only; its build flags in `vite.config.ts` leave the legacy API out of the bundle.
+
+- `initialLanguage` takes the stored choice, else the first of `navigator.languages` that the app speaks, else English. `useLanguage` switches the language and stores the choice, and the shell keeps `<html lang>` in step, so a screen reader reads the page in the right voice.
+- Models that write texts, such as the status labels, the run summary and the messages of a failed call, take vue-i18n's `t` as an argument and stay plain functions. A link that cannot be opened is a `LinkProblem`, data until the controller words it, so its alert follows a change of language.
+- Both calls send `Accept-Language`, and the language is part of both query keys: choosing another one fetches the catalog and runs the chain again in it. Meanwhile the editor keeps the catalog it has (`keepPreviousData`), so it stays on the page.
+- Russian takes one of three plural forms, which `Intl.PluralRules` picks from Unicode's CLDR data; where a count could take any form, the text puts it after a colon, as the server's Russian texts do.
+- The select is the browser's own, with each language named in itself and marked with its `lang`, so a reader finds theirs whatever the page is in.
+- In tests every component gets English through Vue Test Utils' global plugins, a new instance per test. The end-to-end helpers find elements by the app's texts in all three languages, and Playwright runs in `en-US`, since it would otherwise take the system's language.
+
+With vue-i18n the one bundle passed Vite's warning size of 500 kB, so the libraries now go into a `vendor` chunk of their own (442 kB, 70 kB for the app). Browsers keep it cached across the app's updates.
 
 Proof of R2.1 (D19): an integration test serves a catalog with a transformation the frontend has never seen, with an unfamiliar mix of parameters, and checks that its form renders and runs.
 
@@ -333,7 +350,7 @@ Proof of R2.1 (D19): an integration test serves a catalog with a transformation 
 
 The stand-in API (`src/tests/helpers/api.ts`) runs on MSW (D33). It serves a catalog and runs Replace and Append by the rules of D42, so a test reads like a session: type a text, add a step, read its output. It computes its answers instead of replaying canned ones, and the app parses them with its own contract schemas, so it cannot drift from the wire format unnoticed. A gate holds a response back to look at the editor while a run is on its way.
 
-The end-to-end tests (step 15) are Gherkin features, run by Playwright through playwright-bdd: the brief's chain (`@smoke`), a pattern that Java cannot compile, with the server's message at its field, and an emoji that Substring keeps whole. Playwright starts the API with Gradle on port 8091 and the built app with `vite preview` on port 4191, whose proxy reaches that API through `API_PROXY_TARGET`; development servers on 8080 and 5173 are never touched. The steps find elements by role and name, and read texts inside them. A second feature (step 16) checks accessibility: axe, the stops of the Tab key and a contrast theme. A second Playwright project, `npm run screenshots`, takes the pictures in `docs/images` from the same running app.
+The end-to-end tests (step 15) are Gherkin features, run by Playwright through playwright-bdd: the brief's chain (`@smoke`), a pattern that Java cannot compile, with the server's message at its field, and an emoji that Substring keeps whole. Playwright starts the API with Gradle on port 8091 and the built app with `vite preview` on port 4191, whose proxy reaches that API through `API_PROXY_TARGET`; development servers on 8080 and 5173 are never touched. The steps find elements by role and name, and read texts inside them. A second feature (step 16) checks accessibility: axe, the stops of the Tab key and a contrast theme. A second Playwright project, `npm run screenshots`, takes the pictures in `docs/images` from the same running app. Since step 22 the helpers find elements by the app's texts in any of its three languages, and a feature runs the editor in German and Russian against the real API (D52).
 
 ## 9. Points approved at the design review
 

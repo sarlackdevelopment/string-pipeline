@@ -27,8 +27,16 @@ const runRequestSchema = z.object({
 /** A run request as the server receives it. */
 export type ReceivedRun = z.infer<typeof runRequestSchema>
 
-export function serveCatalog(catalog: unknown = readContract('catalog.json')): void {
-  server.use(http.get(CATALOG_URL, () => jsonResponse(catalog)))
+/** Serves `catalog` in any language, and returns the languages it was asked for, oldest first (D52). */
+export function serveCatalog(catalog: unknown = readContract('catalog.json')): (string | null)[] {
+  const languages: (string | null)[] = []
+  server.use(
+    http.get(CATALOG_URL, ({ request }) => {
+      languages.push(request.headers.get('Accept-Language'))
+      return jsonResponse(catalog)
+    }),
+  )
+  return languages
 }
 
 /**

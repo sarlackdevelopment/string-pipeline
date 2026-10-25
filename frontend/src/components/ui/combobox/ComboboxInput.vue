@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { ComboboxInputEmits, ComboboxInputProps } from 'reka-ui'
 
-import type { HTMLAttributes } from 'vue'
+import { computed, type HTMLAttributes } from 'vue'
 import { SearchIcon } from '@lucide/vue'
 import { reactiveOmit } from '@vueuse/core'
 import { cn } from 'cn'
-import { ComboboxInput, useForwardPropsEmits } from 'reka-ui'
+import { ComboboxInput, injectComboboxRootContext, useForwardPropsEmits } from 'reka-ui'
 import { InputGroup, InputGroupAddon } from '@/components/ui/input-group'
 
 defineOptions({
@@ -23,6 +23,14 @@ const emits = defineEmits<ComboboxInputEmits>()
 const delegatedProps = reactiveOmit(props, 'class')
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
+
+// WAI-ARIA asks for aria-controls and aria-activedescendant only while the list shows. Reka UI keeps both after the list
+// closes and leaves the page, where they name elements that no longer exist, which axe reports (D15).
+const root = injectComboboxRootContext()
+const controls = computed(() => (root.open.value ? root.contentId : undefined))
+const activeDescendant = computed(() =>
+  root.open.value ? root.highlightedElement.value?.id : undefined,
+)
 </script>
 
 <template>
@@ -39,6 +47,8 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
         cn('flex-1 outline-none disabled:cursor-not-allowed disabled:opacity-50', props.class)
       "
       v-bind="{ ...$attrs, ...forwarded }"
+      :aria-controls="controls"
+      :aria-activedescendant="activeDescendant"
     />
   </InputGroup>
 </template>

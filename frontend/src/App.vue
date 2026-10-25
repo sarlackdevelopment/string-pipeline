@@ -1,13 +1,23 @@
 <script setup lang="ts">
 /**
- * Application shell: the header with the theme (D51), an error boundary, and the pipeline editor (R1.3).
+ * Application shell: the header with the language (D52) and the theme (D51), an error boundary, and the pipeline
+ * editor (R1.3).
  */
 import { TriangleAlertIcon } from '@lucide/vue'
-import { onErrorCaptured, ref } from 'vue'
+import { onErrorCaptured, ref, watchEffect } from 'vue'
+import { useI18n } from 'vue-i18n'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import PipelineEditor from '@/components/PipelineEditor/PipelineEditor.vue'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+
+const { t, locale } = useI18n()
+
+// The page's language follows the interface's, so a screen reader reads it in the right voice.
+watchEffect(() => {
+  document.documentElement.lang = locale.value
+})
 
 const crashed = ref(false)
 
@@ -32,22 +42,21 @@ function reload(): void {
       >
         <div>
           <h1 class="text-xl font-semibold tracking-tight">String Pipeline</h1>
-          <p class="text-sm text-muted-foreground">
-            Chain text transformations without writing code.
-          </p>
+          <p class="text-sm text-muted-foreground">{{ t('app.tagline') }}</p>
         </div>
-        <ThemeSwitcher />
+        <div class="flex flex-wrap items-center gap-3">
+          <LanguageSwitcher />
+          <ThemeSwitcher />
+        </div>
       </div>
     </header>
     <main class="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <Alert v-if="crashed" variant="destructive">
         <TriangleAlertIcon />
-        <AlertTitle>Something went wrong</AlertTitle>
-        <AlertDescription>
-          The editor stopped working. Reload the page to start again.
-        </AlertDescription>
+        <AlertTitle>{{ t('app.crashed') }}</AlertTitle>
+        <AlertDescription>{{ t('app.crashedDetail') }}</AlertDescription>
         <AlertAction>
-          <Button variant="outline" size="sm" @click="reload">Reload</Button>
+          <Button variant="outline" size="sm" @click="reload">{{ t('app.reload') }}</Button>
         </AlertAction>
       </Alert>
       <PipelineEditor v-else />

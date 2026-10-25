@@ -1,5 +1,6 @@
 /**
- * The two calls of the API (D20, D40). Every outcome is data: a value, or what went wrong.
+ * The two calls of the API (D20, D40). Every outcome is data: a value, or what went wrong. Each call asks for the
+ * texts in the interface's language with Accept-Language (D52).
  *
  * Cancellation is the one exception: an aborted request rejects, as `fetch` does, so TanStack Query can drop it
  * (D11, D29).
@@ -40,16 +41,24 @@ export type ApiError =
 export type ApiResult<T> =
   { readonly ok: true; readonly value: T } | { readonly ok: false; readonly error: ApiError }
 
-export function fetchCatalog(signal?: AbortSignal): Promise<ApiResult<Catalog>> {
-  return call(CATALOG_PATH, { method: 'GET', headers: { Accept: JSON_TYPE }, signal }, parseCatalog)
+export function fetchCatalog(language: string, signal?: AbortSignal): Promise<ApiResult<Catalog>> {
+  return call(
+    CATALOG_PATH,
+    { method: 'GET', headers: { Accept: JSON_TYPE, 'Accept-Language': language }, signal },
+    parseCatalog,
+  )
 }
 
-export function postRun(request: RunRequest, signal?: AbortSignal): Promise<ApiResult<RunResult>> {
+export function postRun(
+  request: RunRequest,
+  language: string,
+  signal?: AbortSignal,
+): Promise<ApiResult<RunResult>> {
   return call(
     RUNS_PATH,
     {
       method: 'POST',
-      headers: { Accept: JSON_TYPE, 'Content-Type': JSON_TYPE },
+      headers: { Accept: JSON_TYPE, 'Accept-Language': language, 'Content-Type': JSON_TYPE },
       body: JSON.stringify(request),
       signal,
     },

@@ -4,6 +4,7 @@
  * counts it: in UTF-16 code units, like `maxlength`.
  */
 import { computed, useId } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Textarea } from '@/components/ui/textarea'
 
 const props = defineProps<{
@@ -18,9 +19,10 @@ const id = useId()
 const countId = `${id}-count`
 const errorsId = `${id}-errors`
 
-const numbers = new Intl.NumberFormat('en')
-const count = computed(
-  () => `${numbers.format(text.value.length)} / ${numbers.format(props.maxLength)} characters`,
+const { t, n } = useI18n()
+// Written the way the interface's language writes numbers: 10,000, 10.000 or 10 000 (D52).
+const count = computed(() =>
+  t('input.count', { length: n(text.value.length), max: n(props.maxLength) }),
 )
 const describedBy = computed(() => (props.errors.length > 0 ? `${countId} ${errorsId}` : countId))
 </script>
@@ -28,7 +30,9 @@ const describedBy = computed(() => (props.errors.length > 0 ? `${countId} ${erro
 <template>
   <section class="grid gap-2 rounded-xl border bg-card p-4 text-card-foreground shadow-xs">
     <div class="flex items-baseline justify-between gap-2">
-      <h2 class="text-sm font-semibold"><label :for="id">Input</label></h2>
+      <h2 class="text-sm font-semibold">
+        <label :for="id">{{ t('input.label') }}</label>
+      </h2>
       <span :id="countId" class="text-xs text-muted-foreground tabular-nums">{{ count }}</span>
     </div>
     <Textarea
@@ -38,7 +42,7 @@ const describedBy = computed(() => (props.errors.length > 0 ? `${countId} ${erro
       rows="4"
       class="max-h-80 font-mono"
       spellcheck="false"
-      placeholder="Type or paste the text to transform"
+      :placeholder="t('input.placeholder')"
       :aria-invalid="errors.length > 0"
       :aria-describedby="describedBy"
       @update:model-value="text = String($event)"

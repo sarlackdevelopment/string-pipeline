@@ -1,4 +1,4 @@
-# R1.3; D15, D48, D51
+# R1.3; D15, D48, D51, D52
 Feature: Use the editor with a keyboard and a screen reader
   As a person who uses a keyboard or a screen reader
   I want the editor to keep my place and tell me what happened
@@ -30,6 +30,8 @@ Feature: Use the editor with a keyboard and a screen reader
 
   Scenario: The focus stays visible in a Windows contrast theme
     Given the page uses forced colours
+    When I press Tab
+    Then the language has the focus and a visible outline
     When I press Tab
     Then the theme "System" has the focus and a visible outline
     When I press Tab

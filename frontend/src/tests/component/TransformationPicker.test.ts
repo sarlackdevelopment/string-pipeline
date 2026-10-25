@@ -57,6 +57,24 @@ describe('TransformationPicker (R1.3, D28)', () => {
     expect(onAdd).toHaveBeenCalledExactlyOnceWith('regexExtract')
   })
 
+  it('points at its list and the highlighted option only while the list shows, as WAI-ARIA asks (D15)', async () => {
+    const { user, search } = renderPicker()
+    const target = (attribute: string) =>
+      document.getElementById(search.getAttribute(attribute) ?? '')
+
+    await user.click(search)
+    await user.keyboard('{ArrowDown}')
+    expect(target('aria-controls')).toBeInTheDocument()
+    expect(target('aria-activedescendant')).toHaveAttribute('role', 'option')
+
+    await user.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    })
+    expect(search).not.toHaveAttribute('aria-controls')
+    expect(search).not.toHaveAttribute('aria-activedescendant')
+  })
+
   // Pins the empty model value: with a value of its own, the combobox would show the id after a pick and stay silent
   // when the same item is picked again.
   it('adds the same transformation twice in a row, and clears the search after each pick', async () => {

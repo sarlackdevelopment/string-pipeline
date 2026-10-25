@@ -7,6 +7,8 @@ import { createBdd } from 'playwright-bdd'
 import {
   addStepWithKeyboard,
   field,
+  input,
+  languageSelect,
   runSummary,
   runSwitch,
   search,
@@ -36,6 +38,10 @@ When('I press Tab', async ({ page }) => {
   await page.keyboard.press('Tab')
 })
 
+When('I press Escape', async ({ page }) => {
+  await page.keyboard.press('Escape')
+})
+
 Then(
   'the focus is in {string} of step {int}',
   async ({ page }, title: string, position: number) => {
@@ -45,6 +51,13 @@ Then(
 
 Then('the run summary says {string}', async ({ page }, text: string) => {
   await expect(runSummary(page)).toHaveText(text)
+})
+
+Then('the language has the focus and a visible outline', async ({ page }) => {
+  const select = languageSelect(page)
+  await expect(select).toBeFocused()
+  const outline = await select.evaluate((element) => getComputedStyle(element).outlineStyle)
+  expect(outline).not.toBe('none')
 })
 
 Then('the theme {string} has the focus and a visible outline', async ({ page }, name: string) => {
@@ -111,9 +124,15 @@ Then('the switch of step {int} shows that the step is off', async ({ page }, pos
   expect(colours?.thumb).not.toBe(colours?.card)
 })
 
+// A violation names the elements it found, so a failure says where to look.
 Then('axe finds no accessibility violations', async ({ page }) => {
   const { violations } = await new AxeBuilder({ page }).analyze()
-  expect(violations.map((violation) => `${violation.id}: ${violation.help}`)).toEqual([])
+  expect(
+    violations.map(
+      (violation) =>
+        `${violation.id}: ${violation.help} (${violation.nodes.map((node) => node.html).join(', ')})`,
+    ),
+  ).toEqual([])
 })
 
 Then('{string} has the focus and a visible outline', async ({ page }, name: string) => {
@@ -125,10 +144,11 @@ Then('{string} has the focus and a visible outline', async ({ page }, name: stri
 
 // A control shows its focus with an outline or a ring (a box shadow), on itself or on the input group around it. No
 // control here has a shadow while it is not focused, so a shadow means a ring. The walk starts at the first stop of the
-// page, the chosen theme in the header. It is reached from the input with Shift+Tab: browsers show the focus of a
-// button that a script focuses only after keyboard use, and the scenario used the mouse last.
+// page, the language in the header, before the chosen theme. It is reached from the input with Shift+Tab: browsers
+// show the focus of a control that a script focuses only after keyboard use, and the scenario used the mouse last.
 Then('every stop of the Tab key shows where the focus is', async ({ page }) => {
-  await page.getByRole('textbox', { name: 'Input' }).focus()
+  await input(page).focus()
+  await page.keyboard.press('Shift+Tab')
   await page.keyboard.press('Shift+Tab')
   const unmarked: string[] = []
   for (let stop = 0; stop < 60; stop += 1) {
@@ -146,7 +166,9 @@ Then('every stop of the Tab key shows where the focus is', async ({ page }) => {
       })
       const label =
         element.getAttribute('aria-label') ??
-        (element instanceof HTMLInputElement ? element.labels?.[0]?.textContent : null) ??
+        (element instanceof HTMLInputElement || element instanceof HTMLSelectElement
+          ? element.labels?.[0]?.textContent
+          : null) ??
         element.textContent
       return { label: label.trim(), marked }
     })

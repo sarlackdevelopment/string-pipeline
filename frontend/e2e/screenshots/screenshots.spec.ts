@@ -1,11 +1,20 @@
 /**
  * The screenshots in `docs/images`, taken from the running app: `npm run screenshots`. They show the brief's chain on
- * a desktop, a step with an error at phone width, the editor in a Windows contrast theme (D15) and in the dark theme
- * (D51).
+ * a desktop, a step with an error at phone width, the editor in a Windows contrast theme (D15), in the dark theme (D51)
+ * and in German (D52).
  */
 import { fileURLToPath, URL } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
-import { addStep, openEditor, output, runSummary, setField, typeInput } from '../support/editor'
+import {
+  addStep,
+  input,
+  languageSelect,
+  openEditor,
+  output,
+  runSummary,
+  setField,
+  typeInput,
+} from '../support/editor'
 
 const images = fileURLToPath(new URL('../../../docs/images/', import.meta.url))
 
@@ -67,7 +76,20 @@ test('a Windows contrast theme', async ({ page }) => {
   await openEditor(page)
   await buildChainOfTheBrief(page)
   await settle(page)
-  await page.getByRole('textbox', { name: 'Input' }).focus()
+  await input(page).focus()
 
   await page.screenshot({ path: `${images}editor-contrast.png`, fullPage: true })
+})
+
+// The brief's chain from its example, since the steps' names and fields are German too.
+test('the editor in German', async ({ page }) => {
+  await page.setViewportSize({ width: 1100, height: 900 })
+  await openEditor(page)
+  await languageSelect(page).selectOption({ label: 'Deutsch' })
+  await page.getByRole('link', { name: 'Die Kette aus der Aufgabe', exact: true }).click()
+  await expect(output(page).getByText('Real Python!', { exact: true })).toBeVisible()
+  await expect(runSummary(page)).toHaveText('Alle 2 Schritte wurden ausgeführt.')
+  await settle(page)
+
+  await page.screenshot({ path: `${images}editor-de.png`, fullPage: true })
 })

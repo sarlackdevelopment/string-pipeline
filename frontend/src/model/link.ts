@@ -37,10 +37,23 @@ const linkSchema = z.object({
 export const LinkStatus = { none: 'none', chain: 'chain', invalid: 'invalid' } as const
 export type LinkStatus = (typeof LinkStatus)[keyof typeof LinkStatus]
 
+/** Why a link cannot be opened. The editor says it in the interface's language (D52). */
+export const LinkProblemKind = {
+  unreadable: 'unreadable',
+  unknownTransformation: 'unknownTransformation',
+} as const
+
+export type LinkProblem =
+  | { readonly kind: typeof LinkProblemKind.unreadable }
+  | {
+      readonly kind: typeof LinkProblemKind.unknownTransformation
+      readonly transformation: string
+    }
+
 export type LinkReading =
   | { readonly status: typeof LinkStatus.none }
   | { readonly status: typeof LinkStatus.chain; readonly chain: ChainContent }
-  | { readonly status: typeof LinkStatus.invalid; readonly message: string }
+  | { readonly status: typeof LinkStatus.invalid; readonly problem: LinkProblem }
 
 /** The fragment of a link to `chain`; `''` for an empty chain, which needs none. */
 export function toFragment(chain: ChainContent): string {
@@ -66,11 +79,7 @@ export function fromFragment(fragment: string, catalog: Catalog): LinkReading {
   }
   const parsed = linkSchema.safeParse(readJson(fromBase64Url(encoded)))
   if (!parsed.success) {
-    return {
-      status: LinkStatus.invalid,
-      message:
-        'It does not hold a chain that this app can read. Part of it may have been lost when it was copied.',
-    }
+    return { status: LinkStatus.invalid, problem: { kind: LinkProblemKind.unreadable } }
   }
   const steps: Omit<Step, 'id'>[] = []
   for (const step of parsed.data.steps) {
@@ -78,7 +87,10 @@ export function fromFragment(fragment: string, catalog: Catalog): LinkReading {
     if (transformation === undefined) {
       return {
         status: LinkStatus.invalid,
-        message: `It uses a transformation that this app does not have: "${step.transformation}".`,
+        problem: {
+          kind: LinkProblemKind.unknownTransformation,
+          transformation: step.transformation,
+        },
       }
     }
     steps.push({

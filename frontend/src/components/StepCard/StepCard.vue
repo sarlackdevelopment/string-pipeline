@@ -5,6 +5,7 @@
  */
 import { ArrowDownIcon, ArrowUpIcon, LoaderCircleIcon, Trash2Icon } from '@lucide/vue'
 import { computed, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import ParameterForm from '@/components/ParameterForm/ParameterForm.vue'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -40,8 +41,9 @@ const emit = defineEmits<{
   setEnabled: [enabled: boolean]
 }>()
 
+const { t } = useI18n()
 const status = computed(() =>
-  props.enabled ? statusDisplay(props.result, props.isUpdating) : offStatus,
+  props.enabled ? statusDisplay(props.result, props.isUpdating, t) : offStatus(t),
 )
 const issues = computed(() => fieldIssues(props.result, props.errors))
 
@@ -91,7 +93,7 @@ const toneClasses: Record<Tone, string> = {
   >
     <!-- Floated, so the legend sits inside the card instead of on its border. -->
     <legend class="float-left text-sm leading-7 font-semibold">
-      Step {{ number }}: {{ transformation.name }}
+      {{ t('step.legend', { number, name: transformation.name }) }}
     </legend>
     <div class="float-right flex items-center gap-1">
       <span
@@ -107,7 +109,7 @@ const toneClasses: Record<Tone, string> = {
       <Switch
         class="mx-1.5"
         :model-value="enabled"
-        :aria-label="`Run step ${number}`"
+        :aria-label="t('step.run', { number })"
         @update:model-value="emit('setEnabled', $event)"
       />
       <Button
@@ -115,7 +117,7 @@ const toneClasses: Record<Tone, string> = {
         size="icon-sm"
         data-part="move-up"
         :disabled="!canMoveUp"
-        :aria-label="`Move step ${number} up`"
+        :aria-label="t('step.moveUp', { number })"
         @click="emit('move', Direction.up)"
       >
         <ArrowUpIcon />
@@ -125,7 +127,7 @@ const toneClasses: Record<Tone, string> = {
         size="icon-sm"
         data-part="move-down"
         :disabled="!canMoveDown"
-        :aria-label="`Move step ${number} down`"
+        :aria-label="t('step.moveDown', { number })"
         @click="emit('move', Direction.down)"
       >
         <ArrowDownIcon />
@@ -133,7 +135,7 @@ const toneClasses: Record<Tone, string> = {
       <Button
         variant="ghost"
         size="icon-sm"
-        :aria-label="`Remove step ${number}`"
+        :aria-label="t('step.remove', { number })"
         @click="emit('remove')"
       >
         <Trash2Icon />
@@ -152,14 +154,12 @@ const toneClasses: Record<Tone, string> = {
         :issues="issues"
         @change="(name, value) => emit('change', name, value)"
       />
-      <p v-if="!enabled" class="text-sm text-muted-foreground">
-        This step is off, so the text passes through it unchanged.
-      </p>
+      <p v-if="!enabled" class="text-sm text-muted-foreground">{{ t('step.off') }}</p>
       <div v-else-if="result?.status === StepStatus.executed" class="grid gap-1.5">
-        <p class="text-xs font-medium text-muted-foreground">Output of this step</p>
+        <p class="text-xs font-medium text-muted-foreground">{{ t('step.output') }}</p>
         <pre
           class="max-h-48 overflow-auto rounded-lg bg-muted px-3 py-2 font-mono text-sm break-words whitespace-pre-wrap"
-        ><template v-if="result.output !== ''">{{ result.output }}</template><span v-else class="font-sans text-foreground/60 italic">Empty text</span></pre>
+        ><template v-if="result.output !== ''">{{ result.output }}</template><span v-else class="font-sans text-foreground/60 italic">{{ t('output.emptyText') }}</span></pre>
       </div>
       <p
         v-else-if="result?.status === StepStatus.failed"
@@ -168,7 +168,7 @@ const toneClasses: Record<Tone, string> = {
         {{ result.message }}
       </p>
       <p v-else-if="result?.status === StepStatus.notRun" class="text-sm text-muted-foreground">
-        This step runs once every step above it has run.
+        {{ t('step.waiting') }}
       </p>
     </div>
   </fieldset>

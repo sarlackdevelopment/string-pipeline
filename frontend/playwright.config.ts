@@ -27,6 +27,8 @@ export default defineConfig({
   use: {
     ...devices['Desktop Chrome'],
     baseURL: runningApp ?? `http://localhost:${String(APP_PORT)}`,
+    // The browser's language decides the app's at a first visit (D52), and Playwright would take the system's.
+    locale: 'en-US',
     trace: 'retain-on-failure',
   },
   projects: [

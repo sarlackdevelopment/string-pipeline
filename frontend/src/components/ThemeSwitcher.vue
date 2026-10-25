@@ -8,14 +8,16 @@
  */
 import { MonitorIcon, MoonIcon, SunIcon } from '@lucide/vue'
 import { RadioGroupItem, RadioGroupRoot, type AcceptableValue } from 'reka-ui'
+import { useI18n } from 'vue-i18n'
 import { Theme, useTheme } from '@/composables/useTheme'
 
+const { t } = useI18n()
 const theme = useTheme()
 
 const options = [
-  { value: Theme.light, label: 'Light', icon: SunIcon },
-  { value: Theme.dark, label: 'Dark', icon: MoonIcon },
-  { value: Theme.system, label: 'System', icon: MonitorIcon },
+  { value: Theme.light, label: 'theme.light', icon: SunIcon },
+  { value: Theme.dark, label: 'theme.dark', icon: MoonIcon },
+  { value: Theme.system, label: 'theme.system', icon: MonitorIcon },
 ] as const
 
 function choose(value: AcceptableValue | undefined): void {
@@ -30,7 +32,7 @@ function choose(value: AcceptableValue | undefined): void {
   <RadioGroupRoot
     :model-value="theme"
     orientation="horizontal"
-    aria-label="Theme"
+    :aria-label="t('theme.label')"
     class="inline-flex gap-0.5 rounded-lg border bg-background p-0.5"
     @update:model-value="choose"
   >
@@ -41,7 +43,7 @@ function choose(value: AcceptableValue | undefined): void {
       class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:bg-primary data-checked:text-primary-foreground forced-colors:data-checked:bg-[Highlight] forced-colors:data-checked:text-[HighlightText] forced-colors:data-checked:forced-color-adjust-none"
     >
       <component :is="option.icon" class="size-3.5" />
-      {{ option.label }}
+      {{ t(option.label) }}
     </RadioGroupItem>
   </RadioGroupRoot>
 </template>

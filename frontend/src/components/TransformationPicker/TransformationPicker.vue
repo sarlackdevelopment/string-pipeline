@@ -6,6 +6,7 @@
  * the page's landmarks (D15).
  */
 import { computed, useId, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   Combobox,
   ComboboxAnchor,
@@ -32,6 +33,7 @@ const emit = defineEmits<{
   add: [transformationId: string]
 }>()
 
+const { t } = useI18n()
 const id = useId()
 const hintId = `${id}-hint`
 const groups = computed(() => groupByCategory(props.catalog))
@@ -53,18 +55,18 @@ function pick(value: unknown): void {
 
 <template>
   <div ref="root" class="grid gap-2 rounded-xl border border-dashed bg-card/60 p-4">
-    <label :for="id" class="text-sm font-semibold">Add a step</label>
+    <label :for="id" class="text-sm font-semibold">{{ t('picker.label') }}</label>
     <Combobox model-value="" :disabled="full" open-on-click @update:model-value="pick">
       <ComboboxAnchor>
         <ComboboxInput
           :id="id"
-          placeholder="Search, for example “replace” or “regex”"
+          :placeholder="t('picker.placeholder')"
           :aria-describedby="full ? hintId : undefined"
         />
       </ComboboxAnchor>
       <ComboboxList :portal="false">
         <ComboboxViewport>
-          <ComboboxEmpty>No transformation matches.</ComboboxEmpty>
+          <ComboboxEmpty>{{ t('picker.empty') }}</ComboboxEmpty>
           <ComboboxGroup
             v-for="group in groups"
             :key="group.category.id"
@@ -84,7 +86,7 @@ function pick(value: unknown): void {
       </ComboboxList>
     </Combobox>
     <p v-if="full" :id="hintId" class="text-xs text-muted-foreground">
-      A chain can have up to {{ catalog.limits.maxSteps }} steps.
+      {{ t('picker.full', catalog.limits.maxSteps) }}
     </p>
   </div>
 </template>

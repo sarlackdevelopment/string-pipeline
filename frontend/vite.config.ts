@@ -8,9 +8,26 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
+  // vue-i18n's build flags (D52): only the Composition API, so its legacy API stays out of the bundle; messages are
+  // compiled in the browser, and devtools are off in production.
+  define: {
+    __VUE_I18N_FULL_INSTALL__: false,
+    __VUE_I18N_LEGACY_API__: false,
+    __INTLIFY_DROP_MESSAGE_COMPILER__: false,
+    __INTLIFY_PROD_DEVTOOLS__: false,
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+  build: {
+    rolldownOptions: {
+      output: {
+        // The libraries in a file of their own: they change less often than the app's code, so a browser keeps them
+        // cached across the app's updates, and neither file passes Vite's warning size of 500 kB.
+        codeSplitting: { groups: [{ name: 'vendor', test: /node_modules/ }] },
+      },
     },
   },
   server: {

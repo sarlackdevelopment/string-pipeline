@@ -1,7 +1,8 @@
 /**
  * The status badge of a step: a label and a tone for each state of D12, which the API names as in D42, and Off for a
- * step that is off (D48).
+ * step that is off (D48). The label is in the interface's language (D52).
  */
+import type { Translate } from '@/i18n'
 import { StepStatus, type StepResult } from '@/model/run'
 
 export const Tone = {
@@ -20,28 +21,34 @@ export interface StatusDisplay {
 }
 
 /** A step that is off has no result: runs leave it out (D48). */
-export const offStatus: StatusDisplay = { label: 'Off', tone: Tone.muted, busy: false }
+export function offStatus(t: Translate): StatusDisplay {
+  return { label: t('status.off'), tone: Tone.muted, busy: false }
+}
 
 /**
  * A step without a result is running while a run is on its way. Otherwise it did not run, because the run as a
  * whole failed.
  */
-export function statusDisplay(result: StepResult | undefined, isUpdating: boolean): StatusDisplay {
+export function statusDisplay(
+  result: StepResult | undefined,
+  isUpdating: boolean,
+  t: Translate,
+): StatusDisplay {
   if (result === undefined) {
     return isUpdating
-      ? { label: 'Running', tone: Tone.muted, busy: true }
-      : { label: 'Not run', tone: Tone.muted, busy: false }
+      ? { label: t('status.running'), tone: Tone.muted, busy: true }
+      : { label: t('status.notRun'), tone: Tone.muted, busy: false }
   }
   switch (result.status) {
     case StepStatus.executed:
-      return { label: 'Executed', tone: Tone.success, busy: false }
+      return { label: t('status.executed'), tone: Tone.success, busy: false }
     case StepStatus.notConfigured:
-      return { label: 'Not configured', tone: Tone.neutral, busy: false }
+      return { label: t('status.notConfigured'), tone: Tone.neutral, busy: false }
     case StepStatus.invalidParameters:
-      return { label: 'Invalid parameters', tone: Tone.error, busy: false }
+      return { label: t('status.invalidParameters'), tone: Tone.error, busy: false }
     case StepStatus.failed:
-      return { label: 'Failed', tone: Tone.error, busy: false }
+      return { label: t('status.failed'), tone: Tone.error, busy: false }
     case StepStatus.notRun:
-      return { label: 'Not run', tone: Tone.muted, busy: false }
+      return { label: t('status.notRun'), tone: Tone.muted, busy: false }
   }
 }

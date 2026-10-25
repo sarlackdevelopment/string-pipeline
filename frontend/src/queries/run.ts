@@ -1,13 +1,15 @@
 /**
  * The run query (D11, D29, D40): runs the chain 300 ms after the last edit.
  *
- * The request itself is the query key. An edit changes the key, so TanStack Query aborts the request still running
- * for the old key through its `AbortSignal` and keeps showing the old result until the new one arrives. A run depends
- * on nothing but its request, so a cached result never goes stale: undoing an edit shows the earlier result at once.
+ * The request itself and the interface's language (D52) are the query key. An edit changes the key, so TanStack Query
+ * aborts the request still running for the old key through its `AbortSignal` and keeps showing the old result until
+ * the new one arrives. A run depends on nothing but its request and the language of its messages, so a cached result
+ * never goes stale: undoing an edit shows the earlier result at once.
  */
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 import { watchDebounced } from '@vueuse/core'
 import { computed, shallowRef, toValue, type MaybeRefOrGetter } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { postRun } from '@/api/client'
 import type { RunRequest } from '@/model/run'
 import { unwrap } from './client'
@@ -28,9 +30,11 @@ export function usePipelineRun(request: MaybeRefOrGetter<RunRequest>) {
     { debounce: RUN_DELAY_MS },
   )
 
+  const { locale } = useI18n()
   const query = useQuery({
-    queryKey: computed(() => ['run', sent.value] as const),
-    queryFn: async ({ queryKey: [, body], signal }) => unwrap(await postRun(body, signal)),
+    queryKey: computed(() => ['run', locale.value, sent.value] as const),
+    queryFn: async ({ queryKey: [, language, body], signal }) =>
+      unwrap(await postRun(body, language, signal)),
     placeholderData: keepPreviousData,
     staleTime: Infinity,
   })

@@ -8,6 +8,7 @@
 import { CheckIcon, CopyIcon, LoaderCircleIcon } from '@lucide/vue'
 import { useClipboard } from '@vueuse/core'
 import { computed, useId } from 'vue'
+import { useI18n } from 'vue-i18n'
 import CopyLinkButton from '@/components/CopyLinkButton.vue'
 import { Button } from '@/components/ui/button'
 import type { RunResult } from '@/model/run'
@@ -21,6 +22,7 @@ const props = defineProps<{
   link: string | null
 }>()
 
+const { t } = useI18n()
 const headingId = useId()
 const output = computed(() => props.result?.output ?? null)
 
@@ -41,11 +43,14 @@ function copyOutput(): void {
   >
     <div class="flex min-h-7 items-center justify-between gap-2">
       <div class="grid gap-0.5">
-        <h2 :id="headingId" class="text-sm font-semibold">Output</h2>
+        <h2 :id="headingId" class="text-sm font-semibold">{{ t('output.label') }}</h2>
         <!-- Always rendered, also while empty: a live region has to exist before its text changes. -->
-        <output aria-live="polite" aria-label="Run summary" class="text-xs text-muted-foreground">{{
-          summary
-        }}</output>
+        <output
+          aria-live="polite"
+          :aria-label="t('output.summary')"
+          class="text-xs text-muted-foreground"
+          >{{ summary }}</output
+        >
       </div>
       <div class="flex items-center gap-3">
         <span
@@ -53,23 +58,23 @@ function copyOutput(): void {
           class="inline-flex items-center gap-1.5 text-xs text-muted-foreground"
         >
           <LoaderCircleIcon class="size-3.5 animate-spin" />
-          Updating
+          {{ t('output.updating') }}
         </span>
         <CopyLinkButton :link="link" />
         <Button variant="outline" size="sm" :disabled="!output" @click="copyOutput">
           <CheckIcon v-if="copied" />
           <CopyIcon v-else />
-          {{ copied ? 'Copied' : 'Copy' }}
+          {{ copied ? t('output.copied') : t('output.copy') }}
         </Button>
-        <span aria-live="polite" class="sr-only">{{ copied ? 'Copied the output.' : '' }}</span>
+        <span aria-live="polite" class="sr-only">{{ copied ? t('output.copiedOutput') : '' }}</span>
       </div>
     </div>
     <pre
       v-if="output !== null"
       class="max-h-96 overflow-auto rounded-lg bg-muted px-3 py-2 font-mono text-sm break-words whitespace-pre-wrap"
-    ><template v-if="output !== ''">{{ output }}</template><span v-else class="font-sans text-foreground/60 italic">Empty text</span></pre>
+    ><template v-if="output !== ''">{{ output }}</template><span v-else class="font-sans text-foreground/60 italic">{{ t('output.emptyText') }}</span></pre>
     <p v-else class="text-sm text-muted-foreground">
-      {{ result === undefined ? 'No output yet.' : 'The output appears once every step has run.' }}
+      {{ result === undefined ? t('output.none') : t('output.waiting') }}
     </p>
   </section>
 </template>

@@ -4,7 +4,7 @@ A no-code web app for chaining string transformations: pick transformations, con
 
 ![The editor running the chain of the brief: Replace, then Append, from "Fake Python" to "Real Python!"](docs/images/editor.png)
 
-More screenshots: [a step with an error, at phone width](docs/images/editor-phone.png), [the dark theme](docs/images/editor-dark.png), and [a Windows contrast theme](docs/images/editor-contrast.png).
+More screenshots: [a step with an error, at phone width](docs/images/editor-phone.png), [the dark theme](docs/images/editor-dark.png), [a Windows contrast theme](docs/images/editor-contrast.png), and [the editor in German](docs/images/editor-de.png).
 
 ## Prerequisites
 
@@ -33,7 +33,7 @@ The app then runs on http://localhost:5173, and Vite's dev server forwards `/api
 ## Documentation
 
 - [Requirements](docs/requirements.md): the brief as numbered requirements, R1.1–R4.4
-- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D51
+- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D52
 - [Design](docs/design.md): the API, the transformations, the library, the server and the frontend
 - [API contract](contract/README.md): example requests and responses that the Java and TypeScript tests share
 - [AI usage log](docs/ai-log/README.md): every step taken with the AI assistant, for people and for agents
@@ -50,10 +50,10 @@ The app was built step by step with Claude Code, running Claude Opus 5.5. The de
 | `contract/` | Example requests and responses that both the Java and the TypeScript tests read           |
 | `buildSrc/` | Build conventions shared by the Java modules: JDK 25, compiler checks, formatting, JUnit  |
 
-- **The library** gives every step a result: `Executed`, `NotConfigured`, `InvalidParameters`, `Failed` or `NotRun`. Problems are data, not exceptions, and every step's parameters are checked before any step runs, so a chain shows all its configuration problems at once. A transformation is one class that declares its parameters; `BuiltIns` lists the transformations and the example chains.
-- **The web API** has two endpoints. The catalog describes each transformation's parameters as JSON Schema, and a run returns a result for every step. A malformed request gets Problem Details with JSON pointers to its fields. An ArchUnit test keeps the server on the library's public API.
-- **The frontend** builds every form from the catalog and knows no transformation by name (R2.1). Pinia holds the chain, TanStack Query the server's answers, and zod checks each answer at the boundary. A component with behaviour is split into a model of pure functions, a controller, a view and a container. The UI kit is shadcn-vue on Reka UI.
-- **Tests** cover every layer: 246 in Java, 215 Vitest tests in the frontend (unit, component, and integration against a stand-in API), and 19 end-to-end scenarios in Gherkin that run Chromium against the real API.
+- **The library** gives every step a result: `Executed`, `NotConfigured`, `InvalidParameters`, `Failed` or `NotRun`. Problems are data, not exceptions, and every step's parameters are checked before any step runs, so a chain shows all its configuration problems at once. Texts are data too: a key and its values, which the caller renders in English, German or Russian. A transformation is one class that declares its parameters; `BuiltIns` lists the transformations and the example chains.
+- **The web API** has two endpoints. The catalog describes each transformation's parameters as JSON Schema, and a run returns a result for every step. A malformed request gets Problem Details with JSON pointers to its fields. Both answer in the language that `Accept-Language` asks for. An ArchUnit test keeps the server on the library's public API.
+- **The frontend** builds every form from the catalog and knows no transformation by name (R2.1). Pinia holds the chain, TanStack Query the server's answers, zod checks each answer at the boundary, and vue-i18n holds the app's own texts. A component with behaviour is split into a model of pure functions, a controller, a view and a container. The UI kit is shadcn-vue on Reka UI.
+- **Tests** cover every layer: 275 in Java, 243 Vitest tests in the frontend (unit, component, and integration against a stand-in API), and 22 end-to-end scenarios in Gherkin that run Chromium against the real API.
 
 ## Worth a look
 
@@ -61,6 +61,7 @@ The app was built step by step with Claude Code, running Claude Opus 5.5. The de
 - **Text traps.** A character is what a person sees as one, so 👍🏽 is never cut in half. Turkish İ, ß, Windows line endings, 30 February and bytes that are not UTF-8 each have a test ([decisions](docs/decisions.md), Traps).
 - **Limits.** A regular expression stops after 2 seconds, and no step may produce more than a million characters, so no chain can hang the server or exhaust its memory.
 - **Accessibility.** After a step is added, moved or removed, the focus keeps the user's place. A live region tells screen readers how each run went, errors sit at their fields, and the focus, the step switches and the chosen theme stay visible in Windows contrast themes. For people who ask for less motion, nothing moves. The end-to-end tests run axe and walk every stop of the Tab key.
+- **Messages as data.** The library never writes a sentence: it returns a key and its values, and whoever shows the message renders it. So the catalog, every step message and the request errors come in English, German or Russian from one `Accept-Language` header, and tests check that every language has every text, with the same values. Even Java's own regex and date-pattern errors are translated, each pinned by a test to Java's exact wording.
 - **Strict checks.** Java compiles with Error Prone, NullAway and `-Werror`. TypeScript is strict and linted by oxlint and type-aware ESLint. Both sides check their formatting.
 
 ## Transformations
@@ -93,6 +94,7 @@ Added after the brief was done, each in commits of its own ([decisions](docs/dec
 - The address holds the chain, so a link opens the same chain anywhere, and Copy link copies it. Edits change the address in place, and Back returns to the chain before a followed link (D49).
 - Five example chains open with one click, under the search that adds steps. The server sends them with the catalog, the library's tests run each of them, and the frontend shows them as links (D50).
 - Light, dark, or the system's theme, chosen in the header and kept for the next visit. A page in the dark theme does not flash white while it loads (D51).
+- English, German or Russian, chosen in the header and kept for the next visit; a first visit follows the browser's languages. The app's own texts are in vue-i18n, the transformations' come from the server in the same language, and so do its messages (D52).
 
 ## Using the library
 
@@ -109,7 +111,7 @@ PipelineResult result = new Pipeline(Limits.DEFAULT).run("Fake Python", List.of(
 result.output(); // Optional[Real Python!]
 ```
 
-Every step's result is `Executed`, `NotConfigured`, `InvalidParameters`, `Failed` or `NotRun`: problems come back as data, never as exceptions.
+Every step's result is `Executed`, `NotConfigured`, `InvalidParameters`, `Failed` or `NotRun`: problems come back as data, never as exceptions. Their messages are data too, which `Messages.render(message, locale)` writes in English, German or Russian.
 
 ## Web API
 
@@ -125,7 +127,7 @@ curl -H 'Content-Type: application/json' \
   --data-binary @contract/examples/brief-chain.request.json http://localhost:8080/api/runs
 ```
 
-A problem inside a step comes back as that step's `status` with HTTP 200; a malformed request is a 400 with Problem Details (RFC 9457) and JSON pointers. Every example request and response is in [contract/](contract/README.md).
+A problem inside a step comes back as that step's `status` with HTTP 200; a malformed request is a 400 with Problem Details (RFC 9457) and JSON pointers. Both endpoints answer in English, German or Russian, as `Accept-Language` asks, and in English without it. Every example request and response is in [contract/](contract/README.md).
 
 ## Commands
 
@@ -171,4 +173,5 @@ npm run test:e2e
 
 - The Docker image was built and tested on x86-64. Its base images and the npm lockfile cover ARM64 as well, as on a Mac with Apple Silicon, but that build was not tried.
 - A link to a chain holds its input text (D49), so a long text makes a long link, which a chat app may cut off. The editor then says that it cannot open the link.
+- Java writes its own messages in English only. The library translates the regex and date-pattern errors that people make while typing; a rarer one, and Java's reason why a line is not a date, stay English inside the translated sentence (D52).
 - The AI log summarises the development session instead of exporting it, because the session also holds private correspondence (D25).
