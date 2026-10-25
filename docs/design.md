@@ -251,6 +251,13 @@ Data flow:
 4. While a run is pending, the previous results stay visible, matched by step id. A removed step has no result; a new one shows that it is running.
 5. Problem Details pointers go to the matching field (section 2); anything else is a banner with Retry.
 
+The UI kit (D28, step 12). shadcn-vue's components are copied into `components/ui/` and are our code from then on. `components.json` configures the shadcn-vue CLI, which runs through `npx`. It names no font, so the CLI adds no font import (D47), and it points the CLI at `lib/utils.ts` for `cn`, the class-name helper; the copied components import the `cn` package directly. Probe tests, deleted afterwards, showed how Reka UI's combobox behaves, which the transformation picker builds on:
+
+- The input is an ARIA combobox (`aria-expanded`, `aria-controls`, `aria-autocomplete="list"`), and the highlighted option is announced through `aria-activedescendant`.
+- Typing filters with `Intl.Collator` at base sensitivity, so case and accents do not matter. An item matches on its `textValue` or, without one, on its whole text at mount, description included: "slice" finds Substring. A group without matches stays in the DOM with `hidden`: `getByText` still finds its heading, `getByRole` does not.
+- The first match is highlighted at once: typing a name and pressing Enter picks it. Escape closes the list.
+- jsdom does not implement `scrollIntoView`, which Reka UI calls on the highlighted option, so the test setup stubs it. Nothing else needed a stub: floating-ui, which positions the list, uses a `ResizeObserver` only where one exists.
+
 Accessibility (D15):
 
 - Each step is a `fieldset` whose legend names the step.

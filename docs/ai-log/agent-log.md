@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: backend done; frontend model done. Next: step 12, choosing the UI primitive.
-- Last commit: `feat(model): catalog, chain and run models with contract-checked parsing`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
+- Phase: backend done; frontend model done; UI kit checked. Next: step 13, the UI.
+- Last commit: `chore(ui): shadcn-vue kit on Reka UI, checked by probe tests`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green.
 - Tests: Java 161 in 19 classes (library 135, server 26); frontend 45 in 7 files.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+.
-- Next step: step 12, the UI primitive (D28): read the sources of Reka UI's combobox, write probe tests and delete them, then set up shadcn-vue. Step 13 builds the UI on `src/model/` and `src/api/`.
+- Next step: step 13, the UI of design section 7, on `src/model/` and `src/api/`: the Pinia store (D29), TanStack Query for the catalog and runs (D11, D29), the editor's controller, view and container (D26), the schema form with its field registry (D27), the transformation picker on the checked combobox (search includes descriptions; Enter adds the first match), the output panel (D32), and a Vite proxy from `/api` to the server. Add shadcn-vue components only when a component uses them (`npx shadcn-vue@2.8.2 add …`, then lint the copies). Do not let the CLI overwrite `input`, `textarea` or `input-group`: they carry our fixes. After each `add`, review the diff of `src/index.css` and `package.json`. Give every `<Input>` a `type`, or the label rule skips it.
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -143,6 +143,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: npm registry (zod 4.6.7, MSW 3.0.3); MSW 3's type definitions; GitHub's advisory API (GHSA-vfj7-8cjw-p6xm withdrawn 2026-10-23).
 - Changed: `frontend/src/model/`, `frontend/src/api/`, `frontend/src/tests/` (helpers and unit tests), `frontend/package.json` and lockfile, `docs/design.md`, `docs/decisions.md`, README, both journals.
 - Verified: format:check, lint, typecheck, 45 tests, build; a deleted probe confirmed that an unprepared request never leaves the test process.
-- Commit: `feat(model): catalog, chain and run models with contract-checked parsing`.
+- Commit: `6f199f3`.
 - Open: the Turkish i trap (step 17).
 - Next: S12, the UI primitive.
+
+### S12 The UI primitive (2026-10-25)
+
+- Goal: a checked UI kit before the UI is built on it (D28).
+- Requirements: R1.3, R3.1.
+- Decisions: D28 confirmed and refined; D47 added.
+- Read: npm registry (shadcn-vue 2.8.2, reka-ui 2.11.0, cn 0.5.0, @lucide/vue); the diff of `shadcn-vue init`; the sources of Reka UI's combobox, listbox and `useFilter`; shadcn-vue's `tailwind.css`.
+- Changed: `frontend/components.json`, `frontend/src/components/ui/` (combobox, button, input, textarea, input-group), `frontend/src/lib/utils.ts`, `frontend/src/index.css`, `frontend/tsconfig.json`, `frontend/eslint.config.ts`, `frontend/src/tests/helpers/setup.ts`, package files, `docs/design.md`, `docs/decisions.md`, README, both journals.
+- Verified: probes, deleted: seven tests on the combobox in jsdom; the combobox without a `ResizeObserver`; the label rule on the kit's controls. Format:check, lint, typecheck, 45 tests, build; npm audit clean.
+- Commit: `chore(ui): shadcn-vue kit on Reka UI, checked by probe tests`.
+- Open: the Turkish i trap (step 17).
+- Next: S13, the UI.

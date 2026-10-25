@@ -8,6 +8,16 @@ import { cleanup } from '@testing-library/vue'
 import { afterAll, afterEach, beforeAll } from 'vitest'
 import { server } from './server'
 
+// jsdom (30) has no layout and no Element.scrollIntoView, which Reka UI calls to keep the highlighted option in view
+// (probe tests of step 12). The tests of the model run in Node, where there is no Element at all.
+const scrollNowhere = (): void => {
+  // Without a layout there is nothing to scroll.
+}
+
+if (typeof Element !== 'undefined') {
+  Element.prototype.scrollIntoView = scrollNowhere
+}
+
 beforeAll(() => {
   server.listen({ onUnhandledFrame: 'error' })
 })

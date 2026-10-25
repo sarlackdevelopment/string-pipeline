@@ -159,4 +159,23 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** `format:check`, `lint`, `typecheck`, 45 tests in 7 files (44 new), `build`; `npm audit` clean.
 
-**Commit.** `feat(model): catalog, chain and run models with contract-checked parsing`
+**Commit.** `6f199f3 feat(model): catalog, chain and run models with contract-checked parsing`
+
+## Step 12. The UI primitive (2026-10-25)
+
+**Asked.** Check the UI primitive before building on it.
+
+**AI did.**
+
+- Checked the current versions on the npm registry, ran `init` of shadcn-vue 2.8 in the project, and read its diff before keeping anything. Its preflight looks for the `@/` alias in the root `tsconfig.json`, so that file now repeats the alias for tools.
+- Did not keep three things `init` did. It made the shadcn-vue CLI a runtime dependency just to import one CSS file, which brought in the CLI's whole dependency tree and 8 `npm audit` findings, 2 of them high. The CLI is gone, and the nine state variants and one utility from that file, which shadcn-vue's components rely on, are copied into `index.css` with their MIT source named. It imported the Geist font from Google Fonts, under a font-family name that did not even match; the app now uses the system font stack and makes no third-party request (D47). `components.json` no longer names a font, since the CLI's `add` would otherwise write the import back. It added theme tokens for sidebars, charts and a dark mode, none of which this app has.
+- Checked the new `cn` package before keeping it: it lives in the shadcn-ui organisation on GitHub, under the MIT licence, and has no dependencies.
+- Read the sources of Reka UI's combobox. It is built on Reka's listbox. It filters with `Intl.Collator` over each item's `textValue` or, without one, the item's text when it mounts; hides an empty group with the `hidden` attribute; positions the list with floating-ui; and scrolls the highlighted option into view with `scrollIntoView`.
+- Wrote seven probe tests against the shadcn-vue combobox in jsdom, then deleted them. They first failed on `scrollIntoView`, which jsdom lacks. With a stub, they confirmed the ARIA attributes, filtering that ignores case, search in descriptions, hidden empty groups, Enter on the first match, and Escape. They also found two unlabelled `role="group"` wrappers around the search input. A second probe showed that a `ResizeObserver` stub is not needed: floating-ui uses one only where it exists.
+- Kept the `scrollIntoView` stub in the test setup, removed the unlabelled group roles from the copied components, and made the copies pass the strict lint. Two rules are off for their folder: single-word names, and form labels. The label rule now knows the kit's text controls by name, so it checks their labels where they are used; a probe confirmed it. Like a native input, an `<Input>` without `type` escapes that rule. `vue/require-default-prop` is off everywhere, since TypeScript already types an optional prop as possibly `undefined`. Everything else was fixed in the code, except the input-group addon's click-to-focus for the mouse, which keeps a commented exception.
+
+**Decided.** D28 confirmed and refined; D47 added.
+
+**Checked.** `format:check`, `lint`, `typecheck`, 45 tests, `build`; `npm audit` clean.
+
+**Commit.** `chore(ui): shadcn-vue kit on Reka UI, checked by probe tests`

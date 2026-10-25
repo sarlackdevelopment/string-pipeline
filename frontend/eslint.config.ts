@@ -34,6 +34,25 @@ export default defineConfigWithVueTs(
       'vue/no-unused-refs': 'error',
       'vue/prefer-use-template-ref': 'error',
       'vue/require-typed-ref': 'error',
+      // An optional prop of a type-based declaration is `undefined` by default, and TypeScript tracks that.
+      'vue/require-default-prop': 'off',
+      // The UI kit's text controls, by their kebab-case names. <Input> and <Textarea> already count as input and
+      // textarea.
+      'vuejs-accessibility/form-control-has-label': [
+        'error',
+        { controlComponents: ['combobox-input', 'input-group-input', 'input-group-textarea'] },
+      ],
+    },
+  },
+
+  {
+    // The UI kit copied from shadcn-vue (D28). Its names follow its folders (ui/button/Button.vue), and its form
+    // controls get their labels where they are used, which is where the rule above checks them.
+    name: 'app/ui-kit',
+    files: ['src/components/ui/**/*.vue'],
+    rules: {
+      'vue/multi-word-component-names': 'off',
+      'vuejs-accessibility/form-control-has-label': 'off',
     },
   },
 

@@ -73,15 +73,16 @@ From the repository root (`gradlew.bat` instead of `./gradlew` in cmd or PowerSh
 
 From `frontend/`, after `npm ci`:
 
-| Command             | What it does                                                                            |
-| ------------------- | --------------------------------------------------------------------------------------- |
-| `npm run dev`       | Starts the dev server on http://localhost:5173                                          |
-| `npm run build`     | Type-checks and builds the production bundle into `frontend/dist`                       |
-| `npm test`          | Runs the Vitest suites; `npm run test:coverage` adds a V8 coverage report               |
-| `npm run test:unit` | Runs only the unit tests: the model, the API client and the contract parsing            |
-| `npm run lint`      | Runs oxlint, then ESLint for Vue templates, template accessibility and type-aware rules |
-| `npm run typecheck` | Type-checks the app, the tests and the config files with `vue-tsc`                      |
-| `npm run format`    | Formats with Prettier; `npm run format:check` only checks                               |
+| Command                           | What it does                                                                             |
+| --------------------------------- | ---------------------------------------------------------------------------------------- |
+| `npm run dev`                     | Starts the dev server on http://localhost:5173                                           |
+| `npm run build`                   | Type-checks and builds the production bundle into `frontend/dist`                        |
+| `npm test`                        | Runs the Vitest suites; `npm run test:coverage` adds a V8 coverage report                |
+| `npm run test:unit`               | Runs only the unit tests: the model, the API client and the contract parsing             |
+| `npm run lint`                    | Runs oxlint, then ESLint for Vue templates, template accessibility and type-aware rules  |
+| `npm run typecheck`               | Type-checks the app, the tests and the config files with `vue-tsc`                       |
+| `npm run format`                  | Formats with Prettier; `npm run format:check` only checks                                |
+| `npx shadcn-vue@2.8.2 add <name>` | Copies a shadcn-vue component into `src/components/ui/`, where it becomes our code (D28) |
 
 ### Before every commit
 
