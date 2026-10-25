@@ -6,6 +6,30 @@ A no-code web app for chaining string transformations: pick transformations, con
 
 More screenshots: [a step with an error, at phone width](docs/images/editor-phone.png), and [a Windows contrast theme](docs/images/editor-contrast.png).
 
+## Prerequisites
+
+- Docker with Compose, for the one-command start.
+- Without Docker: any JDK 17+ to start Gradle. The modules compile with JDK 25: Gradle uses an installed JDK 25 or downloads one. Node.js 24.15+ with npm 11 for the frontend.
+
+## Running the app
+
+With Docker, one command builds and starts everything:
+
+```sh
+docker compose up --build
+```
+
+The app runs on http://localhost:8080, with Swagger UI at http://localhost:8080/swagger-ui.html. The first build takes a few minutes; `PORT=9090 docker compose up --build` uses another port (in PowerShell, set `$env:PORT = 9090` first). Type a text, add steps with the search field under the steps, and every step shows its own output.
+
+Without Docker, start the API, then the frontend in a second terminal:
+
+```sh
+./gradlew :server:bootRun
+cd frontend && npm ci && npm run dev
+```
+
+The app then runs on http://localhost:5173, and Vite's dev server forwards `/api` to the API on port 8080.
+
 ## Documentation
 
 - [Requirements](docs/requirements.md): the brief as numbered requirements, R1.1–R4.4
@@ -69,7 +93,7 @@ Every step's result is `Executed`, `NotConfigured`, `InvalidParameters`, `Failed
 | `GET /api/catalog` | Limits, categories and every transformation with its parameters as JSON Schema |
 | `POST /api/runs`   | Runs a chain and returns a result for every step                               |
 
-With the server running (`./gradlew :server:bootRun`), Swagger UI at http://localhost:8080/swagger-ui.html lets you try both endpoints. From the command line:
+With the app running, in Docker or with `./gradlew :server:bootRun`, Swagger UI at http://localhost:8080/swagger-ui.html lets you try both endpoints. From the command line:
 
 ```sh
 curl -H 'Content-Type: application/json' \
@@ -77,22 +101,6 @@ curl -H 'Content-Type: application/json' \
 ```
 
 A problem inside a step comes back as that step's `status` with HTTP 200; a malformed request is a 400 with Problem Details (RFC 9457) and JSON pointers. Every example request and response is in [contract/](contract/README.md).
-
-## Prerequisites
-
-- Any JDK 17+ to start Gradle. The modules compile with JDK 25: Gradle uses an installed JDK 25 or downloads one.
-- Node.js 24.15+ with npm 11 for the frontend.
-
-## Running the app
-
-Start the API, then the frontend in a second terminal:
-
-```sh
-./gradlew :server:bootRun
-cd frontend && npm ci && npm run dev
-```
-
-The app runs on http://localhost:5173, and its dev server forwards `/api` to the API on port 8080. Type a text, add steps with the search field under the steps, and every step shows its own output.
 
 ## Commands
 
@@ -123,7 +131,7 @@ From `frontend/`, after `npm ci`:
 | `npm run format`                  | Formats with Prettier; `npm run format:check` only checks                                                   |
 | `npx shadcn-vue@2.8.2 add <name>` | Copies a shadcn-vue component into `src/components/ui/`, where it becomes our code (D28)                    |
 
-The end-to-end tests start their own API (port 8091, through Gradle) and serve the built app with `vite preview` (port 4191), so servers on 8080 and 5173 keep running. Once per machine, they need Playwright's headless Chromium: `npx playwright install --only-shell chromium`.
+The end-to-end tests start their own API (port 8091, through Gradle) and serve the built app with `vite preview` (port 4191), so servers on 8080 and 5173 keep running. To test an app that already runs, such as the Docker image, set its address: `E2E_BASE_URL=http://localhost:8080 npm run test:e2e`. Once per machine, they need Playwright's headless Chromium: `npx playwright install --only-shell chromium`.
 
 ### Before every commit
 

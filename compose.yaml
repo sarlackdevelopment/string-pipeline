@@ -1,0 +1,8 @@
+# Starts the app with one command (D22): docker compose up --build, then open http://localhost:8080.
+# Another port on the host: PORT=9090 docker compose up --build.
+services:
+  string-pipeline:
+    build: .
+    image: string-pipeline
+    ports:
+      - "${PORT:-8080}:8080"

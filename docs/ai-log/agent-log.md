@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: the brief is done end to end, and the harder transformations of D10 are in. Next: step 18, starting everything with one command.
-- Last commit: `feat(library): case, line, encoding and date transformations`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
-- Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once).
+- Phase: the brief is done end to end, with the harder transformations of D10 and a one-command start. Next: step 19 (optional, beyond the brief) or step 20, the final check.
+- Last commit: `chore: Docker image and compose file for a one-command start`. Branch `main`, no remote; delivery is a zip of a fresh clone (D24).
+- Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once). `docker compose up --build` serves the app on 8080, or on `PORT`; `E2E_BASE_URL=http://localhost:<port> npm run test:e2e` runs the features against it.
 - Tests: Java 235 (library 209, server 26); frontend 165 in 24 files (unit 101, component 54, integration 10); end to end 8 scenarios in 2 features.
-- Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+.
-- Next step: step 18, `docker compose up` as the one-command start (D22): one image with the Spring Boot server serving the API and the built frontend (Spring serves `frontend/dist` as static files, with the single-page app falling back to `index.html`), built in stages (Node for the frontend, Gradle with JDK 25 for the jar, a JRE 25 to run it). The README keeps the manual path. Mind that the developer runs the API on 8080 during the work: test the image on another port.
+- Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+. Docker Desktop with Compose for the image.
+- Next step: the developer chooses. Step 19 is optional and beyond the brief, in commits of their own, marked as such: the chain in the URL, example chains, turning a step off. Step 20 is the final check: a fresh clone, every check including `docker compose up --build` and the end-to-end features against the container (`E2E_BASE_URL`), the README read through, and a zip of the clone with `.git` (D24). Docker Desktop is installed but stopped: `docker desktop start` starts it, `docker desktop stop` stops it again afterwards.
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -185,7 +185,7 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ### S15 The end-to-end smoke test (2026-10-25)
 
-- Goal: one `@smoke` journey against the real backend (PLAYBOOK §5.3, D23).
+- Goal: one `@smoke` journey against the real backend (D23).
 - Requirements: R1.1, R1.2, R1.3, R2.1.
 - Decisions: D23 refined; D7, D9, D12, D42 checked end to end.
 - Read: npm registry (@playwright/test 1.64.1, playwright-bdd 9.2.1); `npx playwright install --dry-run chromium` (build 1248; the cached 1243 is older).
@@ -197,7 +197,7 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ### S16 Accessibility (2026-10-25)
 
-- Goal: D15 in full, as PLAYBOOK row 16 lists it: focus, live region, errors at fields, forced colours, screenshots.
+- Goal: D15 in full: focus, live region, errors at fields, forced colours, screenshots.
 - Requirements: R1.3.
 - Decisions: D15 refined.
 - Read: Reka UI's `ComboboxPortal` (`disabled`) and popper (`positionStrategy: 'fixed'`); Testing Library's `render` (`unwrapNode` moves the nodes after mounting); npm registry (@axe-core/playwright 4.14.0, MPL-2.0).
@@ -215,6 +215,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: Java 25 behaviour through jshell probes (`toUpperCase` and `toLowerCase` with `Locale.ROOT` and Turkish; strict and smart `DateTimeFormatter` resolving, `parseDefaulting(ERA, 1)`, `parseBest`, error causes; `Collator` of `Locale.ROOT` at tertiary and secondary strength; `Base64` decoder errors).
 - Changed: `library/` (`Category` with LINES and CONVERSIONS; `transformations/` `ChangeCase`, `LineOperations`, `NaturalOrder`, `Lines`, `Encoding`, `Encode`, `Decode`, `ReformatDates`, `BuiltIns`; tests for each, `TrapsTest`, `BuiltInsTest`, `Texts` built from code points); `contract/catalog.json` and its README; `frontend/` (tests that count the catalog, `testTimeout` and `asyncUtilTimeout`, an end-to-end scenario and a step that chooses an option); README (transformations, text rules); `docs/design.md`; `docs/decisions.md`; both journals.
 - Verified: `./gradlew build` with 235 tests; a server on port 8093 gave the new catalog and was stopped; format:check, lint, typecheck, 165 Vitest tests, build; 8 end-to-end scenarios.
-- Commit: `feat(library): case, line, encoding and date transformations`.
+- Commit: `40ac254`.
 - Open: none.
 - Next: S18, one-command start.
+
+### S18 One-command start (2026-10-25)
+
+- Goal: `docker compose up` starts the app (D22, R4.1).
+- Requirements: R4.1.
+- Decisions: D22 and D39 refined.
+- Read: Docker Hub tags (node 24.22.1-slim, eclipse-temurin 25.0.4.1_1 jdk and jre on noble); the lockfile's Linux native packages (x64 and arm64, gnu and musl, all present); `docker buildx imagetools inspect` shows linux/arm64/v8 for all three base images. An ARM64 build was not tried.
+- Changed: `Dockerfile`, `compose.yaml`, `.dockerignore`; `frontend/playwright.config.ts` (`E2E_BASE_URL` skips the web servers); README (prerequisites and running, with and without Docker, moved up to right after the screenshots; e2e against a running app); `docs/design.md` (section 6, packaging); `docs/decisions.md`; both journals, where three references to a plan outside the repository became plain words.
+- Verified: `docker compose build` (2.5 min cold, 4 s warm); the container on port 8095 served `/`, an asset, `/api/catalog` and Swagger UI and ran as `pipeline` (uid 999, no other groups); `E2E_BASE_URL=http://localhost:8095 npm run test:e2e` passed 8 of 8; the build context, exported with `docker build --output type=local` from `FROM scratch` + `COPY . /`, equals `git ls-files` of the included paths (227 files) once `frontend/.eslintcache` is ignored; the full e2e suite passed again against the final image. Container and throwaway images removed; Docker Desktop, started for this step, stopped again with `docker desktop stop`.
+- Commit: `chore: Docker image and compose file for a one-command start`.
+- Open: none.
+- Next: S19 (optional, beyond the brief) or S20, the final check.

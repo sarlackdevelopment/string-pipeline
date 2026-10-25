@@ -284,4 +284,25 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** `./gradlew build` with 235 Java tests (library 209, server 26); `format:check`, `lint`, `typecheck`, 165 Vitest tests, `build`; eight end-to-end scenarios.
 
-**Commit.** `feat(library): case, line, encoding and date transformations`
+**Commit.** `40ac254 feat(library): case, line, encoding and date transformations`
+
+## Step 18. One-command start (2026-10-25)
+
+**Asked.** `docker compose up` as the one-command start (D22).
+
+**AI did.**
+
+- Wrote a `Dockerfile` with three stages: Node 24 builds the frontend, the Temurin JDK 25 image builds the server jar with the Gradle wrapper, and the Temurin JRE 25 image runs it. The base images are pinned to exact versions (D39) and exist for ARM64 too, as do the native packages in the npm lockfile, so the image should also build on an Apple Silicon Mac; that build was not tried. BuildKit caches keep npm's and Gradle's downloads between builds: the first build took two and a half minutes, a rebuild after a change in the last stage four seconds.
+- Spring Boot serves the built frontend from a folder that an environment variable names, so the jar and the manual path stay as they were. The app has one page and no routes of its own, so the server needs no fallback to `index.html`.
+- `.dockerignore` lets in only what the build needs. Listing the build context showed ESLint's cache in it, which is now left out too; after that the context held exactly the 227 files that Git tracks in those folders.
+- The first image ran as the base image's `ubuntu` user, which belongs to groups such as `sudo` and `adm`. The server now runs as a system user of its own, without a shell.
+- `compose.yaml` publishes port 8080, or the one in `PORT`.
+- The README now starts with the prerequisites and how to run the app, right after the screenshots, so the one command is the first thing a reviewer reads.
+- Playwright can now test an app that already runs (`E2E_BASE_URL`). All eight scenarios passed against the container, which ran on port 8095 beside the developer's API on 8080.
+- Docker Desktop was installed but not running, so it was started for the build. Afterwards the container and the throwaway images were removed, and Docker Desktop was stopped again.
+
+**Decided.** D22 and D39 refined.
+
+**Checked.** The image builds; `/`, a built asset, `/api/catalog` and Swagger UI answer from the container; it runs as the new user; eight end-to-end scenarios pass against the final image. `./gradlew build`; `format:check`, `lint`, `typecheck`, 165 Vitest tests, `build`.
+
+**Commit.** `chore: Docker image and compose file for a one-command start`

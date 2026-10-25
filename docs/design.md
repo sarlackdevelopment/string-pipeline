@@ -222,6 +222,8 @@ Limits (D21, D45). `Pipeline` takes a `Limits` value with production defaults; t
 - The server tests run the real library and mock nothing. Mockito is off the test classpath, so Spring's test support does not attach Mockito's agent at runtime, which the JVM would warn about.
 - There is no CORS configuration. In development Vite proxies `/api` to the server; in Docker the server serves the frontend (D22).
 
+Packaging (D22, step 18). One image holds the server and the built frontend, so a browser reaches both on one origin. The `Dockerfile` has three stages: Node 24 runs `npm ci` and `npm run build`, the JDK 25 image builds the jar with `gradlew :server:bootJar`, and the JRE 25 image runs it as a user of its own. Spring Boot serves the frontend from the folder that `SPRING_WEB_RESOURCES_STATIC_LOCATIONS` names, with `index.html` at `/`; the jar itself stays the API alone, as the manual path runs it. The app has one page and no routes of its own, so the server needs no fallback to `index.html`. The base images are pinned to exact versions, `.dockerignore` lets in only what the build needs, and BuildKit keeps the npm and Gradle caches between builds. The end-to-end features run against the container too (`E2E_BASE_URL`).
+
 ## 7. Frontend
 
 Components with behaviour get model, controller, view and container (D26). Purely presentational ones are a single view. Domain rules that several components and the store share live in `src/model/`; only the helpers of one component stay in its own `model/` folder.
