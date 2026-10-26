@@ -485,4 +485,23 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** The new test, with and without the fix; three runs of the whole suite in a row, 244 Vitest tests.
 
-**Commit.** `fix(ui): keep a waiting address write from undoing a followed link`
+**Commit.** `982af80 fix(ui): keep a waiting address write from undoing a followed link`
+
+## Step 23.2. The whole window, two columns of steps, a favicon (2026-10-26)
+
+**Asked.** The developer's notes on the UI from step 23.1, apart from drag and drop, which comes next.
+
+**AI did.**
+
+- The page now uses the window's width, up to 1536 pixels. The input and the output span it, and the steps fill two columns from 1024 pixels up, row by row, so the chain still reads like text. A step's fields go into two columns only when its own card is wide enough, whatever the window.
+- In a window at least 768 pixels wide and 576 high, the header stays at the top and the search with the examples at the bottom; only the chain between them scrolls. The bars are rows of a page as high as the window, not layers over it, so they never cover a field that has the focus. On a phone, held either way, the page scrolls as a whole: fixed bars would leave the chain a strip of the screen.
+- The header no longer changes its layout with the language. Its settings keep a column of their own, and below 1024 pixels the theme options show only their icons; screen readers still hear their names. Measured in Chromium, the header is the same in all three languages from 700 pixels up. Before, the longer Russian names of the themes pushed the settings onto a row of their own.
+- While measuring, the AI found the page itself scrolling by the height of the chain: two texts kept for screen readers, next to the output's buttons, were placed against the page and sat below the window. The part that scrolls now holds them.
+- A favicon: three steps of a chain, the middle one in the green of an executed step, as an SVG with a PNG for browsers that do not show SVG icons.
+- A new end-to-end feature checks the layout in windows of given sizes, and fails when either fix is undone. The screenshots were taken again in a window of 1280 × 800.
+
+**Decided.** D53, the layout; D2 revised for the two columns.
+
+**Checked.** 244 Vitest tests; 27 end-to-end scenarios, 5 of them new; format, lint, typecheck and build. The first full end-to-end run, before the new feature, timed out in 6 scenarios while the machine was busy, the first one of each worker, on a server that had just started; the next run passed.
+
+**Commit.** `feat(ui): a fixed header and footer, steps in two columns, a favicon`

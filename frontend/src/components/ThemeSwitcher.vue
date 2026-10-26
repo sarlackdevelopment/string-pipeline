@@ -5,6 +5,10 @@
  * filled in the primary colour. In a Windows contrast theme it is filled in system colours, which the theme would
  * otherwise repaint in the colour of the page, and opts out of the backplate the theme draws behind text, which would
  * hide its label.
+ *
+ * Below lg only the icons show and the names are left to screen readers: their length differs between the languages,
+ * and on a narrow header the longer ones pushed the tagline onto more lines or the control onto a row of its own (D53).
+ * The options stay 24 pixels high without their names, the least size that WCAG 2.5.8 asks of a target.
  */
 import { MonitorIcon, MoonIcon, SunIcon } from '@lucide/vue'
 import { RadioGroupItem, RadioGroupRoot, type AcceptableValue } from 'reka-ui'
@@ -40,10 +44,10 @@ function choose(value: AcceptableValue | undefined): void {
       v-for="option in options"
       :key="option.value"
       :value="option.value"
-      class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:bg-primary data-checked:text-primary-foreground forced-colors:data-checked:bg-[Highlight] forced-colors:data-checked:text-[HighlightText] forced-colors:data-checked:forced-color-adjust-none"
+      class="inline-flex h-6 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:bg-primary data-checked:text-primary-foreground forced-colors:data-checked:bg-[Highlight] forced-colors:data-checked:text-[HighlightText] forced-colors:data-checked:forced-color-adjust-none"
     >
       <component :is="option.icon" class="size-3.5" />
-      {{ t(option.label) }}
+      <span class="sr-only lg:not-sr-only">{{ t(option.label) }}</span>
     </RadioGroupItem>
   </RadioGroupRoot>
 </template>

@@ -35,12 +35,16 @@ function reload(): void {
 </script>
 
 <template>
-  <div class="min-h-dvh bg-muted/40">
-    <header class="border-b bg-background">
+  <!-- In a window with room for it (`shell`), the page fills the window and only the editor's middle part scrolls; in a
+       smaller one, the page scrolls as a whole (D53). -->
+  <div class="flex min-h-dvh flex-col bg-muted/40 shell:h-dvh">
+    <header class="shrink-0 border-b bg-background">
+      <!-- Two columns whatever the language: a longer tagline wraps in its own column instead of pushing the settings
+           onto a row of their own. -->
       <div
-        class="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-5 sm:px-6"
+        class="page-width grid items-center gap-x-6 gap-y-3 py-4 sm:grid-cols-[minmax(0,1fr)_auto]"
       >
-        <div>
+        <div class="min-w-0">
           <h1 class="text-xl font-semibold tracking-tight">String Pipeline</h1>
           <p class="text-sm text-muted-foreground">{{ t('app.tagline') }}</p>
         </div>
@@ -50,15 +54,17 @@ function reload(): void {
         </div>
       </div>
     </header>
-    <main class="mx-auto max-w-3xl px-4 py-6 sm:px-6">
-      <Alert v-if="crashed" variant="destructive">
-        <TriangleAlertIcon />
-        <AlertTitle>{{ t('app.crashed') }}</AlertTitle>
-        <AlertDescription>{{ t('app.crashedDetail') }}</AlertDescription>
-        <AlertAction>
-          <Button variant="outline" size="sm" @click="reload">{{ t('app.reload') }}</Button>
-        </AlertAction>
-      </Alert>
+    <main class="flex min-h-0 flex-1 flex-col">
+      <div v-if="crashed" class="page-width py-6">
+        <Alert variant="destructive">
+          <TriangleAlertIcon />
+          <AlertTitle>{{ t('app.crashed') }}</AlertTitle>
+          <AlertDescription>{{ t('app.crashedDetail') }}</AlertDescription>
+          <AlertAction>
+            <Button variant="outline" size="sm" @click="reload">{{ t('app.reload') }}</Button>
+          </AlertAction>
+        </Alert>
+      </div>
       <PipelineEditor v-else />
     </main>
   </div>

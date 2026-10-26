@@ -103,6 +103,12 @@ describe('the pipeline editor', () => {
     await user.tab()
     expect(screen.getByRole('textbox', { name: 'Input' })).toHaveFocus()
     await user.keyboard('Fake Python')
+    await waitFor(() => expect(output()).toHaveTextContent('Fake Python'))
+    // The output's two buttons come next, then the search below the part that scrolls (D53).
+    await user.tab()
+    expect(screen.getByRole('button', { name: 'Copy link' })).toHaveFocus()
+    await user.tab()
+    expect(screen.getByRole('button', { name: 'Copy' })).toHaveFocus()
     await user.tab()
     expect(search).toHaveFocus()
 
@@ -115,7 +121,10 @@ describe('the pipeline editor', () => {
     await user.keyboard('Fake')
     await user.tab()
     await user.keyboard('Real')
+    await waitFor(() => expect(output()).toHaveTextContent('Real Python'))
 
+    await user.tab()
+    await user.tab()
     await user.tab()
     expect(search).toHaveFocus()
     await user.keyboard('append{Enter}')

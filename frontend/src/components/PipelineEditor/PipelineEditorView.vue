@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
- * The editor's view (D2, D26): the input, the steps, the picker that adds a step, and the output. Props in, events
- * out; the controller decides everything.
+ * The editor's view (D2, D26, D53): the input, the steps and the output in the part that scrolls, and below it the
+ * picker that adds a step with the examples. Props in, events out; the controller decides everything.
  */
 import { LoaderCircleIcon, TriangleAlertIcon } from '@lucide/vue'
 import { computed, useId } from 'vue'
@@ -72,100 +72,126 @@ const searchFocus = computed(() => (props.focusTarget?.part === SEARCH ? props.f
 </script>
 
 <template>
-  <p
-    v-if="catalogState.status === CatalogStatus.loading"
-    class="flex items-center gap-2 text-sm text-muted-foreground"
-  >
-    <LoaderCircleIcon class="size-4 animate-spin" />
-    {{ t('editor.loading') }}
-  </p>
+  <div v-if="catalogState.status === CatalogStatus.loading" class="page-width py-6">
+    <p class="flex items-center gap-2 text-sm text-muted-foreground">
+      <LoaderCircleIcon class="size-4 animate-spin" />
+      {{ t('editor.loading') }}
+    </p>
+  </div>
 
-  <Alert v-else-if="catalogState.status === CatalogStatus.failed" variant="destructive">
-    <TriangleAlertIcon />
-    <AlertTitle>{{ t('editor.catalogFailed') }}</AlertTitle>
-    <AlertDescription>{{ catalogState.message }}</AlertDescription>
-    <AlertAction>
-      <Button variant="outline" size="sm" @click="emit('retryCatalog')">{{
-        t('editor.tryAgain')
-      }}</Button>
-    </AlertAction>
-  </Alert>
-
-  <div v-else class="flex flex-col gap-4">
-    <Alert v-if="linkProblem !== null" variant="destructive">
+  <div v-else-if="catalogState.status === CatalogStatus.failed" class="page-width py-6">
+    <Alert variant="destructive">
       <TriangleAlertIcon />
-      <AlertTitle>{{ t('editor.linkFailed') }}</AlertTitle>
-      <AlertDescription>{{ linkProblem }}</AlertDescription>
-    </Alert>
-
-    <InputPanel
-      :model-value="input"
-      :max-length="catalogState.catalog.limits.maxInputLength"
-      :errors="inputErrors"
-      @update:model-value="emit('setInput', $event)"
-    />
-
-    <Alert v-if="runAlert !== null" variant="destructive">
-      <TriangleAlertIcon />
-      <AlertTitle>{{ t('editor.runFailed') }}</AlertTitle>
-      <AlertDescription>
-        <p v-for="message in runAlert.messages" :key="message">{{ message }}</p>
-      </AlertDescription>
-      <AlertAction v-if="runAlert.canRetry">
-        <Button variant="outline" size="sm" @click="emit('retryRun')">{{
+      <AlertTitle>{{ t('editor.catalogFailed') }}</AlertTitle>
+      <AlertDescription>{{ catalogState.message }}</AlertDescription>
+      <AlertAction>
+        <Button variant="outline" size="sm" @click="emit('retryCatalog')">{{
           t('editor.tryAgain')
         }}</Button>
       </AlertAction>
     </Alert>
+  </div>
 
-    <section v-if="steps.length > 0" :aria-labelledby="stepsHeadingId">
-      <h2 :id="stepsHeadingId" class="sr-only">{{ t('editor.steps') }}</h2>
-      <ol class="flex flex-col gap-4">
-        <li v-for="(step, index) in steps" :key="step.id">
-          <StepCard
-            :number="index + 1"
-            :transformation="step.transformation"
-            :values="step.values"
-            :enabled="step.enabled"
-            :result="step.result"
-            :errors="step.errors"
-            :is-updating="isUpdating"
-            :can-move-up="index > 0"
-            :can-move-down="index < steps.length - 1"
-            :focus-request="focusOfStep(step.id)"
-            @move="emit('moveStep', step.id, $event)"
-            @remove="emit('removeStep', step.id)"
-            @change="(name, value) => emit('setValue', step.id, name, value)"
-            @set-enabled="emit('setEnabled', step.id, $event)"
-          />
-        </li>
-      </ol>
-    </section>
-
-    <TransformationPicker
-      :catalog="catalogState.catalog"
-      :full="steps.length >= catalogState.catalog.limits.maxSteps"
-      :focus-request="searchFocus"
-      @add="emit('addStep', $event)"
-    />
-
-    <!-- After the search that adds steps, so the input stays the first stop of the Tab key. -->
+  <template v-else>
+    <!-- In a window with room for it, the only part of the page that scrolls; the search and the examples stay below it
+         (D53). Relative, so that the texts kept for screen readers, positioned absolutely, scroll inside it too instead
+         of sticking out below the window and making the whole page scroll. -->
     <div
-      v-if="examples.length > 0"
-      class="-mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1 text-sm"
+      class="relative flex-1 shell:min-h-0 shell:[scrollbar-gutter:stable] shell:overflow-y-auto"
     >
-      <span :id="examplesLabelId" class="text-muted-foreground">{{ t('editor.examples') }}</span>
-      <ul :aria-labelledby="examplesLabelId" class="flex flex-wrap gap-x-3 gap-y-1">
-        <li v-for="example in examples" :key="example.id">
-          <a
-            :href="example.href"
-            class="rounded-sm font-medium underline decoration-muted-foreground/60 underline-offset-4 outline-none hover:decoration-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-            >{{ example.name }}</a
-          >
-        </li>
-      </ul>
+      <div class="page-width flex flex-col gap-4 py-6">
+        <Alert v-if="linkProblem !== null" variant="destructive">
+          <TriangleAlertIcon />
+          <AlertTitle>{{ t('editor.linkFailed') }}</AlertTitle>
+          <AlertDescription>{{ linkProblem }}</AlertDescription>
+        </Alert>
+
+        <InputPanel
+          :model-value="input"
+          :max-length="catalogState.catalog.limits.maxInputLength"
+          :errors="inputErrors"
+          @update:model-value="emit('setInput', $event)"
+        />
+
+        <Alert v-if="runAlert !== null" variant="destructive">
+          <TriangleAlertIcon />
+          <AlertTitle>{{ t('editor.runFailed') }}</AlertTitle>
+          <AlertDescription>
+            <p v-for="message in runAlert.messages" :key="message">{{ message }}</p>
+          </AlertDescription>
+          <AlertAction v-if="runAlert.canRetry">
+            <Button variant="outline" size="sm" @click="emit('retryRun')">{{
+              t('editor.tryAgain')
+            }}</Button>
+          </AlertAction>
+        </Alert>
+
+        <!-- Two columns from lg up; the chain still reads from left to right, row by row (D53). -->
+        <section v-if="steps.length > 0" :aria-labelledby="stepsHeadingId">
+          <h2 :id="stepsHeadingId" class="sr-only">{{ t('editor.steps') }}</h2>
+          <ol class="grid gap-4 lg:grid-cols-2">
+            <li v-for="(step, index) in steps" :key="step.id" class="min-w-0">
+              <StepCard
+                class="h-full"
+                :number="index + 1"
+                :transformation="step.transformation"
+                :values="step.values"
+                :enabled="step.enabled"
+                :result="step.result"
+                :errors="step.errors"
+                :is-updating="isUpdating"
+                :can-move-up="index > 0"
+                :can-move-down="index < steps.length - 1"
+                :focus-request="focusOfStep(step.id)"
+                @move="emit('moveStep', step.id, $event)"
+                @remove="emit('removeStep', step.id)"
+                @change="(name, value) => emit('setValue', step.id, name, value)"
+                @set-enabled="emit('setEnabled', step.id, $event)"
+              />
+            </li>
+          </ol>
+        </section>
+
+        <OutputPanel
+          :result="result"
+          :is-updating="isUpdating"
+          :summary="summary"
+          :link="shareLink"
+        />
+      </div>
     </div>
 
-    <OutputPanel :result="result" :is-updating="isUpdating" :summary="summary" :link="shareLink" />
-  </div>
+    <!-- Below the part that scrolls, so the search is always at hand (D53). The input stays the first stop of the
+         Tab key after the header. -->
+    <div class="shrink-0 border-t bg-background">
+      <div
+        class="page-width grid items-end gap-x-6 gap-y-3 py-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+      >
+        <TransformationPicker
+          :catalog="catalogState.catalog"
+          :full="steps.length >= catalogState.catalog.limits.maxSteps"
+          :focus-request="searchFocus"
+          @add="emit('addStep', $event)"
+        />
+
+        <div
+          v-if="examples.length > 0"
+          class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm lg:pb-2"
+        >
+          <span :id="examplesLabelId" class="text-muted-foreground">{{
+            t('editor.examples')
+          }}</span>
+          <ul :aria-labelledby="examplesLabelId" class="flex flex-wrap gap-x-3 gap-y-1">
+            <li v-for="example in examples" :key="example.id">
+              <a
+                :href="example.href"
+                class="rounded-sm font-medium underline decoration-muted-foreground/60 underline-offset-4 outline-none hover:decoration-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+                >{{ example.name }}</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </template>
 </template>

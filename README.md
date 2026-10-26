@@ -53,7 +53,7 @@ The app was built step by step with Claude Code, running Claude Opus 5.5. The de
 - **The library** gives every step a result: `Executed`, `NotConfigured`, `InvalidParameters`, `Failed` or `NotRun`. Problems are data, not exceptions, and every step's parameters are checked before any step runs, so a chain shows all its configuration problems at once. Texts are data too: a key and its values, which the caller renders in English, German or Russian. A transformation is one class that declares its parameters; `BuiltIns` lists the transformations and the example chains.
 - **The web API** has two endpoints. The catalog describes each transformation's parameters as JSON Schema, and a run returns a result for every step. A malformed request gets Problem Details with JSON pointers to its fields. Both answer in the language that `Accept-Language` asks for. An ArchUnit test keeps the server on the library's public API.
 - **The frontend** builds every form from the catalog and knows no transformation by name (R2.1). Pinia holds the chain, TanStack Query the server's answers, zod checks each answer at the boundary, and vue-i18n holds the app's own texts. A component with behaviour is split into a model of pure functions, a controller, a view and a container. The UI kit is shadcn-vue on Reka UI.
-- **Tests** cover every layer: 275 in Java, 243 Vitest tests in the frontend (unit, component, and integration against a stand-in API), and 22 end-to-end scenarios in Gherkin that run Chromium against the real API.
+- **Tests** cover every layer: 275 in Java, 244 Vitest tests in the frontend (unit, component, and integration against a stand-in API), and 27 end-to-end scenarios in Gherkin that run Chromium against the real API.
 
 ## Worth a look
 
@@ -95,6 +95,7 @@ Added after the brief was done, each in commits of its own ([decisions](docs/dec
 - Five example chains open with one click, under the search that adds steps. The server sends them with the catalog, the library's tests run each of them, and the frontend shows them as links (D50).
 - Light, dark, or the system's theme, chosen in the header and kept for the next visit. A page in the dark theme does not flash white while it loads (D51).
 - English, German or Russian, chosen in the header and kept for the next visit; a first visit follows the browser's languages. The app's own texts are in vue-i18n, the transformations' come from the server in the same language, and so do its messages (D52).
+- The page uses the whole window: the steps in two columns, and the header and the search stay in place while the chain scrolls between them. A phone gets one column that scrolls as a whole, and the header keeps its layout in every language (D53).
 
 ## Using the library
 

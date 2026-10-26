@@ -44,7 +44,7 @@ Not asked for and left out on purpose; the reasons are in [decisions](decisions.
 - Typed values between steps: every step reads and writes text (D3).
 - Drag and drop: steps move with buttons (D2).
 - Saving chains on a server, user accounts, a database.
-- A mobile layout, highlighting matches inside the text.
+- Highlighting matches inside the text.
 
 ## Beyond the brief
 
@@ -54,4 +54,4 @@ Built in step 19, once the brief was done, each in commits of its own:
 - example chains to start from (D50);
 - disabling a step without removing it (D48).
 
-Added at the developer's request: light, dark and the system's theme in step 21 (D51), and the interface in English, German and Russian in step 22 (D52).
+Added at the developer's request: light, dark and the system's theme in step 21 (D51), the interface in English, German and Russian in step 22 (D52), and a layout for the whole window in step 23 (D53).

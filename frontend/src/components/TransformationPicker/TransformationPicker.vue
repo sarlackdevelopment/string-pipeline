@@ -54,7 +54,7 @@ function pick(value: unknown): void {
 </script>
 
 <template>
-  <div ref="root" class="grid gap-2 rounded-xl border border-dashed bg-card/60 p-4">
+  <div ref="root" class="grid gap-2">
     <label :for="id" class="text-sm font-semibold">{{ t('picker.label') }}</label>
     <Combobox model-value="" :disabled="full" open-on-click @update:model-value="pick">
       <ComboboxAnchor>

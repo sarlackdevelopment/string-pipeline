@@ -74,12 +74,35 @@
   }
 }
 
+/*
+ * A window with room for the fixed header and footer of the app (D53): at least md wide and 36rem tall. In a smaller
+ * one, such as a phone held either way, they would leave the part that scrolls only a strip, so the page scrolls as a
+ * whole there.
+ */
+@custom-variant shell {
+  @media (width >= theme(--breakpoint-md)) and (height >= 36rem) {
+    @slot;
+  }
+}
+
 @utility no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* The width of the page's content, shared by the header, the area that scrolls and the editor's footer (D53). */
+@utility page-width {
+  width: 100%;
+  max-width: var(--breakpoint-2xl);
+  margin-inline: auto;
+  padding-inline: --spacing(4);
+
+  @variant sm {
+    padding-inline: --spacing(6);
   }
 }
 

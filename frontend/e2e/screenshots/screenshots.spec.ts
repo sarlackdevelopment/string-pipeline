@@ -17,6 +17,9 @@ import {
 } from '../support/editor'
 
 const images = fileURLToPath(new URL('../../../docs/images/', import.meta.url))
+// A laptop's window: wide enough for two columns of steps, and the header and footer stay in place (D53), so a
+// picture of the whole page is a picture of the window.
+const DESKTOP = { width: 1280, height: 800 }
 
 async function buildChainOfTheBrief(page: Page): Promise<void> {
   await typeInput(page, 'Fake Python')
@@ -40,7 +43,7 @@ async function settle(page: Page): Promise<void> {
 }
 
 test('the chain of the brief', async ({ page }) => {
-  await page.setViewportSize({ width: 1100, height: 900 })
+  await page.setViewportSize(DESKTOP)
   await openEditor(page)
   await buildChainOfTheBrief(page)
   await settle(page)
@@ -61,7 +64,7 @@ test('a step with an error, at phone width', async ({ page }) => {
 })
 
 test('the dark theme', async ({ page }) => {
-  await page.setViewportSize({ width: 1100, height: 900 })
+  await page.setViewportSize(DESKTOP)
   await page.emulateMedia({ colorScheme: 'dark' })
   await openEditor(page)
   await buildChainOfTheBrief(page)
@@ -71,7 +74,7 @@ test('the dark theme', async ({ page }) => {
 })
 
 test('a Windows contrast theme', async ({ page }) => {
-  await page.setViewportSize({ width: 1100, height: 900 })
+  await page.setViewportSize(DESKTOP)
   await page.emulateMedia({ forcedColors: 'active', colorScheme: 'dark' })
   await openEditor(page)
   await buildChainOfTheBrief(page)
@@ -83,7 +86,7 @@ test('a Windows contrast theme', async ({ page }) => {
 
 // The brief's chain from its example, since the steps' names and fields are German too.
 test('the editor in German', async ({ page }) => {
-  await page.setViewportSize({ width: 1100, height: 900 })
+  await page.setViewportSize(DESKTOP)
   await openEditor(page)
   await languageSelect(page).selectOption({ label: 'Deutsch' })
   await page.getByRole('link', { name: 'Die Kette aus der Aufgabe', exact: true }).click()

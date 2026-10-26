@@ -261,7 +261,7 @@ composables/useLanguage.ts         the interface's language: switches the texts 
 i18n/                              the app's own texts in vue-i18n (D52)
   index.ts                         the languages, the first one, the Russian plural rule, createAppI18n
   en.ts, de.ts, ru.ts              the texts; English is the type of the others
-App.vue                            shell: header with the language and the theme, <html lang>, error boundary, PipelineEditor
+App.vue                            shell as high as the window (D53): header with the language and the theme, <html lang>, error boundary, PipelineEditor
 components/
   PipelineEditor/                  the editor: controller, view, container, types; model/: messages, focus, summary
   CopyLinkButton.vue               copies a link to the chain (D49)
@@ -289,7 +289,7 @@ Data flow:
 4. While a run is pending, the previous results stay visible, matched by step id. A removed step has no result; a new one shows that it is running.
 5. A failed call becomes an `ApiFailure`, the query's error. An unreachable server is retried twice, then shown as a banner with Try again. Problem Details pointers go to the input, a step or a field (section 2); anything without such a place is a banner, without Try again, since the same request would fail the same way.
 
-The page (step 13) is one column, as D2 describes: the input, the steps, the search field that adds a step, and the output. Each step card shows its status as an outlined badge, so the coloured text keeps a 4.5:1 contrast on the white card; `--success` joins the shadcn-vue tokens for the executed state. A required field that is empty shows "Enter a value" as a grey hint; a wrong value turns the field red with the server's message under it.
+The page (step 13) was one column at first, as D2 described: the input, the steps, the search field that adds a step, and the output. Step 23 gave it the layout of D53, described below. Each step card shows its status as an outlined badge, so the coloured text keeps a 4.5:1 contrast on the white card; `--success` joins the shadcn-vue tokens for the executed state. A required field that is empty shows "Enter a value" as a grey hint; a wrong value turns the field red with the server's message under it.
 
 The UI kit (D28, step 12). shadcn-vue's components are copied into `components/ui/` and are our code from then on. `components.json` configures the shadcn-vue CLI, which runs through `npx`. It names no font, so the CLI adds no font import (D47), and it points the CLI at `lib/utils.ts` for `cn`, the class-name helper; the copied components import the `cn` package directly. Probe tests, deleted afterwards, showed how Reka UI's combobox behaves, which the transformation picker builds on:
 
@@ -335,6 +335,16 @@ Languages (D52, step 22). The app's own texts are in `src/i18n/`, one file per l
 
 With vue-i18n the one bundle passed Vite's warning size of 500 kB, so the libraries now go into a `vendor` chunk of their own (442 kB, 70 kB for the app). Browsers keep it cached across the app's updates.
 
+Layout (D53, step 23).
+
+- The shell is a column as high as the window: the header, then the editor's part that scrolls, then its footer with the search and the examples. Only the middle part has `overflow-y: auto`; the header and the footer are its neighbours, not `position: fixed` or `sticky`, so nothing lies over the content, and a field that takes the focus is scrolled into view inside the middle part, never under a bar (WCAG 2.4.11). The tab order follows the page: the header, the input, the steps, the output's buttons, then the search and the examples.
+- The `shell` variant in `index.css` turns this on in a window at least md wide and 36rem high. In a smaller one, such as a phone held either way, the page scrolls as a whole, in the same order: a fixed header and footer there would leave the chain a strip.
+- The middle part is `position: relative`. The texts kept for screen readers (`sr-only`) are positioned absolutely, and without it the two live regions next to the output's buttons were placed against the page instead of the middle part: below the window, where they made the whole page scroll. An end-to-end scenario checks that the page itself never scrolls.
+- `scrollbar-gutter: stable` keeps the room for the scroll bar, so the cards do not shift when the chain grows past the window. The `page-width` utility gives the header, the middle part and the footer the same width, up to Tailwind's 2xl breakpoint, 1536 pixels.
+- The steps are a grid of two columns from lg up, filled row by row, so the chain reads as text does; the cards in a row share their height. A step's fields go into two columns once the card is 32rem wide, a container query, so a card at half the window's width keeps them in one.
+- The header is a grid from sm up: the title with the tagline, and the settings, which keep their own column; a long tagline wraps inside its column. Below lg the theme options show only their icons, with their names for screen readers, and stay 24 pixels high, the least size of a target in WCAG 2.5.8. Measured in Chromium, the header is the same in all three languages from 700 pixels up; below that only the tagline's lines differ.
+- The favicon is an SVG: three steps of a chain, the middle one in the green of an executed step. A PNG of 32 pixels, rendered from it in Chromium, serves browsers that do not take an SVG icon.
+
 Proof of R2.1 (D19): an integration test serves a catalog with a transformation the frontend has never seen, with an unfamiliar mix of parameters, and checks that its form renders and runs.
 
 ## 8. Tests
@@ -350,7 +360,7 @@ Proof of R2.1 (D19): an integration test serves a catalog with a transformation 
 
 The stand-in API (`src/tests/helpers/api.ts`) runs on MSW (D33). It serves a catalog and runs Replace and Append by the rules of D42, so a test reads like a session: type a text, add a step, read its output. It computes its answers instead of replaying canned ones, and the app parses them with its own contract schemas, so it cannot drift from the wire format unnoticed. A gate holds a response back to look at the editor while a run is on its way.
 
-The end-to-end tests (step 15) are Gherkin features, run by Playwright through playwright-bdd: the brief's chain (`@smoke`), a pattern that Java cannot compile, with the server's message at its field, and an emoji that Substring keeps whole. Playwright starts the API with Gradle on port 8091 and the built app with `vite preview` on port 4191, whose proxy reaches that API through `API_PROXY_TARGET`; development servers on 8080 and 5173 are never touched. The steps find elements by role and name, and read texts inside them. A second feature (step 16) checks accessibility: axe, the stops of the Tab key and a contrast theme. A second Playwright project, `npm run screenshots`, takes the pictures in `docs/images` from the same running app. Since step 22 the helpers find elements by the app's texts in any of its three languages, and a feature runs the editor in German and Russian against the real API (D52).
+The end-to-end tests (step 15) are Gherkin features, run by Playwright through playwright-bdd: the brief's chain (`@smoke`), a pattern that Java cannot compile, with the server's message at its field, and an emoji that Substring keeps whole. Playwright starts the API with Gradle on port 8091 and the built app with `vite preview` on port 4191, whose proxy reaches that API through `API_PROXY_TARGET`; development servers on 8080 and 5173 are never touched. The steps find elements by role and name, and read texts inside them. A second feature (step 16) checks accessibility: axe, the stops of the Tab key and a contrast theme. A second Playwright project, `npm run screenshots`, takes the pictures in `docs/images` from the same running app. Since step 22 the helpers find elements by the app's texts in any of its three languages, and a feature runs the editor in German and Russian against the real API (D52). Since step 23 a feature checks the layout in windows of given sizes: what stays in view while the chain scrolls, that the page itself never scrolls in a window large enough for the fixed header and footer, and that the header is as high in all three languages (D53).
 
 ## 9. Points approved at the design review
 
