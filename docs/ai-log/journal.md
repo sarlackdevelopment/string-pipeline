@@ -644,4 +644,20 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** The four videos play at 1080p, 66, 140, 86 and 86 seconds long; the README's links reach them; a crop of the smallest text matched the original by eye.
 
-**Commit.** `docs: videos of the setup, the tests, the offline app and accessibility`
+**Commit.** `c8f9d45 docs: videos of the setup, the tests, the offline app and accessibility`
+
+## Step 29.1. A Blueprint for a live demo on Render (2026-10-26)
+
+**Asked.** Whether the app could run on a free service, with a link on the internet. The AI looked up the free plans as they are now: Render runs a Docker image for free, with HTTPS, and sleeps after 15 minutes without traffic; Google Cloud Run needs a card; for Koyeb and Hugging Face the free path for this kind of app was unclear or gone. The developer chose Render, with its settings in the repository.
+
+**AI did.**
+
+- `render.yaml`, a Render Blueprint: the Docker image of step 18 as a free web service in Frankfurt, its health checked on `/api/catalog`, deployed again on each push to main that changes what goes into the image. The fields were checked against Render's own schema.
+- Render sends the traffic to the port in `PORT`, so the Blueprint sets it to 8080. The server does not read `PORT` itself: the README tells PowerShell users to set `PORT` for Compose, and `bootRun` in that window would then move off 8080.
+- The README says how to create the service; the link follows once the first deploy is up.
+
+**Decided.** D58.
+
+**Checked.** The Blueprint's fields and values against Render's JSON schema; Prettier reads the file. The deploy itself follows in Render.
+
+**Commit.** `chore(deploy): a Render Blueprint for a live demo on the free plan`

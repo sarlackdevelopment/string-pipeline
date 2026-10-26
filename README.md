@@ -21,6 +21,8 @@ docker compose up --build
 
 The app runs on http://localhost:8080, with Swagger UI at http://localhost:8080/swagger-ui.html. The first build takes a few minutes; `PORT=9090 docker compose up --build` uses another port (in PowerShell, set `$env:PORT = 9090` first). Type a text, add steps with the search field under it, or open one of the examples next to the search; every step shows its own output.
 
+The same image runs on Render's free plan from `render.yaml`: in Render, New → Blueprint, then this repository (D58). A free instance sleeps after 15 minutes without traffic, and the next request wakes it in about a minute.
+
 Without Docker, start the API, then the frontend in a second terminal:
 
 ```sh
@@ -46,7 +48,7 @@ The terminals replay the commands' real output with its real timing, long waits 
 ## Documentation
 
 - [Requirements](docs/requirements.md): the brief as numbered requirements, R1.1–R4.4
-- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D57
+- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D58
 - [Design](docs/design.md): the API, the transformations, the library, the server and the frontend
 - [API contract](contract/README.md): example requests and responses that the Java and TypeScript tests share
 - [AI usage log](docs/ai-log/README.md): every step taken with the AI assistant, for people and for agents

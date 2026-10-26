@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, nine extras beyond the brief (turning a step off, the chain in the URL, example chains, themes, languages, a layout for the whole window, drag and drop, notices, an app that works offline) and the final check. The delivery is a zip of a fresh clone of the last commit (D24).
-- Last commit: `docs: videos of the setup, the tests, the offline app and accessibility`. Branch `main`, public on GitHub since step 28: https://github.com/sarlackdevelopment/string-pipeline (`origin`). Commits use the repository's own `user.email`.
+- Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, ten extras beyond the brief (turning a step off, the chain in the URL, example chains, themes, languages, a layout for the whole window, drag and drop, notices, an app that works offline, a Blueprint for a live demo) and the final check. The delivery is a zip of a fresh clone of the last commit (D24).
+- Last commit: `chore(deploy): a Render Blueprint for a live demo on the free plan`. Branch `main`, public on GitHub since step 28: https://github.com/sarlackdevelopment/string-pipeline (`origin`). Commits use the repository's own `user.email`.
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once). `docker compose up --build` serves the app on 8080, or on `PORT`; `E2E_BASE_URL=http://localhost:<port> npm run test:e2e` runs the features against it.
 - Tests: Java 275 (library 238, server 37); frontend 266 in 33 files (unit 167, component 78, integration 21); end to end 34 scenarios in 9 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+. Docker Desktop with Compose for the image.
-- Next step: none planned; a new zip of a fresh clone, made with the script that keeps Unix permissions (S20).
+- Next step: S29.2, the live link once the service is up on Render; then a new zip of a fresh clone, made with the script that keeps Unix permissions (S20).
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -443,6 +443,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: the originals in the developer's folder for the videos; a CRF 23 and a CRF 26 encoding of the largest, compared on a crop of the smallest text.
 - Changed: `docs/videos/` (four MP4s, H.264 at CRF 26, 1080p, no audio, metadata stripped: `setup-from-a-clone.mp4` 2.3 MB, `tests.mp4` 4.3 MB, `install-and-offline.mp4` 3.5 MB, `accessibility.mp4` 2.6 MB), `README.md` (a pointer under the screenshots; a section "Videos" before "Documentation", with what is drawn and the commits they were recorded at), both journals.
 - Verified: the crop at CRF 26 matched CRF 18 by eye, at 55 % of the size; durations 66, 140, 86 and 86 s; the originals untouched.
-- Commit: `docs: videos of the setup, the tests, the offline app and accessibility`.
+- Commit: `c8f9d45`.
 - Open: none.
 - Next: none planned; a new zip of a fresh clone.
+
+### S29.1 A Blueprint for a live demo on Render (2026-10-26)
+
+- Goal: a link on the internet to the running app, on a free plan, as the developer asked; the developer chose Render with a Blueprint in the repository.
+- Requirements: R4.1; D22, D56.
+- Decisions: D58.
+- Read: Render's docs on Blueprints, Docker (built with BuildKit) and web services (traffic goes to `PORT`, default 10000, which can be overridden), and its JSON schema for `render.yaml` (`buildFilter.paths`, `envVars` key and value, `autoDeployTrigger` commit, region frankfurt); reviews of the free plans of Render, Koyeb and Hugging Face Spaces.
+- Changed: `render.yaml` (new), README ("Running the app": the Blueprint and the sleeping instance; D1–D58), decisions (D58), design (packaging), requirements, both journals.
+- Verified: the fields against the schema; Prettier parses the file. Not yet deployed: the developer creates the Blueprint in Render.
+- Commit: `chore(deploy): a Render Blueprint for a live demo on the free plan`.
+- Open: the first deploy on Render, and the link in the README.
+- Next: S29.2, the live link once the service is up.

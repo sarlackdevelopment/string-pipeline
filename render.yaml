@@ -1,0 +1,29 @@
+# A Render Blueprint (D58): the Docker image of D22 as a web service on Render's free plan. In Render, New → Blueprint
+# and this repository create it; each push to main deploys it again, unless the push changes nothing that goes into
+# the image. A free instance sleeps after 15 minutes without traffic, and the next request wakes it in about a minute.
+services:
+  - type: web
+    name: string-pipeline
+    runtime: docker
+    plan: free
+    # In Europe, near the reviewers.
+    region: frankfurt
+    healthCheckPath: /api/catalog
+    autoDeployTrigger: commit
+    buildFilter:
+      # What .dockerignore lets into the image.
+      paths:
+        - Dockerfile
+        - .dockerignore
+        - gradlew
+        - gradle/**
+        - settings.gradle.kts
+        - gradle.properties
+        - buildSrc/**
+        - library/**
+        - server/**
+        - frontend/**
+    envVars:
+      # Render sends the traffic to the port in PORT; the server listens on 8080, as in Docker.
+      - key: PORT
+        value: "8080"
