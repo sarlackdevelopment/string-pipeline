@@ -29,6 +29,12 @@ export const ru: Messages = {
     steps: 'Шаги',
     examples: 'Или откройте пример:',
   },
+  notices: {
+    label: 'Уведомление',
+    region: 'Уведомления ({hotkey})',
+    close: 'Закрыть сообщение',
+    retryElsewhere: 'Измените цепочку, чтобы запустить её снова.',
+  },
   input: {
     label: 'Входной текст',
     placeholder: 'Введите или вставьте текст для преобразования',

@@ -106,6 +106,103 @@
   }
 }
 
+/*
+ * A notice in the stack at the bottom right (D55). Reka UI measures the toasts and gives each its place as variables:
+ * the newest is in front, and up to two older ones peek out above it, smaller and blank. Hovering or focusing the stack
+ * spreads it out, each toast above the newer ones. A toast slides in from below and fades out.
+ */
+@layer components {
+  .notice-toast {
+    --gap: 0.5rem;
+    --peek: 0.625rem;
+    --scale: calc(1 - var(--reka-toast-index) * 0.05);
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: var(--reka-toast-frontmost-height, auto);
+    transform-origin: bottom center;
+    /* Shrunk from the bottom, a toast's top edge sinks by what it lost in height; it rises by that and by the peek. */
+    transform: translateX(var(--reka-toast-swipe-move-x, 0px))
+      translateY(
+        calc(
+          var(--reka-toast-index) * -1 * var(--peek) - (1 - var(--scale)) *
+            var(--reka-toast-frontmost-height, 0px)
+        )
+      )
+      scale(var(--scale));
+    z-index: calc(10 - var(--reka-toast-index));
+    transition:
+      transform 300ms ease,
+      height 150ms ease,
+      opacity 300ms ease;
+
+    /* The toasts behind the newest show no content until the stack spreads out. */
+    & > * {
+      opacity: calc(1 - var(--reka-toast-index));
+      transition: opacity 300ms ease;
+    }
+
+    /* Keeps the pointer on the stack in the gaps between spread-out toasts. */
+    &::after {
+      content: '';
+      position: absolute;
+      inset-inline: 0;
+      top: 100%;
+      height: calc(var(--gap) + 1px);
+    }
+
+    &[data-expanded] {
+      height: var(--reka-toast-height);
+      transform: translateX(var(--reka-toast-swipe-move-x, 0px))
+        translateY(calc(var(--reka-toast-offset-y) * -1 - var(--reka-toast-index) * var(--gap)));
+
+      & > * {
+        opacity: 1;
+      }
+    }
+
+    /* Beyond the provider's limit; Reka UI makes them inert as well. */
+    &[data-limited] {
+      opacity: 0;
+    }
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+
+    &[data-swipe='move'] {
+      transition: none;
+    }
+
+    &[data-state='closed'] {
+      animation: notice-out 150ms ease-in forwards;
+    }
+
+    &[data-swipe='end'] {
+      animation: notice-swiped-out 150ms ease-out forwards;
+    }
+  }
+}
+
+@keyframes notice-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes notice-swiped-out {
+  from {
+    transform: translateX(var(--reka-toast-swipe-end-x));
+  }
+
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

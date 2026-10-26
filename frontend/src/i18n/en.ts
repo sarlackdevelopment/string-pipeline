@@ -29,6 +29,12 @@ export const en = {
     steps: 'Steps',
     examples: 'Or open an example:',
   },
+  notices: {
+    label: 'Notification',
+    region: 'Notifications ({hotkey})',
+    close: 'Close the message',
+    retryElsewhere: 'Change the chain to run it again.',
+  },
   input: {
     label: 'Input',
     placeholder: 'Type or paste the text to transform',

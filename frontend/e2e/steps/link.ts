@@ -44,7 +44,3 @@ Then('the input is {string}', async ({ page }, text: string) => {
 Then('the chain has no steps', async ({ page }) => {
   await expect(steps(page)).toHaveCount(0)
 })
-
-Then('the page says {string}', async ({ page }, text: string) => {
-  await expect(page.getByRole('alert')).toContainText(text)
-})

@@ -15,6 +15,7 @@ import {
   type ReceivedRun,
 } from '@/tests/helpers/api'
 import { readContract } from '@/tests/helpers/contract'
+import { findNotice, notices } from '@/tests/helpers/notices'
 import { renderWithProviders } from '@/tests/helpers/render'
 import { server } from '@/tests/helpers/server'
 
@@ -295,13 +296,13 @@ describe('the pipeline editor', () => {
       serveNetworkError(RUNS_URL)
       const { user } = await renderEditor()
 
-      const alert = await screen.findByRole('alert')
-      expect(alert).toHaveTextContent('The chain could not run')
-      expect(alert).toHaveTextContent('The server cannot be reached')
+      const notice = await findNotice()
+      expect(notice).toHaveTextContent('The chain could not run')
+      expect(notice).toHaveTextContent('The server cannot be reached')
       serveRuns()
-      await user.click(within(alert).getByRole('button', { name: 'Try again' }))
+      await user.click(within(notice).getByRole('button', { name: 'Try again' }))
 
-      await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
+      await waitFor(() => expect(notices()).toHaveLength(0))
       await user.type(screen.getByRole('textbox', { name: 'Input' }), 'Hi')
       await waitFor(() => expect(output()).toHaveTextContent('Hi'))
     })
@@ -325,7 +326,7 @@ describe('the pipeline editor', () => {
       const input = screen.getByRole('textbox', { name: 'Input' })
       expect(input).toHaveAttribute('aria-invalid', 'true')
       expect(input).toHaveAccessibleDescription(/Use at most 100,000 characters$/)
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(notices()).toHaveLength(0)
     })
   })
 })

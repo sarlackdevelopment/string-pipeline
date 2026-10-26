@@ -7,6 +7,7 @@ import type { ChainContent } from '@/model/chain'
 import { fromFragment, LinkStatus, toFragment } from '@/model/link'
 import { serveCatalog, serveRuns } from '@/tests/helpers/api'
 import { contractCatalog } from '@/tests/helpers/contract'
+import { findNotice, notices } from '@/tests/helpers/notices'
 import { renderWithProviders } from '@/tests/helpers/render'
 
 // The chain of the brief.
@@ -104,12 +105,11 @@ describe('the chain in a link (D49)', () => {
   it('says why a link cannot be opened, starts empty, and drops the message after the next edit', async () => {
     const user = await openAt('#chain=eyJpbnB1dCI6')
 
-    const alert = await screen.findByRole('alert')
-    expect(alert).toHaveTextContent('This link could not be opened')
+    expect(await findNotice()).toHaveTextContent('This link could not be opened')
     expect(input()).toHaveValue('')
     await user.type(input(), 'Hi')
 
-    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
+    await waitFor(() => expect(notices()).toHaveLength(0))
     expect(chainInAddress()).toEqual({ input: 'Hi', steps: [] })
   })
 })

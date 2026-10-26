@@ -1,4 +1,4 @@
-# Beyond the brief; D48, D49
+# Beyond the brief; D48, D49, D55
 Feature: Share a chain with a link
   As a person who built a chain
   I want a link that opens it as it is
@@ -21,4 +21,4 @@ Feature: Share a chain with a link
 
   Scenario: A link that was cut off says so
     When I open a link whose chain was cut off
-    Then the page says "This link could not be opened"
+    Then a notice says "This link could not be opened"

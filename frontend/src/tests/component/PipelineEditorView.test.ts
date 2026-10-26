@@ -1,7 +1,8 @@
 import userEvent from '@testing-library/user-event'
-import { render, screen, within } from '@testing-library/vue'
+import { render, screen, waitFor, within } from '@testing-library/vue'
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { NOTICE_DURATION } from '@/components/EditorNotices.vue'
 import PipelineEditorView from '@/components/PipelineEditor/PipelineEditorView.vue'
 import { StepPart } from '@/components/StepCard/types'
 import {
@@ -15,12 +16,16 @@ import {
 import { Direction, type ParameterValue } from '@/model/chain'
 import { StepStatus } from '@/model/run'
 import { contractCatalog, contractTransformation } from '@/tests/helpers/contract'
+import { findNotice, notices, placeInStack } from '@/tests/helpers/notices'
 import { drag, forgetSortables, sortables } from '@/tests/helpers/sortable'
 
 vi.mock('sortablejs', () => import('@/tests/helpers/sortable'))
 afterEach(forgetSortables)
 
 const ready: CatalogState = { status: CatalogStatus.ready, catalog: contractCatalog() }
+
+// A run that the server rejected with `message`, where another try cannot help.
+const rejectedRun = (message: string): RunAlert => ({ messages: [message], canRetry: false })
 
 // The chain of the brief: Replace "Fake" with "Real", then Append "!".
 const steps: readonly StepItem[] = [
@@ -192,25 +197,25 @@ describe('PipelineEditorView (D2, D26)', () => {
     })
   })
 
-  describe('a run that failed as a whole (D41)', () => {
-    it('shows why, and offers another try when it can help', async () => {
+  describe('a run that failed as a whole (D41, D55)', () => {
+    it('says why in a notice, and offers another try when it can help', async () => {
       const { user, onRetryRun } = renderView({
         runAlert: { messages: ['The server cannot be reached.'], canRetry: true },
       })
 
-      const alert = screen.getByRole('alert')
-      expect(alert).toHaveTextContent('The chain could not run')
-      expect(alert).toHaveTextContent('The server cannot be reached.')
-      await user.click(within(alert).getByRole('button', { name: 'Try again' }))
+      const notice = await findNotice()
+      expect(notice).toHaveTextContent('The chain could not run')
+      expect(notice).toHaveTextContent('The server cannot be reached.')
+      await user.click(within(notice).getByRole('button', { name: 'Try again' }))
       expect(onRetryRun).toHaveBeenCalledOnce()
     })
 
-    it('offers no other try when the same request would fail the same way', () => {
+    it('offers no other try when the same request would fail the same way', async () => {
       renderView({ runAlert: { messages: ['Invalid request content.'], canRetry: false } })
 
-      const alert = screen.getByRole('alert')
-      expect(alert).toHaveTextContent('Invalid request content.')
-      expect(within(alert).queryByRole('button')).not.toBeInTheDocument()
+      const notice = await findNotice()
+      expect(notice).toHaveTextContent('Invalid request content.')
+      expect(within(notice).queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
     })
   })
 
@@ -241,14 +246,66 @@ describe('PipelineEditorView (D2, D26)', () => {
       expect(within(list).getAllByRole('link')).toHaveLength(2)
     })
 
-    it('says why the link it was opened with could not be opened', () => {
+    it('says in a notice why the link it was opened with could not be opened (D55)', async () => {
       renderView({
         linkProblem: 'It uses a transformation that this app does not have: "reverse".',
       })
 
-      const alert = screen.getByRole('alert')
-      expect(alert).toHaveTextContent('This link could not be opened')
-      expect(alert).toHaveTextContent('"reverse"')
+      const notice = await findNotice()
+      expect(notice).toHaveTextContent('This link could not be opened')
+      expect(notice).toHaveTextContent('"reverse"')
+      expect(notices()).toHaveLength(1)
+    })
+  })
+
+  describe('notices (D55)', () => {
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('closes a notice by itself after a while', async () => {
+      vi.useFakeTimers()
+      renderView({ runAlert: { messages: ['The server cannot be reached.'], canRetry: true } })
+      await vi.advanceTimersByTimeAsync(0)
+      expect(notices()).toHaveLength(1)
+
+      await vi.advanceTimersByTimeAsync(NOTICE_DURATION)
+
+      expect(notices()).toHaveLength(0)
+    })
+
+    it('keeps its time for the same message again, and starts it again for another one', async () => {
+      vi.useFakeTimers()
+      const { view } = renderView({ runAlert: rejectedRun('A') })
+      await vi.advanceTimersByTimeAsync(5000)
+
+      await view.rerender({ runAlert: rejectedRun('A') })
+      await vi.advanceTimersByTimeAsync(NOTICE_DURATION - 5000)
+      expect(notices()).toHaveLength(0)
+
+      await view.rerender({ runAlert: rejectedRun('B') })
+      await vi.advanceTimersByTimeAsync(5000)
+      await view.rerender({ runAlert: rejectedRun('C') })
+      await vi.advanceTimersByTimeAsync(5000)
+      expect(notices().map((notice) => notice.textContent)).toEqual([expect.stringContaining('C')])
+    })
+
+    it('stacks the notices with the newest in front, and closes them with a button or once the run succeeds', async () => {
+      const { user, view } = renderView({ linkProblem: 'The link is cut off.' })
+      await findNotice()
+
+      await view.rerender({
+        runAlert: { messages: ['The server cannot be reached.'], canRetry: true },
+      })
+
+      await waitFor(() => expect(notices()).toHaveLength(2))
+      expect(placeInStack('The chain could not run')).toBe(0)
+      expect(placeInStack('This link could not be opened')).toBe(1)
+      const link = notices().find((item) => item.textContent.includes('cut off')) ?? document.body
+      await user.click(within(link).getByRole('button', { name: 'Close the message' }))
+      expect(await findNotice()).toHaveTextContent('The chain could not run')
+      await view.rerender({ runAlert: null })
+      await waitFor(() => expect(notices()).toHaveLength(0))
     })
   })
 

@@ -24,9 +24,15 @@ export default defineConfig({
   build: {
     rolldownOptions: {
       output: {
-        // The libraries in a file of their own: they change less often than the app's code, so a browser keeps them
-        // cached across the app's updates, and neither file passes Vite's warning size of 500 kB.
-        codeSplitting: { groups: [{ name: 'vendor', test: /node_modules/ }] },
+        // The libraries in files of their own: they change less often than the app's code, so a browser keeps them
+        // cached across the app's updates. Vue itself goes in one and the other libraries in the other, so that no file
+        // passes Vite's warning size of 500 kB. A module goes to the first group it matches.
+        codeSplitting: {
+          groups: [
+            { name: 'vue', test: /node_modules[\\/](@vue|vue)[\\/]/ },
+            { name: 'vendor', test: /node_modules/ },
+          ],
+        },
       },
     },
   },

@@ -12,8 +12,9 @@ export const alertVariants = cva(
     variants: {
       variant: {
         default: 'bg-card text-card-foreground',
+        // The description in the full red: shadcn-vue's 90 % falls below a 4.5:1 contrast on a white card (axe, D55).
         destructive:
-          'text-destructive bg-card *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current',
+          'text-destructive bg-card *:data-[slot=alert-description]:text-destructive *:[svg]:text-current',
       },
     },
     defaultVariants: {

@@ -72,6 +72,14 @@ export const input = (page: Page): Locator =>
 export const output = (page: Page): Locator =>
   page.getByRole('region', { name: inAnyLanguage((messages) => messages.output.label) })
 
+/** The notices at the bottom right (D55): toasts in the region that F8 reaches. */
+export const notices = (page: Page): Locator =>
+  page
+    .getByRole('region', {
+      name: inAnyLanguage((messages) => messages.notices.region.replace('{hotkey}', 'F8')),
+    })
+    .getByRole('listitem')
+
 export const runSummary = (page: Page): Locator =>
   page.getByRole('status', { name: inAnyLanguage((messages) => messages.output.summary) })
 

@@ -20,8 +20,18 @@ const scrollNowhere = (): void => {
   // Without a layout there is nothing to scroll.
 }
 
+// Nor does it capture pointers, which a toast of Reka UI asks about when a press inside it ends, to tell a swipe from a
+// click (D55). Without a layout, no press is a swipe.
+const capturesNothing = (): boolean => false
+const captureNothing = (): void => {
+  // Without a layout there is no pointer to capture.
+}
+
 if (typeof Element !== 'undefined') {
   Element.prototype.scrollIntoView = scrollNowhere
+  Element.prototype.hasPointerCapture = capturesNothing
+  Element.prototype.setPointerCapture = captureNothing
+  Element.prototype.releasePointerCapture = captureNothing
 }
 
 beforeAll(() => {

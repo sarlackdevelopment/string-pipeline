@@ -4,8 +4,10 @@
  * picker that adds a step with the examples. Props in, events out; the controller decides everything.
  */
 import { LoaderCircleIcon, TriangleAlertIcon } from '@lucide/vue'
+import { ToastProvider, ToastViewport } from 'reka-ui'
 import { computed, useId, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
+import EditorNotices from '@/components/EditorNotices.vue'
 import InputPanel from '@/components/InputPanel.vue'
 import OutputPanel from '@/components/OutputPanel.vue'
 import StepCard from '@/components/StepCard/StepCard.vue'
@@ -72,6 +74,9 @@ function focusOfStep(stepId: string): FocusRequest<StepPart> | null {
 
 const searchFocus = computed(() => (props.focusTarget?.part === SEARCH ? props.focusTarget : null))
 
+// The name of the notices' region, with the key that reaches it: "Notifications (F8)".
+const noticesLabel = (hotkey: string) => t('notices.region', { hotkey })
+
 // A step dragged by its handle to another place (D54); the list is in the same order as the steps.
 const stepList = useTemplateRef<HTMLOListElement>('stepList')
 useDragToReorder(
@@ -106,73 +111,69 @@ useDragToReorder(
     </Alert>
   </div>
 
-  <template v-else>
-    <!-- In a window with room for it, the only part of the page that scrolls; the search and the examples stay below it
-         (D53). Relative, so that the texts kept for screen readers, positioned absolutely, scroll inside it too instead
-         of sticking out below the window and making the whole page scroll. -->
-    <div
-      class="relative flex-1 shell:min-h-0 shell:[scrollbar-gutter:stable] shell:overflow-y-auto"
-    >
-      <div class="page-width flex flex-col gap-4 py-6">
-        <Alert v-if="linkProblem !== null" variant="destructive">
-          <TriangleAlertIcon />
-          <AlertTitle>{{ t('editor.linkFailed') }}</AlertTitle>
-          <AlertDescription>{{ linkProblem }}</AlertDescription>
-        </Alert>
+  <!-- The notices pop up at the bottom right (D55): the provider holds them, the viewport is where they show. -->
+  <ToastProvider v-else :limit="3" :label="t('notices.label')">
+    <div class="relative flex flex-1 flex-col shell:min-h-0">
+      <!-- In a window with room for it, the only part of the page that scrolls; the search and the examples stay below
+           it (D53). Relative, so that the texts kept for screen readers, positioned absolutely, scroll inside it too
+           instead of sticking out below the window and making the whole page scroll. -->
+      <div
+        class="relative flex-1 shell:min-h-0 shell:[scrollbar-gutter:stable] shell:overflow-y-auto"
+      >
+        <div class="page-width flex flex-col gap-4 py-6">
+          <InputPanel
+            :model-value="input"
+            :max-length="catalogState.catalog.limits.maxInputLength"
+            :errors="inputErrors"
+            @update:model-value="emit('setInput', $event)"
+          />
 
-        <InputPanel
-          :model-value="input"
-          :max-length="catalogState.catalog.limits.maxInputLength"
-          :errors="inputErrors"
-          @update:model-value="emit('setInput', $event)"
-        />
+          <!-- Two columns from lg up; the chain still reads from left to right, row by row (D53). -->
+          <section v-if="steps.length > 0" :aria-labelledby="stepsHeadingId">
+            <h2 :id="stepsHeadingId" class="sr-only">{{ t('editor.steps') }}</h2>
+            <ol ref="stepList" class="grid gap-4 lg:grid-cols-2">
+              <li v-for="(step, index) in steps" :key="step.id" class="min-w-0">
+                <StepCard
+                  class="h-full"
+                  :number="index + 1"
+                  :transformation="step.transformation"
+                  :values="step.values"
+                  :enabled="step.enabled"
+                  :result="step.result"
+                  :errors="step.errors"
+                  :is-updating="isUpdating"
+                  :can-move-up="index > 0"
+                  :can-move-down="index < steps.length - 1"
+                  :focus-request="focusOfStep(step.id)"
+                  @move="emit('moveStep', step.id, $event)"
+                  @remove="emit('removeStep', step.id)"
+                  @change="(name, value) => emit('setValue', step.id, name, value)"
+                  @set-enabled="emit('setEnabled', step.id, $event)"
+                />
+              </li>
+            </ol>
+          </section>
 
-        <Alert v-if="runAlert !== null" variant="destructive">
-          <TriangleAlertIcon />
-          <AlertTitle>{{ t('editor.runFailed') }}</AlertTitle>
-          <AlertDescription>
-            <p v-for="message in runAlert.messages" :key="message">{{ message }}</p>
-          </AlertDescription>
-          <AlertAction v-if="runAlert.canRetry">
-            <Button variant="outline" size="sm" @click="emit('retryRun')">{{
-              t('editor.tryAgain')
-            }}</Button>
-          </AlertAction>
-        </Alert>
-
-        <!-- Two columns from lg up; the chain still reads from left to right, row by row (D53). -->
-        <section v-if="steps.length > 0" :aria-labelledby="stepsHeadingId">
-          <h2 :id="stepsHeadingId" class="sr-only">{{ t('editor.steps') }}</h2>
-          <ol ref="stepList" class="grid gap-4 lg:grid-cols-2">
-            <li v-for="(step, index) in steps" :key="step.id" class="min-w-0">
-              <StepCard
-                class="h-full"
-                :number="index + 1"
-                :transformation="step.transformation"
-                :values="step.values"
-                :enabled="step.enabled"
-                :result="step.result"
-                :errors="step.errors"
-                :is-updating="isUpdating"
-                :can-move-up="index > 0"
-                :can-move-down="index < steps.length - 1"
-                :focus-request="focusOfStep(step.id)"
-                @move="emit('moveStep', step.id, $event)"
-                @remove="emit('removeStep', step.id)"
-                @change="(name, value) => emit('setValue', step.id, name, value)"
-                @set-enabled="emit('setEnabled', step.id, $event)"
-              />
-            </li>
-          </ol>
-        </section>
-
-        <OutputPanel
-          :result="result"
-          :is-updating="isUpdating"
-          :summary="summary"
-          :link="shareLink"
-        />
+          <OutputPanel
+            :result="result"
+            :is-updating="isUpdating"
+            :summary="summary"
+            :link="shareLink"
+          />
+        </div>
       </div>
+
+      <!-- Fixed to a phone's screen; in a window with room for the fixed header and footer, at the bottom right of the
+           part that scrolls, so a notice never covers the search. -->
+      <ToastViewport
+        :label="noticesLabel"
+        class="fixed right-4 bottom-4 left-4 z-50 outline-none sm:left-auto sm:w-96 shell:absolute"
+      />
+      <EditorNotices
+        :run-alert="runAlert"
+        :link-problem="linkProblem"
+        @retry-run="emit('retryRun')"
+      />
     </div>
 
     <!-- Below the part that scrolls, so the search is always at hand (D53). The input stays the first stop of the
@@ -207,5 +208,5 @@ useDragToReorder(
         </div>
       </div>
     </div>
-  </template>
+  </ToastProvider>
 </template>

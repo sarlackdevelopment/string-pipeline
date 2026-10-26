@@ -279,6 +279,7 @@ components/
   ParameterForm/fields/            TextField, IntegerField, BooleanField, ChoiceField, UnsupportedField
   TransformationPicker/            combobox with search, groups and descriptions (D28); model/groups.ts
   OutputPanel.vue                  final output, a copy button, and Copy link (D32, D49)
+  EditorNotices.vue                a failed run and a broken link as toasts at the bottom right (D55)
   ui/                              shadcn-vue components (D28)
 ```
 
@@ -297,7 +298,7 @@ The UI kit (D28, step 12). shadcn-vue's components are copied into `components/u
 - The input is an ARIA combobox (`aria-expanded`, `aria-controls`, `aria-autocomplete="list"`), and the highlighted option is announced through `aria-activedescendant`.
 - Typing filters with `Intl.Collator` at base sensitivity, so case and accents do not matter. An item matches on its `textValue` or, without one, on its whole text at mount, description included: "slice" finds Substring. A group without matches stays in the DOM with `hidden`: `getByText` still finds its heading, `getByRole` does not.
 - The first match is highlighted at once: typing a name and pressing Enter picks it. Escape closes the list.
-- jsdom does not implement `scrollIntoView`, which Reka UI calls on the highlighted option, so the test setup stubs it. Nothing else needed a stub: floating-ui, which positions the list, uses a `ResizeObserver` only where one exists.
+- jsdom does not implement `scrollIntoView`, which Reka UI calls on the highlighted option, so the test setup stubs it. Since step 24 it also stubs the pointer capture that a toast asks about when a press inside it ends. Nothing else needed a stub: floating-ui, which positions the list, uses a `ResizeObserver` only where one exists.
 
 Accessibility (D15, built in step 16):
 
@@ -334,7 +335,7 @@ Languages (D52, step 22). The app's own texts are in `src/i18n/`, one file per l
 - The select is the browser's own, with each language named in itself and marked with its `lang`, so a reader finds theirs whatever the page is in.
 - In tests every component gets English through Vue Test Utils' global plugins, a new instance per test. The end-to-end helpers find elements by the app's texts in all three languages, and Playwright runs in `en-US`, since it would otherwise take the system's language.
 
-With vue-i18n the one bundle passed Vite's warning size of 500 kB, so the libraries now go into a `vendor` chunk of their own (442 kB, 70 kB for the app). Browsers keep it cached across the app's updates.
+With vue-i18n the one bundle passed Vite's warning size of 500 kB, so the libraries went into a `vendor` chunk of their own (442 kB, 70 kB for the app). Browsers keep it cached across the app's updates. SortableJS and Reka UI's toasts brought it to 499 kB, so since step 24 Vue has a chunk of its own: `vue` 115 kB, `vendor` 384 kB, the app 74 kB.
 
 Layout (D53, step 23).
 
@@ -354,6 +355,15 @@ Drag and drop (D54, step 23).
 - The handle shows only while the step can move. It is `aria-hidden` and not a stop of the Tab key: the buttons move a step from the keyboard and with a single tap, which WCAG 2.5.7 asks of anything done by dragging. Pressing on the handle gives the card the focus, which it can lose while Vue moves it; the controller gives it back.
 - For people who ask for less motion, the global rule that shortens transitions also stops SortableJS's animation, which is a CSS transition.
 - SortableJS needs a layout, which jsdom does not have, so the unit and component tests use a stand-in (`tests/helpers/sortable.ts`) and play SortableJS's part; an end-to-end scenario drags a step in Chromium and checks that the chain runs in its new order.
+
+Notices (D55, step 24).
+
+- A run that failed as a whole and a link that could not be opened were alerts in the page; they are now toasts. `PipelineEditorView` holds Reka UI's `ToastProvider` and places its `ToastViewport`: fixed to the bottom of a phone's screen, and in a window with the fixed header and footer at the bottom right of the part that scrolls, so a notice never covers the search. `EditorNotices` turns the view's `runAlert` and `linkProblem` props into toasts through the provider's store (`useToastManager`), and renders them.
+- One toast per kind, by id. Another message updates the toast and starts its 8 seconds again; the same message, as from a server that stays down, changes nothing, so the toast still goes and a screen reader does not hear it again. When the prop goes back to `null`, after a run that succeeds or an edit after a broken link, the toast closes.
+- Try again, when another try can help, is the toast's action. Reka UI asks for an alternative for screen readers, since the toast goes away: changing the chain runs it again.
+- Reka UI gives each toast its place in the stack as variables (`--reka-toast-index`, `--reka-toast-offset-y`, `--reka-toast-height`, and the frontmost height on the list) and marks a spread-out stack with `data-expanded`. `.notice-toast` in `index.css` reads them: collapsed, the older toasts sit 10 pixels above the newest, 5 % smaller each and blank; spread out, each sits above the newer ones. A toast slides in from below, fades out, and follows a swipe to the right. The rule that shortens motion for people who ask for less covers these transitions too.
+- Reka UI announces a toast through a live region of its own, assertive for an error, with the provider's label first: "Notification". axe found the description's red at 90 % below 4.5:1 on a white card, in the toasts and in shadcn-vue's destructive alert, which the catalog's failure still uses; both use the full red now.
+- A component test plays the timers with Vitest's fake ones: a toast goes after 8 seconds, the same message again keeps its time, another starts it again. An end-to-end feature makes the runs fail with Playwright's `route`, runs axe with a notice on screen, waits for it to go, and checks the stack and its spreading out.
 
 Proof of R2.1 (D19): an integration test serves a catalog with a transformation the frontend has never seen, with an unfamiliar mix of parameters, and checks that its form renders and runs.
 

@@ -30,6 +30,12 @@ export const de: Messages = {
     steps: 'Schritte',
     examples: 'Oder ein Beispiel öffnen:',
   },
+  notices: {
+    label: 'Benachrichtigung',
+    region: 'Benachrichtigungen ({hotkey})',
+    close: 'Meldung schließen',
+    retryElsewhere: 'Ändern Sie die Kette, um sie erneut auszuführen.',
+  },
   input: {
     label: 'Eingabe',
     placeholder: 'Zu bearbeitenden Text eingeben oder einfügen',

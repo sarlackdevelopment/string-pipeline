@@ -522,4 +522,23 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** 253 Vitest tests, 9 of them new; 28 end-to-end scenarios, 1 of them new; format, lint, typecheck, build (the libraries' chunk grew from 442 to 479 kB, still under Vite's warning), and `npm audit` with 0 vulnerabilities.
 
-**Commit.** `feat(ui): drag a step by its handle to another place`
+**Commit.** `b1d30cd feat(ui): drag a step by its handle to another place`
+
+## Step 24.1. Notices at the bottom right (2026-10-26)
+
+**Asked.** More notes on the UI, with a screenshot of a failed run in Russian: the alert should pop up at the bottom right, pile up when there are several, and go away by itself after a while; the "Add a step" section should move under the input, in the same card and style, and the output should become the footer, so that only the steps scroll. This step does the notices; step 24.2 does the layout.
+
+**AI did.**
+
+- First the screenshot: under a Russian interface it showed an English server message and English step names. The developer's own server answered in English and failed every run with Substring, while the current code answered both correctly. Their server had been running since before step 22, which rebuilt the code under it, so it needs a restart rather than a fix.
+- A failed run and a link that cannot be opened now pop up at the bottom right and close after 8 seconds; the pointer or the focus on them pauses that. Several pile up with the newest in front, the older ones peeking out above it, and spread out under the pointer. F8 reaches them from the keyboard, and a screen reader hears each once.
+- Each kind has one notice. Another message replaces it and starts its time again; the same message again changes nothing, so a server that stays down does not keep a notice on screen. A run that succeeds closes its notice.
+- They are built on the toasts of Reka UI, the library under the UI kit, so there is no new dependency. The pile itself is a stylesheet rule that reads the places Reka UI gives each toast. A first version barely showed the older notice: shrinking it from the bottom lowered its top edge by almost as much as it was raised. The rule now makes up for that.
+- axe, run with a notice on screen, found its red text too pale; the same pale red was in the in-page alert that the catalog's failure still uses. Both use the full red now.
+- The libraries' file reached the size at which the build warns, so Vue itself moved to a file of its own.
+
+**Decided.** D55, the notices.
+
+**Checked.** 256 Vitest tests; 30 end-to-end scenarios, 2 of them new, one of which waits for a notice to go by itself; format, lint, typecheck and build.
+
+**Commit.** `feat(ui): notices pop up at the bottom right and go away by themselves`
