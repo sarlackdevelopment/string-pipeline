@@ -560,4 +560,19 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** 256 Vitest tests and 30 end-to-end scenarios, with the layout's one rewritten; format, lint, typecheck and build; the screenshots taken again.
 
-**Commit.** `feat(ui): only the steps scroll; input, search and output stay in view`
+**Commit.** `833e12d feat(ui): only the steps scroll; input, search and output stay in view`
+
+## Step 25.1. The README after the new layout (2026-10-26)
+
+**Asked.** The developer asked for a video, recorded outside the repository, of how the project starts from a fresh clone: which commands in which terminals, ending with the app in a browser. Then: fix what the AI had noticed in the README on the way, in a commit of its own.
+
+**AI did.**
+
+- For the video, the commands of the README ran for real in a fresh clone in a folder of its own, in PowerShell 7. Two terminals replay their real output with the real time on a clock, long waits shortened and marked as such, and a browser ends on the app those commands started, where an example runs.
+- Checking the README against that run turned up two things. Its sentence on using the app still put the search under the steps, as before step 24. And the path without Docker showed `./gradlew` only, which cmd and PowerShell spell `.\gradlew.bat`. Both are fixed.
+
+**Decided.** Nothing new.
+
+**Checked.** The README's format; the commands as the README now gives them ran in PowerShell 7 for the video.
+
+**Commit.** `docs: the search sits under the input; gradlew.bat in cmd and PowerShell`

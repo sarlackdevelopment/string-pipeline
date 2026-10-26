@@ -5,7 +5,7 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 ## Current state
 
 - Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, eight extras beyond the brief (turning a step off, the chain in the URL, example chains, themes, languages, a layout for the whole window, drag and drop, notices) and the final check. The delivery is a zip of a fresh clone of the last commit (D24).
-- Last commit: `feat(ui): only the steps scroll; input, search and output stay in view`. Branch `main`, no remote. Commits use the repository's own `user.email`.
+- Last commit: `docs: the search sits under the input; gradlew.bat in cmd and PowerShell`. Branch `main`, no remote. Commits use the repository's own `user.email`.
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once). `docker compose up --build` serves the app on 8080, or on `PORT`; `E2E_BASE_URL=http://localhost:<port> npm run test:e2e` runs the features against it.
 - Tests: Java 275 (library 238, server 37); frontend 256 in 32 files (unit 161, component 76, integration 19); end to end 30 scenarios in 8 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+. Docker Desktop with Compose for the image.
@@ -383,6 +383,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: the layout as built in S23.2, and the place of the notices' viewport from S24.1.
 - Changed: `PipelineEditorView.vue` (a white band with one card for the input and the search with the examples; the steps alone in the part that scrolls, with a line for an empty chain; the output in a footer; the part that scrolls no longer relative, its wrapper still is, for the notices), `InputPanel.vue` and `OutputPanel.vue` (no frame of their own; the input grows to 128 px, the output's box stops there), `TransformationPicker.vue` (its label in an `h2` like the input's), `index.css` (the `shell` variant from 40rem; a comment), `i18n/` (`editor.noSteps`). Tests: the keyboard journey (the search right after the input; from a step, nine presses of Shift+Tab back to it), `layout.feature` and `steps/layout.ts` (only the steps scroll; the header, the input, the search and the output stay in view); the screenshots taken again. Decisions (D50, D53), requirements, design (section 7: Layout, Notices; section 8), README, both journals.
 - Verified: a throwaway probe measured the steps' part at twelve window sizes. With the old threshold of 36rem it left the steps 186 px at 1280 × 600 and 134 at 768 × 600, so the threshold went up to 40rem, after the card and the footer lost a few pixels of padding: 255 px at 1366 × 650, 405 at 1280 × 800, 605 at 1920 × 1000; below 640 px high the page scrolls as a whole. The probe's pictures showed the steps cut off right under the card; a white band with a border holds the card now. With the output in the footer, the layout scenario passed with the part that scrolls not relative: nothing positioned against the page is left there, so the class went, and the scenario still checks that the page itself never scrolls. 256 Vitest tests; 30 end-to-end scenarios in 8 features; format, lint, typecheck, build.
-- Commit: `feat(ui): only the steps scroll; input, search and output stay in view`.
+- Commit: `833e12d`.
 - Open: none.
 - Next: none planned; a new zip of a fresh clone with the delivery script.
+
+### S25.1 The README after the new layout (2026-10-26)
+
+- Goal: two places in the README that no longer matched the app or a Windows shell, found while the developer had a video recorded outside the repository that runs the project from a fresh clone (step 25).
+- Requirements: R4.1.
+- Decisions: none new.
+- Read: the README's "Running the app" against the layout of S24.2 and against the commands as they ran in PowerShell 7 for the video.
+- Changed: `README.md` ("Running the app": the search sits under the input and the examples next to it, no longer under the steps; without Docker, cmd and PowerShell start the API with `.\gradlew.bat :server:bootRun` and run the frontend's three commands one after another), both journals.
+- Verified: format check of the README; the commands as written ran in a fresh clone under PowerShell 7 for the video.
+- Commit: `docs: the search sits under the input; gradlew.bat in cmd and PowerShell`.
+- Open: none.
+- Next: none planned; the video of the tests, outside the repository.

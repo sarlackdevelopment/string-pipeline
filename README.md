@@ -19,7 +19,7 @@ With Docker, one command builds and starts everything:
 docker compose up --build
 ```
 
-The app runs on http://localhost:8080, with Swagger UI at http://localhost:8080/swagger-ui.html. The first build takes a few minutes; `PORT=9090 docker compose up --build` uses another port (in PowerShell, set `$env:PORT = 9090` first). Type a text, add steps with the search field under the steps, or open one of the examples under it; every step shows its own output.
+The app runs on http://localhost:8080, with Swagger UI at http://localhost:8080/swagger-ui.html. The first build takes a few minutes; `PORT=9090 docker compose up --build` uses another port (in PowerShell, set `$env:PORT = 9090` first). Type a text, add steps with the search field under it, or open one of the examples next to the search; every step shows its own output.
 
 Without Docker, start the API, then the frontend in a second terminal:
 
@@ -28,7 +28,7 @@ Without Docker, start the API, then the frontend in a second terminal:
 cd frontend && npm ci && npm run dev
 ```
 
-The app then runs on http://localhost:5173, and Vite's dev server forwards `/api` to the API on port 8080.
+The app then runs on http://localhost:5173, and Vite's dev server forwards `/api` to the API on port 8080. In cmd or PowerShell, start the API with `.\gradlew.bat :server:bootRun`, and run the frontend's three commands one after another.
 
 ## Documentation
 
