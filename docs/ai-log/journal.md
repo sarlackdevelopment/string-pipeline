@@ -468,4 +468,21 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** 243 Vitest tests, 28 of them new; 22 end-to-end scenarios, 3 of them new; format, lint, typecheck, `npm audit` with 0 vulnerabilities, and a build without the size warning. `./gradlew build`: 238 and 37 tests. The Docker image built and passed the 22 scenarios on port 8095, with the catalog in German and a regex error in Russian; Docker Desktop was stopped afterwards. Ports 8091, 4191 and 8095 were free, and the developer's server on 8080 was not touched.
 
-**Commit.** `feat(ui): the interface in English, German and Russian`
+**Commit.** `3c9e5dd feat(ui): the interface in English, German and Russian`
+
+## Step 23.1. A followed link is no longer undone (2026-10-26)
+
+**Asked.** Notes on the UI from the developer: a fixed header and footer with only the cards scrolling, a favicon, a header that keeps its layout in every language, the input and the output across the whole width, the steps in two columns, drag and drop, and a sensible layout on every screen size. Step 23 builds them in three commits; this first one fixes a bug that turned up on the way.
+
+**AI did.**
+
+- While the layout was being built, one test of the chain in the address failed now and then, and only in the whole suite, never on its own. The cause was a race in the app itself (D49). After an edit the address is rewritten 300 ms later. If a link is followed, or Back pressed, just as that timer is due and the page is busy, the timer can run before the browser's notice of the new address is handled: it wrote the old chain into the new address, and the editor then opened the old chain again, as if the link had not been followed.
+- The editor now remembers the address it last read or wrote, and a waiting write gives up once the address holds another one.
+- A new test changes the address without its notice, waits past the pause, and checks that the address is untouched; without the fix it fails.
+- The long keyboard test, 3 to 5 seconds on its own, once took more than 15 seconds while the whole suite shared a busy machine, so its time limit is now 30 seconds; it only guards against a test that hangs.
+
+**Decided.** Nothing new.
+
+**Checked.** The new test, with and without the fix; three runs of the whole suite in a row, 244 Vitest tests.
+
+**Commit.** `fix(ui): keep a waiting address write from undoing a followed link`

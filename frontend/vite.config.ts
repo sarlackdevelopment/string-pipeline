@@ -39,9 +39,9 @@ export default defineConfig({
     include: ['src/tests/**/*.test.ts'],
     environment: 'jsdom',
     setupFiles: ['./src/tests/helpers/setup.ts'],
-    // The keyboard journey waits for several runs of 300 ms each. It takes 1 to 2 seconds, but on a busy machine it
-    // passed the default of 5 seconds, so the limit only guards against a test that hangs.
-    testTimeout: 15_000,
+    // The keyboard journey waits for several runs of 300 ms each. It takes 3 to 5 seconds on its own, and in the whole
+    // suite on a busy machine it once passed 15, so the limit only guards against a test that hangs.
+    testTimeout: 30_000,
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,vue}'],

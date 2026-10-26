@@ -24,6 +24,9 @@ export function useChainLink(options: ChainLinkOptions): {
   readonly problem: Readonly<Ref<LinkProblem | null>>
 } {
   const problem = shallowRef<LinkProblem | null>(null)
+  // The fragment the editor last read or wrote. Another one means that the address changed from outside, as when a
+  // link is followed, and the hashchange that comes with it opens that address.
+  let known = window.location.hash
 
   // `followed` is false for the link the page was opened with. A fragment without a chain then means a page without
   // one; after following a link, as with Back, it means an empty chain.
@@ -32,6 +35,7 @@ export function useChainLink(options: ChainLinkOptions): {
     if (catalog === undefined) {
       return
     }
+    known = window.location.hash
     const reading = fromFragment(window.location.hash, catalog)
     switch (reading.status) {
       case LinkStatus.none:
@@ -63,9 +67,15 @@ export function useChainLink(options: ChainLinkOptions): {
     open(true)
   })
 
+  // A write that was still waiting when the address changed from outside must not undo the change: on a busy page its
+  // timer can fire before the hashchange is handled.
   const writeSoon = useDebounceFn((chain: Chain) => {
+    if (window.location.hash !== known) {
+      return
+    }
     problem.value = null
     write(chain)
+    known = window.location.hash
   }, LINK_DELAY_MS)
   watch(options.chain, (chain) => {
     void writeSoon(chain)

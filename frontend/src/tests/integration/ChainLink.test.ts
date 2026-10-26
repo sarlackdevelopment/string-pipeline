@@ -2,6 +2,7 @@ import userEvent from '@testing-library/user-event'
 import { screen, waitFor, within } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 import PipelineEditor from '@/components/PipelineEditor/PipelineEditor.vue'
+import { LINK_DELAY_MS } from '@/composables/useChainLink'
 import type { ChainContent } from '@/model/chain'
 import { fromFragment, LinkStatus, toFragment } from '@/model/link'
 import { serveCatalog, serveRuns } from '@/tests/helpers/api'
@@ -75,6 +76,19 @@ describe('the chain in a link (D49)', () => {
 
     await waitFor(() => expect(input()).toHaveValue(''))
     expect(screen.queryByRole('region', { name: 'Steps' })).not.toBeInTheDocument()
+  })
+
+  it('does not undo a followed link with a write that was still waiting for its pause', async () => {
+    const user = await openAt('')
+    await user.type(input(), 'abc')
+
+    // The address changes before its hashchange is handled, as on a page that is busy when a link is followed.
+    window.history.replaceState(null, '', `/${toFragment(brief)}`)
+    await new Promise((resolve) => setTimeout(resolve, LINK_DELAY_MS + 200))
+    expect(chainInAddress()).toEqual(brief)
+
+    window.dispatchEvent(new HashChangeEvent('hashchange'))
+    await waitFor(() => expect(input()).toHaveValue('Fake Python'))
   })
 
   it('opens an example from its link, made of the catalog it came with (D50)', async () => {
