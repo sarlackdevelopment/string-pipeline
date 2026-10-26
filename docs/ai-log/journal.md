@@ -676,4 +676,20 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** The checks above; this commit changes only documents, which the Blueprint's build filter leaves out, so Render does not build again.
 
-**Commit.** `docs: the live demo on Render`
+**Commit.** `bad748a docs: the live demo on Render`
+
+## Step 30.1. The videos play on GitHub (2026-10-26)
+
+**Asked.** For the email that delivers the solution, the developer wanted each video to play on the page its link opens, and the videos attached to the email as well. GitHub offers a video from the repository only as a download; it plays the videos uploaded through its own editor.
+
+**AI did.**
+
+- Had the developer drop the videos into a GitHub comment box, which uploads them and gives each a link, without posting anything. The developer dropped the original recordings; the AI matched each link to its recording by content and found the same length and the same metadata as in the files in `docs/videos`, which are those recordings compressed.
+- Turned the README's table of videos into four sections, each with the length, what the video shows, its file in `docs/videos` and the player. Each section has an anchor of its own, so the email links to each video.
+- For the email: the compressed files as attachments, 12 MB together, and a link to each section.
+
+**Decided.** Nothing new.
+
+**Checked.** GitHub's Markdown API renders the new section with four players, in the order of the headings; Prettier reads the README.
+
+**Commit.** `docs: the videos play on GitHub`

@@ -5,7 +5,7 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 ## Current state
 
 - Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, ten extras beyond the brief (turning a step off, the chain in the URL, example chains, themes, languages, a layout for the whole window, drag and drop, notices, an app that works offline, a Blueprint for a live demo) and the final check. The delivery is a zip of a fresh clone of the last commit (D24).
-- Last commit: `docs: the live demo on Render`. Branch `main`, public on GitHub since step 28: https://github.com/sarlackdevelopment/string-pipeline (`origin`). Commits use the repository's own `user.email`.
+- Last commit: `docs: the videos play on GitHub`. Branch `main`, public on GitHub since step 28: https://github.com/sarlackdevelopment/string-pipeline (`origin`). Commits use the repository's own `user.email`.
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once). `docker compose up --build` serves the app on 8080, or on `PORT`; `E2E_BASE_URL=http://localhost:<port> npm run test:e2e` runs the features against it.
 - Tests: Java 275 (library 238, server 37); frontend 266 in 33 files (unit 167, component 78, integration 21); end to end 34 scenarios in 9 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+. Docker Desktop with Compose for the image.
@@ -467,6 +467,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: the Blueprint's first sync in Render's dashboard (screenshots from the developer): commit `afc3c4a`, one web service created.
 - Changed: README (the live link at the top; a line beyond the brief; the Render paragraph points at it), both journals.
 - Verified: on https://string-pipeline.onrender.com, `/`, `/sw.js`, `/registerSW.js`, the icons and `/v3/api-docs` answer 200 and `/swagger-ui.html` redirects; the manifest comes as `application/octet-stream`, as from the server in Docker; a run of the brief's chain returns `Real Python!`; `Accept-Language: de` gives the German catalog. `E2E_BASE_URL` with the live address: 34 end-to-end scenarios passed in 16 s, the `@service-worker` ones included.
-- Commit: `docs: the live demo on Render`.
+- Commit: `bad748a`.
+- Open: none.
+- Next: none planned; a new zip of a fresh clone.
+
+### S30.1 The videos play on GitHub (2026-10-26)
+
+- Goal: each video playable on the page its link opens, for the delivery email, which also attaches the files; asked by the developer.
+- Requirements: R4.2, R4.4.
+- Decisions: none new.
+- Read: how GitHub renders a `user-attachments` link on a line of its own, through its Markdown API: a `<details open>` with the uploaded file's name and a `<video>` whose `src` is a signed link that expires after five minutes. The asset links answer 404 to a request that is not signed in, so the email links to the README's sections, not to the assets.
+- Changed: README (Videos: four sections with players instead of the table, each linking its file in `docs/videos`), both journals.
+- Verified: the four assets, downloaded through their signed links, match the original recordings by SHA-256; their length and metadata equal those of the files in `docs/videos`. The Markdown API renders the new section with four players in the order of the headings. Prettier passes.
+- Commit: `docs: the videos play on GitHub`.
 - Open: none.
 - Next: none planned; a new zip of a fresh clone.
