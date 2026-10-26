@@ -2,7 +2,7 @@ import { onlineManager } from '@tanstack/vue-query'
 import userEvent from '@testing-library/user-event'
 import { screen, waitFor, within } from '@testing-library/vue'
 import { http, HttpResponse } from 'msw'
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import PipelineEditor from '@/components/PipelineEditor/PipelineEditor.vue'
 import {
   CATALOG_URL,
@@ -274,6 +274,34 @@ describe('the pipeline editor', () => {
     onlineManager.setOnline(true)
     await waitFor(() => expect(output()).toHaveTextContent('Hi'))
     expect(output()).not.toHaveTextContent('Waiting for the network')
+    await waitFor(() => expect(notices()).toHaveLength(0))
+  })
+
+  it('opened offline, lets a run that cannot reach the server wait for the network, and runs it once it is back (D57)', async () => {
+    const onLine = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    onTestFinished(() => {
+      onLine.mockRestore()
+    })
+    serveCatalog()
+    const failed: string[] = []
+    server.use(
+      http.post(RUNS_URL, async ({ request }) => {
+        failed.push(((await request.json()) as { input: string }).input)
+        return HttpResponse.error()
+      }),
+    )
+    const { user } = await renderEditor()
+
+    await user.type(screen.getByRole('textbox', { name: 'Input' }), 'Hi')
+
+    await waitFor(() => expect(failed).toContain('Hi'))
+    expect(await findNotice()).toHaveTextContent('No network connection')
+    await waitFor(() => expect(output()).toHaveTextContent('Waiting for the network'))
+    expect(screen.queryByText('The chain could not run')).not.toBeInTheDocument()
+    serveRuns()
+    onLine.mockReturnValue(true)
+    window.dispatchEvent(new Event('online'))
+    await waitFor(() => expect(output()).toHaveTextContent('Hi'))
     await waitFor(() => expect(notices()).toHaveLength(0))
   })
 

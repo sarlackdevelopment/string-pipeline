@@ -6,16 +6,16 @@
  * the new one arrives. A run depends on nothing but its request and the language of its messages, so a cached result
  * never goes stale: undoing an edit shows the earlier result at once.
  *
- * Once the browser says it went offline, TanStack Query holds a new request, or the retry of one that failed, and sends
- * it when the browser says it is back (D57).
+ * Without the network, a run waits for it (D57). Once the browser says it went offline, TanStack Query holds a new
+ * request, or the retry of one that failed, and sends it when the browser says it is back.
  */
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
-import { watchDebounced } from '@vueuse/core'
-import { computed, shallowRef, toValue, type MaybeRefOrGetter } from 'vue'
+import { useOnline, watchDebounced } from '@vueuse/core'
+import { computed, shallowRef, toValue, watch, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { postRun } from '@/api/client'
 import type { RunRequest } from '@/model/run'
-import { unwrap } from './client'
+import { isNetworkFailure, unwrap } from './client'
 
 /** The pause after the last edit before the chain runs (D11). */
 export const RUN_DELAY_MS = 300
@@ -42,6 +42,20 @@ export function usePipelineRun(request: MaybeRefOrGetter<RunRequest>) {
     staleTime: Infinity,
   })
 
+  // TanStack Query holds a run only once the browser has said with an event that it went offline, which a page that
+  // opens offline never hears. Its run fails to reach the server, and while the browser says it is offline, that run
+  // waits for the network all the same; the browser's flag counts only after such a failure (D57).
+  const online = useOnline()
+  const waitsForNetwork = computed(
+    () => query.isPaused.value || (!online.value && isNetworkFailure(query.error.value)),
+  )
+  watch(online, (isOnline) => {
+    if (isOnline && isNetworkFailure(query.error.value)) {
+      // TanStack Query may be sending it again already, if it had heard the browser go offline.
+      void query.refetch({ cancelRefetch: false })
+    }
+  })
+
   return {
     /** The latest result; while the next run is on its way, the previous one. */
     result: query.data,
@@ -50,10 +64,10 @@ export function usePipelineRun(request: MaybeRefOrGetter<RunRequest>) {
     sentRequest: sent,
     /** From an edit until its result arrives: the pause, then the request, which may wait for the network. */
     isUpdating: computed(
-      () => latest.value !== sent.value || query.isFetching.value || query.isPaused.value,
+      () => latest.value !== sent.value || query.isFetching.value || waitsForNetwork.value,
     ),
-    /** The run waits for the network: the browser said it went offline, and TanStack Query holds the request (D57). */
-    waitsForNetwork: query.isPaused,
+    /** The run waits for the network, and goes on once the browser says it is back online (D57). */
+    waitsForNetwork,
     retry: () => {
       void query.refetch()
     },

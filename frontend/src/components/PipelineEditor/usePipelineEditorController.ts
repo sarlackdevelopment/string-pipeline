@@ -80,9 +80,10 @@ export function usePipelineEditorController() {
       : null
   })
 
+  // A run that waits for the network did not fail: a notice of its own says so (D57).
   const runAlert = computed<RunAlert | null>(() => {
     const error = run.error.value
-    if (error === null) {
+    if (error === null || run.waitsForNetwork.value) {
       return null
     }
     const located = requestErrors.value

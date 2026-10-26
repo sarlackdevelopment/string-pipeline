@@ -5,9 +5,9 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 ## Current state
 
 - Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, nine extras beyond the brief (turning a step off, the chain in the URL, example chains, themes, languages, a layout for the whole window, drag and drop, notices, an app that works offline) and the final check. The delivery is a zip of a fresh clone of the last commit (D24).
-- Last commit: `feat(ui): a run waits for the network, and the editor says so`. Branch `main`, no remote. Commits use the repository's own `user.email`.
+- Last commit: `fix(ui): a page opened offline waits for the network, then runs`. Branch `main`, no remote. Commits use the repository's own `user.email`.
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once). `docker compose up --build` serves the app on 8080, or on `PORT`; `E2E_BASE_URL=http://localhost:<port> npm run test:e2e` runs the features against it.
-- Tests: Java 275 (library 238, server 37); frontend 263 in 33 files (unit 165, component 78, integration 20); end to end 33 scenarios in 9 features.
+- Tests: Java 275 (library 238, server 37); frontend 266 in 33 files (unit 167, component 78, integration 21); end to end 34 scenarios in 9 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+. Docker Desktop with Compose for the image.
 - Next step: none planned; a new zip of a fresh clone, made with the script that keeps Unix permissions (S20).
 - Open questions: none.
@@ -419,6 +419,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: TanStack Query's `onlineManager` (starts as online, listens to `online` and `offline` only) and network mode `online` (a paused fetch is not fetching; the retryer pauses between retries while offline); Reka UI's toast object (`status` as `data-status`, `type` for the announcement).
 - Changed: `queries/run.ts` (a paused run counts as updating; `waitsForNetwork`), the controller, the container and the view (the prop passed on), `OutputPanel.vue` ("Waiting for the network" instead of "Updating"), `EditorNotices.vue` (a notice while the run waits, closed when it goes on; the look by status: errors red and assertive, the network grey and polite), `i18n/` (`notices.offline`, `notices.offlineDetail`, `output.waitingForNetwork`), `e2e/steps/accessibility.ts` (axe waits until finite animations end), `offline.feature` and `steps/offline.ts` (a run that waits, with axe on its notice). Tests: `run.test.ts`, `OutputPanel.test.ts`, `PipelineEditorView.test.ts`, `PipelineEditor.test.ts` (integration). Decisions (D57), design (section 7: Offline, the data flow; section 8), requirements, README (beyond the brief, known issues, the counts, D1–D57), both journals.
 - Verified: before the fix, the unit test failed on `isUpdating` false while the run was paused. 263 Vitest tests in 33 files (unit 165, component 78, integration 20); 33 end-to-end scenarios in 9 features. Three mutations each failed a test: no offline notice, no waiting status in the output, the offline notice as an error. axe first failed on the notice's description at 3.2:1, `#8f8f8f` on `#fefefe`: the toast was still fading in; at full opacity `muted-foreground` has 4.7:1. A throwaway screenshot spec took the waiting editor in light and dark, and a failed run's notice for comparison, and was deleted. Format, lint, typecheck, build.
-- Commit: `feat(ui): a run waits for the network, and the editor says so`.
+- Commit: `480f84e`.
 - Open: none.
 - Next: none planned; a new zip of a fresh clone with the delivery script.
+
+### S27.1 A page opened offline waits for the network too (2026-10-26)
+
+- Goal: the developer's video of the PWA, recorded outside the repository with the app in Docker, showed the known issue of S26.2: a page opened offline failed its first run and did not run it again once the network was back. The developer asked for a fix and a new video.
+- Requirements: D57, D56.
+- Decisions: D57 revised: a run that fails to reach the server while `navigator.onLine` is false waits for the network as well, without retries, and the `online` event sends it again.
+- Read: TanStack Query's `onlineManager` (starts as online; listens to `online` and `offline`; a new document hears no `offline` event) and `refetch({ cancelRefetch: false })`; VueUse's `useOnline` (reads `navigator.onLine` at once, then the events). A throwaway Playwright probe logged an offline reload: `navigator.onLine` false, no `offline` event, two runs failed at once with `net::ERR_INTERNET_DISCONNECTED`, the second 380 ms after the first (the chain from the address, after its pause); after `online`, no run without the fix.
+- Changed: `queries/client.ts` (`isNetworkFailure`; `shouldRetry` takes whether the browser is online, and `createQueryClient` passes `navigator.onLine`), `queries/run.ts` (`waitsForNetwork` also for a network failure while offline, which counts as updating; a watch on `useOnline` sends it again), the controller (no run alert while the run waits for the network). Tests: `client.test.ts`, `run.test.ts`, `PipelineEditor.test.ts` (integration; the failing handler records the inputs, so the test waits for the run of "Hi" itself), `offline.feature` and `steps/offline.ts` (a page opened offline; the step waits for the failed run of the chain's input). Decisions (D57), design (section 7: Offline; section 8), requirements, README (beyond the brief, known issues, the counts), both journals.
+- Verified: 266 Vitest tests in 33 files (unit 167, component 78, integration 21); 34 end-to-end scenarios in 9 features. Five mutations each failed a test: no waiting after a failure, no run again on `online` (at first survived the integration test and the scenario, through the race above; both now kill it), the red notice as well, retries while offline. Format, lint, typecheck, build.
+- Commit: `fix(ui): a page opened offline waits for the network, then runs`.
+- Open: none.
+- Next: the video of the PWA again, outside the repository; then a new zip of a fresh clone.

@@ -24,14 +24,18 @@ describe('shouldRetry (D29)', () => {
   it('retries twice while the server cannot be reached', () => {
     const failure = new ApiFailure(network)
 
-    expect([0, 1, 2].map((count) => shouldRetry(count, failure))).toEqual([true, true, false])
+    expect([0, 1, 2].map((count) => shouldRetry(count, failure, true))).toEqual([true, true, false])
   })
 
   it('does not retry an answer from the server, which would come back the same', () => {
-    expect(shouldRetry(0, new ApiFailure(http503))).toBe(false)
+    expect(shouldRetry(0, new ApiFailure(http503), true)).toBe(false)
   })
 
   it('does not retry an error from the app itself', () => {
-    expect(shouldRetry(0, new TypeError('bug'))).toBe(false)
+    expect(shouldRetry(0, new TypeError('bug'), true)).toBe(false)
+  })
+
+  it('does not retry while the browser says that it is offline: the run waits for the network instead (D57)', () => {
+    expect(shouldRetry(0, new ApiFailure(network), false)).toBe(false)
   })
 })

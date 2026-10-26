@@ -53,7 +53,7 @@ The app was built step by step with Claude Code, running Claude Opus 5.5. The de
 - **The library** gives every step a result: `Executed`, `NotConfigured`, `InvalidParameters`, `Failed` or `NotRun`. Problems are data, not exceptions, and every step's parameters are checked before any step runs, so a chain shows all its configuration problems at once. Texts are data too: a key and its values, which the caller renders in English, German or Russian. A transformation is one class that declares its parameters; `BuiltIns` lists the transformations and the example chains.
 - **The web API** has two endpoints. The catalog describes each transformation's parameters as JSON Schema, and a run returns a result for every step. A malformed request gets Problem Details with JSON pointers to its fields. Both answer in the language that `Accept-Language` asks for. An ArchUnit test keeps the server on the library's public API.
 - **The frontend** builds every form from the catalog and knows no transformation by name (R2.1). Pinia holds the chain, TanStack Query the server's answers, zod checks each answer at the boundary, vue-i18n holds the app's own texts, and SortableJS drags the steps. A component with behaviour is split into a model of pure functions, a controller, a view and a container. The UI kit is shadcn-vue on Reka UI.
-- **Tests** cover every layer: 275 in Java, 263 Vitest tests in the frontend (unit, component, and integration against a stand-in API), and 33 end-to-end scenarios in Gherkin that run Chromium against the real API.
+- **Tests** cover every layer: 275 in Java, 266 Vitest tests in the frontend (unit, component, and integration against a stand-in API), and 34 end-to-end scenarios in Gherkin that run Chromium against the real API.
 
 ## Worth a look
 
@@ -99,7 +99,7 @@ Added after the brief was done, each in commits of its own ([decisions](docs/dec
 - A step can be dragged by its handle to another place in the chain. The buttons still move it from the keyboard or with a single tap (D54).
 - A run that fails, or a link that cannot be opened, pops up at the bottom right and goes away by itself. Several notices pile up, the newest in front, and spread out under the pointer (D55).
 - The built app installs as an app of its own, and opens without the network: a service worker keeps its files and the catalog in each language. Runs still need the server. Chrome and Edge offer to install it from the address bar, in Docker or with `npm run preview` (D56).
-- When the connection drops, a run waits for it, and goes on by itself once it is back; the output and a notice say so meanwhile (D57).
+- Without the network, a run waits for it, whether the connection drops or the app opens without one, and goes on by itself once the network is back; the output and a notice say so meanwhile (D57).
 
 ## Using the library
 
@@ -180,5 +180,4 @@ npm run test:e2e
 - The Docker image was built and tested on x86-64. Its base images and the npm lockfile cover ARM64 as well, as on a Mac with Apple Silicon, but that build was not tried.
 - A link to a chain holds its input text (D49), so a long text makes a long link, which a chat app may cut off. The editor then says that it cannot open the link.
 - Java writes its own messages in English only. The library translates the regex and date-pattern errors that people make while typing; a rarer one, and Java's reason why a line is not a date, stay English inside the translated sentence (D52).
-- A page that opens without the network cannot tell yet that it is offline: TanStack Query learns of the network from the browser's events only, so its first run fails as one to a server that is down, with Try again (D57).
 - The AI log summarises the development session instead of exporting it, because the session also holds private correspondence (D25).

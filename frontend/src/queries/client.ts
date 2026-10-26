@@ -28,15 +28,25 @@ export function unwrap<T>(result: ApiResult<T>): T {
   return result.value
 }
 
-/** Only an unreachable server is worth another try; the other failures would come back the same. */
-export function shouldRetry(failureCount: number, error: Error): boolean {
-  return (
-    error instanceof ApiFailure &&
-    error.error.kind === ApiErrorKind.network &&
-    failureCount < NETWORK_RETRIES
-  )
+/** A call that got no response at all: the server is down, or the network is gone. */
+export function isNetworkFailure(error: unknown): boolean {
+  return error instanceof ApiFailure && error.error.kind === ApiErrorKind.network
+}
+
+/**
+ * Only an unreachable server is worth another try; the other failures would come back the same. So would this one
+ * while the browser says that it is offline: a run then waits for the network instead (D57).
+ */
+export function shouldRetry(failureCount: number, error: Error, online: boolean): boolean {
+  return online && isNetworkFailure(error) && failureCount < NETWORK_RETRIES
 }
 
 export function createQueryClient(): QueryClient {
-  return new QueryClient({ defaultOptions: { queries: { retry: shouldRetry } } })
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: (failureCount, error) => shouldRetry(failureCount, error, navigator.onLine),
+      },
+    },
+  })
 }

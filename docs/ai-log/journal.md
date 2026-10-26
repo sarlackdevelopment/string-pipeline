@@ -612,4 +612,20 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** 263 Vitest tests and 33 end-to-end scenarios; three deliberate breaks each failed a test: no notice, no waiting in the output, the notice as an error; pictures of the waiting editor in the light and the dark theme; format, lint, typecheck and build.
 
-**Commit.** `feat(ui): a run waits for the network, and the editor says so`
+**Commit.** `480f84e feat(ui): a run waits for the network, and the editor says so`
+
+## Step 27.1. A page opened offline waits for the network too (2026-10-26)
+
+**Asked.** The developer asked for a video, recorded outside the repository, of the PWA as the README describes it: Docker, the app installed from the address bar, and DevTools taking the network away before a reload. The video showed what the README listed as a known issue: a page opened without the network failed its first run with a red error, and did not run it again once the network was back. The developer asked whether that was not quite right, and then for a fix and a new video.
+
+**AI did.**
+
+- A run that cannot reach the server while the browser says it is offline now waits for the network, as a run does when the connection drops: no more tries, no red error, the output says "Waiting for the network" and the grey notice explains. When the browser says the network is back, the run goes again by itself.
+- The browser's own flag counts only after a run has failed, so a browser that is wrong about being offline changes nothing while the network works. The README's known issue is gone.
+- The new end-to-end scenario passed at first even with the fix taken out: after the reload, the chain from the address ran 300 ms after the first run, and the network was back by then. It now waits until that very run has failed. The new integration test had the same gap and waits the same way.
+
+**Decided.** D57 revised.
+
+**Checked.** 266 Vitest tests and 34 end-to-end scenarios; five deliberate breaks each failed a test; format, lint, typecheck and build.
+
+**Commit.** `fix(ui): a page opened offline waits for the network, then runs`

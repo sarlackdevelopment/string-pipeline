@@ -13,6 +13,19 @@ Feature: Work without the network
     Then step 1 is "Replace"
 
   @service-worker
+  Scenario: Opened without the network, a run waits for it, and runs once it is back
+    Given the editor has been open with the network
+    When I type "Fake Python" as the input
+    Then the output is "Fake Python"
+    And the address holds the chain
+    When the network is gone
+    And I reload the page
+    Then a notice says "No network connection"
+    And the run of "Fake Python" waits for the network
+    When the network is back
+    Then the output is "Fake Python"
+
+  @service-worker
   Scenario: The server's own pages do not turn into the app
     Given the editor has been open with the network
     When I open the address "/api/catalog"

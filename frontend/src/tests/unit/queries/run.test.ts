@@ -112,6 +112,27 @@ describe('running the chain (D11, D29)', () => {
     expect(received.map((body) => body.input)).toEqual(['a', 'b'])
   })
 
+  // A page that opens offline: TanStack Query has heard no event, so it sends the run, which fails (D57).
+  it('waits for the network after a run fails while the browser says it is offline, and runs once it is back (D57)', async () => {
+    const onLine = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    onTestFinished(() => {
+      onLine.mockRestore()
+    })
+    serveNetworkError(RUNS_URL)
+    const { run } = setup('a')
+
+    await vi.waitFor(() => expect(run.waitsForNetwork.value).toBe(true))
+    expect(run.error.value).toBeInstanceOf(ApiFailure)
+    expect(run.isUpdating.value).toBe(true)
+    const received = serveRuns(echo)
+    onLine.mockReturnValue(true)
+    window.dispatchEvent(new Event('online'))
+
+    await vi.waitFor(() => expect(run.result.value?.output).toBe('a'))
+    expect(run.waitsForNetwork.value).toBe(false)
+    expect(received).toHaveLength(1)
+  })
+
   it('keeps a failed call as the error, and runs again on retry', async () => {
     serveNetworkError(RUNS_URL)
     const { run } = setup('a')
