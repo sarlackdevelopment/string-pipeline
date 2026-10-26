@@ -660,4 +660,20 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** The Blueprint's fields and values against Render's JSON schema; Prettier reads the file. The deploy itself follows in Render.
 
-**Commit.** `chore(deploy): a Render Blueprint for a live demo on the free plan`
+**Commit.** `afc3c4a chore(deploy): a Render Blueprint for a live demo on the free plan`
+
+## Step 29.2. The live demo (2026-10-26)
+
+**Asked.** The developer created the Blueprint in Render, with the AI guiding through the dashboard, and the service came up at https://string-pipeline.onrender.com.
+
+**AI did.**
+
+- Checked the live service from outside: the page with its service worker and manifest, the icons, Swagger UI, the brief's chain through the API (`Real Python!`) and the catalog in German.
+- Ran the end-to-end features against it over HTTPS: all 34 scenarios passed, among them the ones that take the browser offline with the service worker in charge.
+- The README now starts with the link, says that a free instance sleeps, and lists the live demo beyond the brief.
+
+**Decided.** Nothing new.
+
+**Checked.** The checks above; this commit changes only documents, which the Blueprint's build filter leaves out, so Render does not build again.
+
+**Commit.** `docs: the live demo on Render`

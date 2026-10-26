@@ -5,11 +5,11 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 ## Current state
 
 - Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, ten extras beyond the brief (turning a step off, the chain in the URL, example chains, themes, languages, a layout for the whole window, drag and drop, notices, an app that works offline, a Blueprint for a live demo) and the final check. The delivery is a zip of a fresh clone of the last commit (D24).
-- Last commit: `chore(deploy): a Render Blueprint for a live demo on the free plan`. Branch `main`, public on GitHub since step 28: https://github.com/sarlackdevelopment/string-pipeline (`origin`). Commits use the repository's own `user.email`.
+- Last commit: `docs: the live demo on Render`. Branch `main`, public on GitHub since step 28: https://github.com/sarlackdevelopment/string-pipeline (`origin`). Commits use the repository's own `user.email`.
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once). `docker compose up --build` serves the app on 8080, or on `PORT`; `E2E_BASE_URL=http://localhost:<port> npm run test:e2e` runs the features against it.
 - Tests: Java 275 (library 238, server 37); frontend 266 in 33 files (unit 167, component 78, integration 21); end to end 34 scenarios in 9 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+. Docker Desktop with Compose for the image.
-- Next step: S29.2, the live link once the service is up on Render; then a new zip of a fresh clone, made with the script that keeps Unix permissions (S20).
+- Next step: none planned; a new zip of a fresh clone, made with the script that keeps Unix permissions (S20). The live demo runs at https://string-pipeline.onrender.com.
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -455,6 +455,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: Render's docs on Blueprints, Docker (built with BuildKit) and web services (traffic goes to `PORT`, default 10000, which can be overridden), and its JSON schema for `render.yaml` (`buildFilter.paths`, `envVars` key and value, `autoDeployTrigger` commit, region frankfurt); reviews of the free plans of Render, Koyeb and Hugging Face Spaces.
 - Changed: `render.yaml` (new), README ("Running the app": the Blueprint and the sleeping instance; D1–D58), decisions (D58), design (packaging), requirements, both journals.
 - Verified: the fields against the schema; Prettier parses the file. Not yet deployed: the developer creates the Blueprint in Render.
-- Commit: `chore(deploy): a Render Blueprint for a live demo on the free plan`.
-- Open: the first deploy on Render, and the link in the README.
+- Commit: `afc3c4a`.
+- Open: none; the service came up in S29.2.
 - Next: S29.2, the live link once the service is up.
+
+### S29.2 The live demo (2026-10-26)
+
+- Goal: the link to the running app, once the developer had created the Blueprint in Render.
+- Requirements: R4.1; D58.
+- Decisions: none new.
+- Read: the Blueprint's first sync in Render's dashboard (screenshots from the developer): commit `afc3c4a`, one web service created.
+- Changed: README (the live link at the top; a line beyond the brief; the Render paragraph points at it), both journals.
+- Verified: on https://string-pipeline.onrender.com, `/`, `/sw.js`, `/registerSW.js`, the icons and `/v3/api-docs` answer 200 and `/swagger-ui.html` redirects; the manifest comes as `application/octet-stream`, as from the server in Docker; a run of the brief's chain returns `Real Python!`; `Accept-Language: de` gives the German catalog. `E2E_BASE_URL` with the live address: 34 end-to-end scenarios passed in 16 s, the `@service-worker` ones included.
+- Commit: `docs: the live demo on Render`.
+- Open: none.
+- Next: none planned; a new zip of a fresh clone.

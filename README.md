@@ -2,6 +2,8 @@
 
 A no-code web app for chaining string transformations: pick transformations, configure each one in a form, see the result of every step. The frontend is Vue 3 with TypeScript; the transformations are a Java 25 library behind a Spring Boot web API. Built as a take-home assignment for the Full-Stack Software Engineer position at KNIME.
 
+**Live demo: https://string-pipeline.onrender.com** — on Render's free plan, so after a quiet spell the first request takes about a minute while the server wakes up.
+
 ![The editor running the chain of the brief: Replace, then Append, from "Fake Python" to "Real Python!"](docs/images/editor.png)
 
 More screenshots: [a step with an error, at phone width](docs/images/editor-phone.png), [the dark theme](docs/images/editor-dark.png), [a Windows contrast theme](docs/images/editor-contrast.png), and [the editor in German](docs/images/editor-de.png). [Four short videos](#videos) show the setup, the tests, the app installed and offline, and its accessibility.
@@ -21,7 +23,7 @@ docker compose up --build
 
 The app runs on http://localhost:8080, with Swagger UI at http://localhost:8080/swagger-ui.html. The first build takes a few minutes; `PORT=9090 docker compose up --build` uses another port (in PowerShell, set `$env:PORT = 9090` first). Type a text, add steps with the search field under it, or open one of the examples next to the search; every step shows its own output.
 
-The same image runs on Render's free plan from `render.yaml`: in Render, New → Blueprint, then this repository (D58). A free instance sleeps after 15 minutes without traffic, and the next request wakes it in about a minute.
+The same image runs on Render's free plan from `render.yaml`, as the live demo does: in Render, New → Blueprint, then this repository (D58). A free instance sleeps after 15 minutes without traffic, and the next request wakes it in about a minute.
 
 Without Docker, start the API, then the frontend in a second terminal:
 
@@ -113,6 +115,7 @@ Added after the brief was done, each in commits of its own ([decisions](docs/dec
 - The page uses the whole window: the input and the search in a card at the top, the output at the bottom, and between them only the steps scroll, in two columns. A phone gets one column that scrolls as a whole, and the header keeps its layout in every language (D53).
 - A step can be dragged by its handle to another place in the chain. The buttons still move it from the keyboard or with a single tap (D54).
 - A run that fails, or a link that cannot be opened, pops up at the bottom right and goes away by itself. Several notices pile up, the newest in front, and spread out under the pointer (D55).
+- The app runs online, at https://string-pipeline.onrender.com, on Render's free plan from `render.yaml`; each push to main that changes the app deploys it again (D58).
 - The built app installs as an app of its own, and opens without the network: a service worker keeps its files and the catalog in each language. Runs still need the server. Chrome and Edge offer to install it from the address bar, in Docker or with `npm run preview` (D56).
 - Without the network, a run waits for it, whether the connection drops or the app opens without one, and goes on by itself once the network is back; the output and a notice say so meanwhile (D57).
 
