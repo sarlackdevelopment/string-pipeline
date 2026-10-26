@@ -92,10 +92,10 @@ Added after the brief was done, each in commits of its own ([decisions](docs/dec
 
 - A step can be turned off with the switch in its header. It keeps its place and its values, and the text passes through it unchanged (D48).
 - The address holds the chain, so a link opens the same chain anywhere, and Copy link copies it. Edits change the address in place, and Back returns to the chain before a followed link (D49).
-- Five example chains open with one click, under the search that adds steps. The server sends them with the catalog, the library's tests run each of them, and the frontend shows them as links (D50).
+- Five example chains open with one click, next to the search that adds steps. The server sends them with the catalog, the library's tests run each of them, and the frontend shows them as links (D50).
 - Light, dark, or the system's theme, chosen in the header and kept for the next visit. A page in the dark theme does not flash white while it loads (D51).
 - English, German or Russian, chosen in the header and kept for the next visit; a first visit follows the browser's languages. The app's own texts are in vue-i18n, the transformations' come from the server in the same language, and so do its messages (D52).
-- The page uses the whole window: the steps in two columns, and the header and the search stay in place while the chain scrolls between them. A phone gets one column that scrolls as a whole, and the header keeps its layout in every language (D53).
+- The page uses the whole window: the input and the search in a card at the top, the output at the bottom, and between them only the steps scroll, in two columns. A phone gets one column that scrolls as a whole, and the header keeps its layout in every language (D53).
 - A step can be dragged by its handle to another place in the chain. The buttons still move it from the keyboard or with a single tap (D54).
 - A run that fails, or a link that cannot be opened, pops up at the bottom right and goes away by itself. Several notices pile up, the newest in front, and spread out under the pointer (D55).
 

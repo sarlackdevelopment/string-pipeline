@@ -1,20 +1,20 @@
 # Beyond the brief; D53
 Feature: A layout that fits the window
   As a person who builds a long chain, on a large screen or on a phone
-  I want the search for steps to stay at hand and the page to fit my window
+  I want the input, the search for steps and the output to stay at hand, and the page to fit my window
   So that I can add and follow steps without scrolling back and forth
 
-  Scenario: Only the chain scrolls between the header and the search
+  Scenario: Only the steps scroll; the input, the search and the output stay in view
     Given a window of 1280 by 800 pixels
     And the editor is open
     When I add the step "Change case" 8 times
     And I type "Fake Python" as the input
     Then the output is "FAKE PYTHON"
-    And step 8 is out of view
+    And step 1 is out of view
     And the page itself does not scroll
-    When I scroll to the output
-    Then step 1 is out of view
-    And the header and the search for steps are in view
+    When I scroll to step 1
+    Then step 8 is out of view
+    And the header, the input, the search for steps and the output are in view
     And the page itself does not scroll
 
   Scenario: On a phone the page scrolls as a whole

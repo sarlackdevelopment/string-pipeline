@@ -3,7 +3,7 @@
  * Adds a step (R1.3, D28): a combobox that searches the catalog's transformations by name and description, grouped
  * by category. Its own value always stays empty, so the same transformation can be added twice in a row, and the
  * search field clears after each pick. The list opens inside the page, not at the end of the body, so it stays within
- * the page's landmarks (D15).
+ * the page's landmarks (D15). Its heading looks like the input's, with which it shares the card at the top (D53).
  */
 import { computed, useId, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -55,7 +55,9 @@ function pick(value: unknown): void {
 
 <template>
   <div ref="root" class="grid gap-2">
-    <label :for="id" class="text-sm font-semibold">{{ t('picker.label') }}</label>
+    <h2 class="text-sm font-semibold">
+      <label :for="id">{{ t('picker.label') }}</label>
+    </h2>
     <Combobox model-value="" :disabled="full" open-on-click @update:model-value="pick">
       <ComboboxAnchor>
         <ComboboxInput

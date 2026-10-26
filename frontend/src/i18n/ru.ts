@@ -28,6 +28,7 @@ export const ru: Messages = {
     tryAgain: 'Повторить',
     steps: 'Шаги',
     examples: 'Или откройте пример:',
+    noSteps: 'Шагов пока нет. Добавьте шаг через поиск выше или откройте пример.',
   },
   notices: {
     label: 'Уведомление',

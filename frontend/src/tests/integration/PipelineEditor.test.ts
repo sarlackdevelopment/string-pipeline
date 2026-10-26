@@ -104,12 +104,7 @@ describe('the pipeline editor', () => {
     await user.tab()
     expect(screen.getByRole('textbox', { name: 'Input' })).toHaveFocus()
     await user.keyboard('Fake Python')
-    await waitFor(() => expect(output()).toHaveTextContent('Fake Python'))
-    // The output's two buttons come next, then the search below the part that scrolls (D53).
-    await user.tab()
-    expect(screen.getByRole('button', { name: 'Copy link' })).toHaveFocus()
-    await user.tab()
-    expect(screen.getByRole('button', { name: 'Copy' })).toHaveFocus()
+    // The search is the next stop, in the card at the top (D53).
     await user.tab()
     expect(search).toHaveFocus()
 
@@ -124,9 +119,10 @@ describe('the pipeline editor', () => {
     await user.keyboard('Real')
     await waitFor(() => expect(output()).toHaveTextContent('Real Python'))
 
-    await user.tab()
-    await user.tab()
-    await user.tab()
+    // Back up to the search: Find, "Remove step 1", "Run step 1", the five examples, then the search.
+    for (let presses = 0; presses < 9; presses += 1) {
+      await user.tab({ shift: true })
+    }
     expect(search).toHaveFocus()
     await user.keyboard('append{Enter}')
     const append = await screen.findByRole('group', { name: 'Step 2: Append' })

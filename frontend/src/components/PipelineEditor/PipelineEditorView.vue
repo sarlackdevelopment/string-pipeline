@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
- * The editor's view (D2, D26, D53): the input, the steps and the output in the part that scrolls, and below it the
- * picker that adds a step with the examples. Props in, events out; the controller decides everything.
+ * The editor's view (D2, D26, D53): a card with the input and the picker that adds a step, the steps, the output as the
+ * footer, and the notices (D55). Props in, events out; the controller decides everything.
  */
 import { LoaderCircleIcon, TriangleAlertIcon } from '@lucide/vue'
 import { ToastProvider, ToastViewport } from 'reka-ui'
@@ -113,14 +113,12 @@ useDragToReorder(
 
   <!-- The notices pop up at the bottom right (D55): the provider holds them, the viewport is where they show. -->
   <ToastProvider v-else :limit="3" :label="t('notices.label')">
-    <div class="relative flex flex-1 flex-col shell:min-h-0">
-      <!-- In a window with room for it, the only part of the page that scrolls; the search and the examples stay below
-           it (D53). Relative, so that the texts kept for screen readers, positioned absolutely, scroll inside it too
-           instead of sticking out below the window and making the whole page scroll. -->
-      <div
-        class="relative flex-1 shell:min-h-0 shell:[scrollbar-gutter:stable] shell:overflow-y-auto"
-      >
-        <div class="page-width flex flex-col gap-4 py-6">
+    <!-- The text and the search that adds steps share a card at the top, the output is the footer, and in a window with
+         room for them both stay in view while only the steps scroll between them (D53). Like the header and the footer,
+         the parts that stay are white. -->
+    <div class="shrink-0 border-b bg-background">
+      <div class="page-width py-3">
+        <div class="grid gap-3 rounded-xl border bg-card p-4 text-card-foreground shadow-xs">
           <InputPanel
             :model-value="input"
             :max-length="catalogState.catalog.limits.maxInputLength"
@@ -128,6 +126,43 @@ useDragToReorder(
             @update:model-value="emit('setInput', $event)"
           />
 
+          <!-- The examples after the search, so the search is the next stop of the Tab key after the input. -->
+          <div class="grid items-end gap-x-6 gap-y-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <TransformationPicker
+              :catalog="catalogState.catalog"
+              :full="steps.length >= catalogState.catalog.limits.maxSteps"
+              :focus-request="searchFocus"
+              @add="emit('addStep', $event)"
+            />
+
+            <div
+              v-if="examples.length > 0"
+              class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm lg:pb-2"
+            >
+              <span :id="examplesLabelId" class="text-muted-foreground">{{
+                t('editor.examples')
+              }}</span>
+              <ul :aria-labelledby="examplesLabelId" class="flex flex-wrap gap-x-3 gap-y-1">
+                <li v-for="example in examples" :key="example.id">
+                  <a
+                    :href="example.href"
+                    class="rounded-sm font-medium underline decoration-muted-foreground/60 underline-offset-4 outline-none hover:decoration-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+                    >{{ example.name }}</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Relative, as the place of the notices' viewport and of the texts kept for screen readers that announce them,
+         which are positioned absolutely. -->
+    <div class="relative flex flex-1 flex-col shell:min-h-0">
+      <!-- In a window with room for it, the only part of the page that scrolls. -->
+      <div class="flex-1 shell:min-h-0 shell:[scrollbar-gutter:stable] shell:overflow-y-auto">
+        <div class="page-width py-4">
           <!-- Two columns from lg up; the chain still reads from left to right, row by row (D53). -->
           <section v-if="steps.length > 0" :aria-labelledby="stepsHeadingId">
             <h2 :id="stepsHeadingId" class="sr-only">{{ t('editor.steps') }}</h2>
@@ -153,18 +188,14 @@ useDragToReorder(
               </li>
             </ol>
           </section>
-
-          <OutputPanel
-            :result="result"
-            :is-updating="isUpdating"
-            :summary="summary"
-            :link="shareLink"
-          />
+          <p v-else class="py-8 text-center text-sm text-muted-foreground">
+            {{ t('editor.noSteps') }}
+          </p>
         </div>
       </div>
 
-      <!-- Fixed to a phone's screen; in a window with room for the fixed header and footer, at the bottom right of the
-           part that scrolls, so a notice never covers the search. -->
+      <!-- Fixed to a phone's screen; in a window with room for the fixed parts, at the bottom right of the part that
+           scrolls, so a notice never covers the output. -->
       <ToastViewport
         :label="noticesLabel"
         class="fixed right-4 bottom-4 left-4 z-50 outline-none sm:left-auto sm:w-96 shell:absolute"
@@ -176,36 +207,14 @@ useDragToReorder(
       />
     </div>
 
-    <!-- Below the part that scrolls, so the search is always at hand (D53). The input stays the first stop of the
-         Tab key after the header. -->
     <div class="shrink-0 border-t bg-background">
-      <div
-        class="page-width grid items-end gap-x-6 gap-y-3 py-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
-      >
-        <TransformationPicker
-          :catalog="catalogState.catalog"
-          :full="steps.length >= catalogState.catalog.limits.maxSteps"
-          :focus-request="searchFocus"
-          @add="emit('addStep', $event)"
+      <div class="page-width py-3">
+        <OutputPanel
+          :result="result"
+          :is-updating="isUpdating"
+          :summary="summary"
+          :link="shareLink"
         />
-
-        <div
-          v-if="examples.length > 0"
-          class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm lg:pb-2"
-        >
-          <span :id="examplesLabelId" class="text-muted-foreground">{{
-            t('editor.examples')
-          }}</span>
-          <ul :aria-labelledby="examplesLabelId" class="flex flex-wrap gap-x-3 gap-y-1">
-            <li v-for="example in examples" :key="example.id">
-              <a
-                :href="example.href"
-                class="rounded-sm font-medium underline decoration-muted-foreground/60 underline-offset-4 outline-none hover:decoration-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-                >{{ example.name }}</a
-              >
-            </li>
-          </ul>
-        </div>
       </div>
     </div>
   </ToastProvider>

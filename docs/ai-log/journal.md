@@ -541,4 +541,23 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** 256 Vitest tests; 30 end-to-end scenarios, 2 of them new, one of which waits for a notice to go by itself; format, lint, typecheck and build.
 
-**Commit.** `feat(ui): notices pop up at the bottom right and go away by themselves`
+**Commit.** `0eb6673 feat(ui): notices pop up at the bottom right and go away by themselves`
+
+## Step 24.2. Only the steps scroll (2026-10-26)
+
+**Asked.** The rest of the notes from step 24.1: "Add a step" under the input, in one frame and in the same style; the output as the footer; only the steps scrolling, everything else always in view.
+
+**AI did.**
+
+- Under the header, one card now holds the input and, under it, "Add a step" with the same kind of heading; the examples sit next to the search on a wide screen and under it on a narrow one. The output is the footer, and between them only the steps scroll.
+- The parts that stay in view are white, like the header, and the steps scroll on the page's grey. A first version cut the steps off right under the card, which looked like a mistake; a white band with a border makes the edge clear.
+- To leave the steps room, the input grows with its text up to five lines and then scrolls, and so does the output. In a window lower than 640 pixels, measured so that the steps keep at least one row of cards, the page scrolls as a whole instead, as on a phone.
+- An empty chain shows a line that points at the search and the examples, instead of an empty grey area.
+- With the search right after the input, a keyboard user reaches it with one press of Tab; from a step it takes a few presses of Shift+Tab, which the keyboard test now walks.
+- The fix from step 23 against a page that scrolled by itself was no longer needed, since what caused it moved to the footer. It went; the test that guards against the problem stays.
+
+**Decided.** D53 revised.
+
+**Checked.** 256 Vitest tests and 30 end-to-end scenarios, with the layout's one rewritten; format, lint, typecheck and build; the screenshots taken again.
+
+**Commit.** `feat(ui): only the steps scroll; input, search and output stay in view`

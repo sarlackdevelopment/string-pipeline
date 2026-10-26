@@ -3,7 +3,7 @@
  * The chain's final output (D13, D32), with a button that copies it and one that copies a link to the chain (D49).
  * While the next run is on its way, the previous output stays and is marked as updating. A live region under the
  * heading speaks the latest run in one sentence, and another one confirms a copy, which a changed button label alone
- * does not announce (D15).
+ * does not announce (D15). It is the page's footer, always in view (D53), so a long output scrolls inside its own box.
  */
 import { CheckIcon, CopyIcon, LoaderCircleIcon } from '@lucide/vue'
 import { useClipboard } from '@vueuse/core'
@@ -37,10 +37,7 @@ function copyOutput(): void {
 </script>
 
 <template>
-  <section
-    :aria-labelledby="headingId"
-    class="grid gap-2 rounded-xl border bg-card p-4 text-card-foreground shadow-xs"
-  >
+  <section :aria-labelledby="headingId" class="grid gap-2">
     <div class="flex min-h-7 items-center justify-between gap-2">
       <div class="grid gap-0.5">
         <h2 :id="headingId" class="text-sm font-semibold">{{ t('output.label') }}</h2>
@@ -71,7 +68,7 @@ function copyOutput(): void {
     </div>
     <pre
       v-if="output !== null"
-      class="max-h-96 overflow-auto rounded-lg bg-muted px-3 py-2 font-mono text-sm break-words whitespace-pre-wrap"
+      class="max-h-32 overflow-auto rounded-lg bg-muted px-3 py-2 font-mono text-sm break-words whitespace-pre-wrap"
     ><template v-if="output !== ''">{{ output }}</template><span v-else class="font-sans text-foreground/60 italic">{{ t('output.emptyText') }}</span></pre>
     <p v-else class="text-sm text-muted-foreground">
       {{ result === undefined ? t('output.none') : t('output.waiting') }}

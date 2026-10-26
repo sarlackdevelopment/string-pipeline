@@ -29,6 +29,8 @@ export const de: Messages = {
     tryAgain: 'Erneut versuchen',
     steps: 'Schritte',
     examples: 'Oder ein Beispiel öffnen:',
+    noSteps:
+      'Noch keine Schritte. Fügen Sie über die Suche oben einen hinzu oder öffnen Sie ein Beispiel.',
   },
   notices: {
     label: 'Benachrichtigung',

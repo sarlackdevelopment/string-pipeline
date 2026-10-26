@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
  * The text the chain starts from (R1.2). Its length is capped by the catalog's limit (D21) and counted as the server
- * counts it: in UTF-16 code units, like `maxlength`.
+ * counts it: in UTF-16 code units, like `maxlength`. It shares the card at the top with the search that adds steps, so it
+ * stays in view (D53): the field grows with its text up to five lines, then scrolls.
  */
 import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -28,7 +29,7 @@ const describedBy = computed(() => (props.errors.length > 0 ? `${countId} ${erro
 </script>
 
 <template>
-  <section class="grid gap-2 rounded-xl border bg-card p-4 text-card-foreground shadow-xs">
+  <section class="grid gap-2">
     <div class="flex items-baseline justify-between gap-2">
       <h2 class="text-sm font-semibold">
         <label :for="id">{{ t('input.label') }}</label>
@@ -39,8 +40,8 @@ const describedBy = computed(() => (props.errors.length > 0 ? `${countId} ${erro
       :id="id"
       :model-value="text"
       :maxlength="maxLength"
-      rows="4"
-      class="max-h-80 font-mono"
+      rows="2"
+      class="max-h-32 font-mono"
       spellcheck="false"
       :placeholder="t('input.placeholder')"
       :aria-invalid="errors.length > 0"

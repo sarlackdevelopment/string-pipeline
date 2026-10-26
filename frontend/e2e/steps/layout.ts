@@ -3,7 +3,7 @@
  */
 import { expect, type Page } from '@playwright/test'
 import { createBdd } from 'playwright-bdd'
-import { addStep, languageSelect, output, search, step } from '../support/editor'
+import { addStep, input, languageSelect, output, search, step } from '../support/editor'
 
 const { Given, When, Then } = createBdd()
 
@@ -22,17 +22,18 @@ When('I add the step {string} {int} times', async ({ page }, name: string, times
   }
 })
 
-When('I scroll to the output', async ({ page }) => {
-  await output(page).scrollIntoViewIfNeeded()
+When('I scroll to step {int}', async ({ page }, position: number) => {
+  await step(page, position).scrollIntoViewIfNeeded()
 })
 
 Then('step {int} is out of view', async ({ page }, position: number) => {
   await expect(step(page, position)).not.toBeInViewport()
 })
 
-Then('the header and the search for steps are in view', async ({ page }) => {
-  await expect(page.getByRole('banner')).toBeInViewport({ ratio: 1 })
-  await expect(search(page)).toBeInViewport({ ratio: 1 })
+Then('the header, the input, the search for steps and the output are in view', async ({ page }) => {
+  for (const part of [page.getByRole('banner'), input(page), search(page), output(page)]) {
+    await expect(part).toBeInViewport({ ratio: 1 })
+  }
 })
 
 Then('the page itself does not scroll', async ({ page }) => {

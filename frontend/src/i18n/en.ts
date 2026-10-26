@@ -28,6 +28,7 @@ export const en = {
     tryAgain: 'Try again',
     steps: 'Steps',
     examples: 'Or open an example:',
+    noSteps: 'No steps yet. Add one with the search above, or open an example.',
   },
   notices: {
     label: 'Notification',

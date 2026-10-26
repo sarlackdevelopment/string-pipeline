@@ -75,12 +75,12 @@
 }
 
 /*
- * A window with room for the fixed header and footer of the app (D53): at least md wide and 36rem tall. In a smaller
- * one, such as a phone held either way, they would leave the part that scrolls only a strip, so the page scrolls as a
- * whole there.
+ * A window with room for the parts of the page that stay in view (D53): at least md wide and 40rem tall. In a smaller
+ * one, such as a phone held either way or a short laptop window, they would leave the steps only a strip, so the page
+ * scrolls as a whole there.
  */
 @custom-variant shell {
-  @media (width >= theme(--breakpoint-md)) and (height >= 36rem) {
+  @media (width >= theme(--breakpoint-md)) and (height >= 40rem) {
     @slot;
   }
 }
@@ -94,7 +94,7 @@
   }
 }
 
-/* The width of the page's content, shared by the header, the area that scrolls and the editor's footer (D53). */
+/* The width of the page's content, shared by the header and every part of the editor (D53). */
 @utility page-width {
   width: 100%;
   max-width: var(--breakpoint-2xl);
