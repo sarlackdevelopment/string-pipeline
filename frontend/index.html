@@ -3,9 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- The SVG for current browsers, the PNG for those that do not show SVG icons. -->
+    <!-- The SVG for current browsers, the PNG for those that do not show SVG icons, and a square for the home screen of
+         an iPhone, which rounds the corners itself. The other icons are in the manifest that the build adds (D56). -->
     <link rel="icon" href="/favicon.png" sizes="32x32" type="image/png" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+    <!-- The colour of the browser's bar and of the installed app's title bar: the header's, in the system's theme. -->
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
     <title>String Pipeline</title>
     <script>
       // The theme before the first paint (D51), so a dark page does not flash white while the app loads. The app's

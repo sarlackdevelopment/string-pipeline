@@ -3,7 +3,6 @@
  */
 import AxeBuilder from '@axe-core/playwright'
 import { expect } from '@playwright/test'
-import { createBdd } from 'playwright-bdd'
 import {
   addStepWithKeyboard,
   field,
@@ -14,8 +13,7 @@ import {
   search,
   themeOption,
 } from '../support/editor'
-
-const { Given, When, Then } = createBdd()
+import { Given, When, Then } from '../support/test'
 
 Given('the page uses forced colours', async ({ page }) => {
   await page.emulateMedia({ forcedColors: 'active' })

@@ -3,10 +3,8 @@
  * in place of the server.
  */
 import { expect } from '@playwright/test'
-import { createBdd } from 'playwright-bdd'
 import { notices } from '../support/editor'
-
-const { Given, When, Then } = createBdd()
+import { Given, When, Then } from '../support/test'
 
 Given('the server fails every run', async ({ page }) => {
   await page.route('**/api/runs', (route) =>

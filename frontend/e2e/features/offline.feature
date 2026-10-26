@@ -1,0 +1,19 @@
+# Beyond the brief; D56
+Feature: Work without the network
+  As a person who builds a chain on the go
+  I want the app to open while the network is gone
+  So that a weak or a lost connection does not stop my work
+
+  @service-worker
+  Scenario: The app opens without the network once it has been open with it
+    Given the editor has been open with the network
+    When the network is gone
+    And I reload the page
+    And I add the step "Replace"
+    Then step 1 is "Replace"
+
+  @service-worker
+  Scenario: The server's own pages do not turn into the app
+    Given the editor has been open with the network
+    When I open the address "/api/catalog"
+    Then the page shows the server's JSON, not the app

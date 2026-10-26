@@ -575,4 +575,24 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** The README's format; the commands as the README now gives them ran in PowerShell 7 for the video.
 
-**Commit.** `docs: the search sits under the input; gradlew.bat in cmd and PowerShell`
+**Commit.** `77cd9f5 docs: the search sits under the input; gradlew.bat in cmd and PowerShell`
+
+## Step 26.1. The app installs and opens without the network (2026-10-26)
+
+**Asked.** Whether it would take long to make the app work without the network, or on a very weak one, as a PWA. The AI answered that an app that installs and opens offline, with the catalog it saw last, is one step; running the transformations without the server would take a second implementation of them in TypeScript, or the Java library compiled to WebAssembly, and it advised against both. The developer asked for the basic PWA.
+
+**AI did.**
+
+- The app installs as an app of its own: a manifest, and icons rendered from the favicon.
+- A service worker keeps the built app and opens it without the network. It answers only the app's own page: in Docker, Swagger UI and the API live at the same address, and a worker that answered every page would have shown the app in their place. With the server serving the built app as Docker does, Swagger UI was checked by hand, and a test checks that the API's address stays the server's.
+- The catalog comes from the server when it answers within 3 seconds, else from the copy of the last time, in each language. Runs are never kept: they need the server.
+- On a first visit the app loads the catalog before the worker exists, so the worker had no copy of it, and the app would not have opened offline after one visit. The app now loads the catalog once more when the worker takes over; a test fails without it.
+- A new version takes over at once, not after a prompt, as the AI had first suggested: the page loads all its files at the start, so none can go missing, and with a prompt a plain reload would have kept the old version.
+- The end-to-end tests block service workers, except in the scenarios about them: Playwright's stand-ins for the server do not see what a worker answers.
+- Installing the plugin made npm warn that one of its dependencies, glob 11, is deprecated "with widely publicized security vulnerabilities"; an override gives it the current glob, which it calls the same way.
+
+**Decided.** D56.
+
+**Checked.** 259 Vitest tests and 32 end-to-end scenarios; three deliberate breaks of the offline setup each failed a scenario; the offline scenarios against the server serving the built app on a spare port; format, lint, typecheck and build.
+
+**Commit.** `feat(pwa): the app installs and opens without the network`

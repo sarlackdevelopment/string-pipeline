@@ -2,7 +2,6 @@
  * The steps of building a chain. Elements are found by role and name; texts are read inside them.
  */
 import { expect } from '@playwright/test'
-import { createBdd } from 'playwright-bdd'
 import {
   addStep,
   dragStep,
@@ -15,8 +14,7 @@ import {
   step,
   typeInput,
 } from '../support/editor'
-
-const { Given, When, Then } = createBdd()
+import { Given, When, Then } from '../support/test'
 
 Given('the editor is open', async ({ page }) => {
   await openEditor(page)

@@ -4,12 +4,12 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 
 ## Current state
 
-- Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, eight extras beyond the brief (turning a step off, the chain in the URL, example chains, themes, languages, a layout for the whole window, drag and drop, notices) and the final check. The delivery is a zip of a fresh clone of the last commit (D24).
-- Last commit: `docs: the search sits under the input; gradlew.bat in cmd and PowerShell`. Branch `main`, no remote. Commits use the repository's own `user.email`.
+- Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, nine extras beyond the brief (turning a step off, the chain in the URL, example chains, themes, languages, a layout for the whole window, drag and drop, notices, an app that works offline) and the final check. The delivery is a zip of a fresh clone of the last commit (D24).
+- Last commit: `feat(pwa): the app installs and opens without the network`. Branch `main`, no remote. Commits use the repository's own `user.email`.
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once). `docker compose up --build` serves the app on 8080, or on `PORT`; `E2E_BASE_URL=http://localhost:<port> npm run test:e2e` runs the features against it.
-- Tests: Java 275 (library 238, server 37); frontend 256 in 32 files (unit 161, component 76, integration 19); end to end 30 scenarios in 8 features.
+- Tests: Java 275 (library 238, server 37); frontend 259 in 33 files (unit 164, component 76, integration 19); end to end 32 scenarios in 9 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+. Docker Desktop with Compose for the image.
-- Next step: none planned; a new zip of a fresh clone, made with the script that keeps Unix permissions (S20).
+- Next step: S26.2, a run that waits for the network and says so; then a new zip of a fresh clone, made with the script that keeps Unix permissions (S20).
 - Open questions: none.
 - Working rules: requirement IDs live in `docs/requirements.md`, decisions in `docs/decisions.md`, the design in `docs/design.md`, the API examples in `contract/`. Every step appends to both journals in the same commit as the code. Conventional Commits with a body (what, why, IDs, test counts) and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The developer reviews every step before the next one starts. The work continues in the planning session (D25).
 
@@ -395,6 +395,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: the README's "Running the app" against the layout of S24.2 and against the commands as they ran in PowerShell 7 for the video.
 - Changed: `README.md` ("Running the app": the search sits under the input and the examples next to it, no longer under the steps; without Docker, cmd and PowerShell start the API with `.\gradlew.bat :server:bootRun` and run the frontend's three commands one after another), both journals.
 - Verified: format check of the README; the commands as written ran in a fresh clone under PowerShell 7 for the video.
-- Commit: `docs: the search sits under the input; gradlew.bat in cmd and PowerShell`.
+- Commit: `77cd9f5`.
 - Open: none.
 - Next: none planned; the video of the tests, outside the repository.
+
+### S26.1 The app installs and opens without the network (2026-10-26)
+
+- Goal: the developer asked whether the app could work without the network or on a very weak one. A basic PWA was offered as one step and asked for; running the transformations without the server was advised against (D56, rejected).
+- Requirements: R4.1; D22, D47, D52.
+- Decisions: D56.
+- Read: vite-plugin-pwa 2.0's defaults and registration code (`autoUpdate` with the script that `injectRegister` adds: `skipWaiting` and `clientsClaim`, and no reload, which only its virtual modules do); Workbox's NetworkFirst (a late answer still updates the cache; without a copy it waits for the network) and NavigationRoute (the allowlist is matched against path and query); Playwright's offline mode, which in Chromium reaches the service worker's own requests; playwright-bdd 9, where `importTestFrom` is deprecated: the steps take their functions from the test, whose file the steps pattern includes.
+- Changed: `package.json` (vite-plugin-pwa 2.0 as a dev dependency; an override that gives workbox-build glob 13, since npm warned that its glob 11 is deprecated, and it only calls `globSync`), `vite.config.ts` (VitePWA: the manifest, `includeAssets`, the allowlist, NetworkFirst for the catalog), `index.html` (the Apple icon, theme colours for light and dark), `public/` (four PNG icons, rendered from the favicon with a throwaway script), `queries/catalog.ts` (`keepCatalogForOffline`), `main.ts`, `e2e/support/test.ts` (the test, with service workers blocked except for `@service-worker`, and the step functions), every steps file (their functions from it), `playwright.config.ts` (the steps pattern includes it), `e2e/features/offline.feature`, `e2e/steps/offline.ts`, `tests/unit/queries/catalog.test.ts`. Decisions (D56), design (section 7: Offline; section 8), requirements, README (beyond the brief, `npm run preview`, the counts, D1–D56), both journals.
+- Verified: 259 Vitest tests in 33 files (unit 164, component 76, integration 19); 32 end-to-end scenarios in 9 features. Three mutations each failed an offline scenario: NetworkOnly for the catalog, no allowlist, no second load of the catalog. With the server serving `frontend/dist` on port 8095, as in Docker, the offline scenarios passed through `E2E_BASE_URL`, and a throwaway probe found Swagger UI still Swagger UI while the worker controlled the page; the manifest came as `application/octet-stream`, which browsers accept. The build precaches 13 files, 616 KiB. Format, lint, typecheck, build.
+- Commit: `feat(pwa): the app installs and opens without the network`.
+- Open: none.
+- Next: S26.2, a run that waits for the network and says so.

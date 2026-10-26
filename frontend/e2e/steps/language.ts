@@ -2,10 +2,8 @@
  * The steps of the interface's language (D52).
  */
 import { expect } from '@playwright/test'
-import { createBdd } from 'playwright-bdd'
 import { escapeForRegExp, languageSelect, search } from '../support/editor'
-
-const { Given, When, Then } = createBdd()
+import { Given, When, Then } from '../support/test'
 
 // The app reads the browser's languages as it starts, so they are set before the page loads.
 Given('the browser prefers German', async ({ page }) => {

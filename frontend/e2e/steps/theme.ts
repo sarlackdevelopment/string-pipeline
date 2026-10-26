@@ -2,10 +2,8 @@
  * The steps of choosing a theme (D51).
  */
 import { expect, type Page } from '@playwright/test'
-import { createBdd } from 'playwright-bdd'
 import { search, themeOption } from '../support/editor'
-
-const { Given, When, Then } = createBdd()
+import { Given, When, Then } from '../support/test'
 
 const linear = (byte: number): number => {
   const channel = byte / 255

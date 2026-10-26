@@ -2,10 +2,8 @@
  * The steps of the layout (D53): what stays in view while the chain scrolls, and the header in every language.
  */
 import { expect, type Page } from '@playwright/test'
-import { createBdd } from 'playwright-bdd'
 import { addStep, input, languageSelect, output, search, step } from '../support/editor'
-
-const { Given, When, Then } = createBdd()
+import { Given, When, Then } from '../support/test'
 
 /** How far the page itself scrolls; 0 when it is as high as the window. */
 async function pageOverflow(page: Page): Promise<number> {

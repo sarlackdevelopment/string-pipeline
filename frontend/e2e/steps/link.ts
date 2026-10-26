@@ -2,10 +2,8 @@
  * The steps of links: sharing a chain (D49), and the examples, which are links to chains too (D50).
  */
 import { expect } from '@playwright/test'
-import { createBdd } from 'playwright-bdd'
 import { input, search, steps } from '../support/editor'
-
-const { When, Then } = createBdd()
+import { When, Then } from '../support/test'
 
 // A fresh page, not the same one: the link has to carry the whole chain on its own.
 When('I copy the link to the chain and open it in a fresh page', async ({ page, context }) => {

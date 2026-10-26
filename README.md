@@ -33,7 +33,7 @@ The app then runs on http://localhost:5173, and Vite's dev server forwards `/api
 ## Documentation
 
 - [Requirements](docs/requirements.md): the brief as numbered requirements, R1.1–R4.4
-- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D52
+- [Decisions](docs/decisions.md): how we read the brief and why we chose what we chose, D1–D56
 - [Design](docs/design.md): the API, the transformations, the library, the server and the frontend
 - [API contract](contract/README.md): example requests and responses that the Java and TypeScript tests share
 - [AI usage log](docs/ai-log/README.md): every step taken with the AI assistant, for people and for agents
@@ -53,7 +53,7 @@ The app was built step by step with Claude Code, running Claude Opus 5.5. The de
 - **The library** gives every step a result: `Executed`, `NotConfigured`, `InvalidParameters`, `Failed` or `NotRun`. Problems are data, not exceptions, and every step's parameters are checked before any step runs, so a chain shows all its configuration problems at once. Texts are data too: a key and its values, which the caller renders in English, German or Russian. A transformation is one class that declares its parameters; `BuiltIns` lists the transformations and the example chains.
 - **The web API** has two endpoints. The catalog describes each transformation's parameters as JSON Schema, and a run returns a result for every step. A malformed request gets Problem Details with JSON pointers to its fields. Both answer in the language that `Accept-Language` asks for. An ArchUnit test keeps the server on the library's public API.
 - **The frontend** builds every form from the catalog and knows no transformation by name (R2.1). Pinia holds the chain, TanStack Query the server's answers, zod checks each answer at the boundary, vue-i18n holds the app's own texts, and SortableJS drags the steps. A component with behaviour is split into a model of pure functions, a controller, a view and a container. The UI kit is shadcn-vue on Reka UI.
-- **Tests** cover every layer: 275 in Java, 256 Vitest tests in the frontend (unit, component, and integration against a stand-in API), and 30 end-to-end scenarios in Gherkin that run Chromium against the real API.
+- **Tests** cover every layer: 275 in Java, 259 Vitest tests in the frontend (unit, component, and integration against a stand-in API), and 32 end-to-end scenarios in Gherkin that run Chromium against the real API.
 
 ## Worth a look
 
@@ -98,6 +98,7 @@ Added after the brief was done, each in commits of its own ([decisions](docs/dec
 - The page uses the whole window: the input and the search in a card at the top, the output at the bottom, and between them only the steps scroll, in two columns. A phone gets one column that scrolls as a whole, and the header keeps its layout in every language (D53).
 - A step can be dragged by its handle to another place in the chain. The buttons still move it from the keyboard or with a single tap (D54).
 - A run that fails, or a link that cannot be opened, pops up at the bottom right and goes away by itself. Several notices pile up, the newest in front, and spread out under the pointer (D55).
+- The built app installs as an app of its own, and opens without the network: a service worker keeps its files and the catalog in each language. Runs still need the server. Chrome and Edge offer to install it from the address bar, in Docker or with `npm run preview` (D56).
 
 ## Using the library
 
@@ -152,6 +153,7 @@ From `frontend/`, after `npm ci`:
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `npm run dev`                     | Starts the dev server on http://localhost:5173; it forwards `/api` to the API on port 8080                  |
 | `npm run build`                   | Type-checks and builds the production bundle into `frontend/dist`                                           |
+| `npm run preview`                 | Serves the built app with its service worker on http://localhost:4173 (D56); `/api` goes to port 8080       |
 | `npm test`                        | Runs every Vitest suite: unit, component and integration; `npm run test:coverage` adds a V8 coverage report |
 | `npm run test:unit`               | Runs only the unit tests: the model, the store, the API client, the queries and the controller              |
 | `npm run test:e2e`                | Runs the Gherkin features in `e2e/` in Chromium against the real API and the built app (needs a JDK)        |

@@ -4,10 +4,56 @@
 import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
+import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
-  plugins: [vue(), tailwindcss()],
+  plugins: [
+    vue(),
+    tailwindcss(),
+    // The app installs, and opens without the network (D56): Workbox writes a service worker at build time that keeps
+    // the built files and the catalog. Runs always go to the server. `npm run dev` has no service worker.
+    VitePWA({
+      // A new version installs in the background and takes over at once. A page that is already open keeps the files
+      // it started with, which are all of them; the next page that opens gets the new version.
+      registerType: 'autoUpdate',
+      // The files of public/ that the manifest does not name, kept with the build's own.
+      includeAssets: ['favicon.svg', 'favicon.png', 'apple-touch-icon-180x180.png'],
+      manifest: {
+        id: '/',
+        name: 'String Pipeline',
+        short_name: 'Pipeline',
+        description: 'Chain text transformations without writing code.',
+        theme_color: '#ffffff',
+        background_color: '#ffffff',
+        icons: [
+          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          {
+            src: 'maskable-icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+      },
+      workbox: {
+        // Only the app's own page. Docker serves the API and Swagger UI from the same origin (D22), and they always
+        // come from the server.
+        navigateFallbackAllowlist: [/^\/$/],
+        runtimeCaching: [
+          {
+            // The catalog: from the server when it answers within 3 seconds, else the copy kept from the last time. The
+            // server names the language in Vary (D52), so the cache keeps one copy per language. The function runs in
+            // the worker, where the app's CATALOG_PATH does not exist, so it spells the path out.
+            urlPattern: ({ sameOrigin, url }) => sameOrigin && url.pathname === '/api/catalog',
+            handler: 'NetworkFirst',
+            options: { cacheName: 'catalog', networkTimeoutSeconds: 3 },
+          },
+        ],
+      },
+    }),
+  ],
   // vue-i18n's build flags (D52): only the Composition API, so its legacy API stays out of the bundle; messages are
   // compiled in the browser, and devtools are off in production.
   define: {

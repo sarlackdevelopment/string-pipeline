@@ -18,7 +18,8 @@ const runningApp = process.env.E2E_BASE_URL
 
 const featuresDir = defineBddConfig({
   features: 'e2e/features/*.feature',
-  steps: 'e2e/steps/*.ts',
+  // With the test that the steps are defined on, which blocks service workers outside the features about them (D56).
+  steps: ['e2e/steps/*.ts', 'e2e/support/test.ts'],
 })
 
 export default defineConfig({
