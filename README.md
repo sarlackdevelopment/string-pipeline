@@ -4,7 +4,7 @@ A no-code web app for chaining string transformations: pick transformations, con
 
 ![The editor running the chain of the brief: Replace, then Append, from "Fake Python" to "Real Python!"](docs/images/editor.png)
 
-More screenshots: [a step with an error, at phone width](docs/images/editor-phone.png), [the dark theme](docs/images/editor-dark.png), [a Windows contrast theme](docs/images/editor-contrast.png), and [the editor in German](docs/images/editor-de.png).
+More screenshots: [a step with an error, at phone width](docs/images/editor-phone.png), [the dark theme](docs/images/editor-dark.png), [a Windows contrast theme](docs/images/editor-contrast.png), and [the editor in German](docs/images/editor-de.png). [Four short videos](#videos) show the setup, the tests, the app installed and offline, and its accessibility.
 
 ## Prerequisites
 
@@ -29,6 +29,19 @@ cd frontend && npm ci && npm run dev
 ```
 
 The app then runs on http://localhost:5173, and Vite's dev server forwards `/api` to the API on port 8080. In cmd or PowerShell, start the API with `.\gradlew.bat :server:bootRun`, and run the frontend's three commands one after another.
+
+## Videos
+
+Four short videos in `docs/videos`, recorded on Windows 11 from the commands and the app as they really ran:
+
+| Video                                                          | Length | What it shows                                                                                                                                                                                                           |
+| -------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Setup from a fresh clone](docs/videos/setup-from-a-clone.mp4) | 1:06   | Two terminals: `git clone`, the API with Gradle, `npm ci` and `npm run dev`; then an example chain runs in the browser                                                                                                  |
+| [The tests](docs/videos/tests.mp4)                             | 2:20   | The backend's tests with Gradle's reports, the three kinds of Vitest tests, and the end-to-end features in Playwright's UI mode, one of them played back step by step                                                   |
+| [Installed and offline](docs/videos/install-and-offline.mp4)   | 1:26   | `docker compose up --build`, the app installed from the address bar, and DevTools taking the network away: a run waits, the page reloads from the service worker, and the chain runs by itself once the network is back |
+| [Accessibility](docs/videos/accessibility.mp4)                 | 1:26   | The keyboard alone, with what the browser gives a screen reader at every step, a Windows contrast theme, and zoom to 400 %                                                                                              |
+
+The terminals replay the commands' real output with its real timing, long waits shortened and marked as such; the app in the browser is live. What the recording browser cannot show, its install button and dialog and DevTools, is drawn, and so is the panel with what a screen reader gets, filled from Chromium's accessibility tree; each video says so at its end. The first two were recorded at `77cd9f5`, so their test counts are from that commit; the other two at `b56f445`.
 
 ## Documentation
 

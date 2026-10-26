@@ -628,4 +628,20 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** 266 Vitest tests and 34 end-to-end scenarios; five deliberate breaks each failed a test; format, lint, typecheck and build.
 
-**Commit.** `fix(ui): a page opened offline waits for the network, then runs`
+**Commit.** `b56f445 fix(ui): a page opened offline waits for the network, then runs`
+
+## Step 28.1. The videos in the repository (2026-10-26)
+
+**Asked.** In steps 25 to 27 the developer had the AI record four videos outside the repository: the setup from a fresh clone, the tests, the app installed and offline in Docker, and the editor with a keyboard, a screen reader, a contrast theme and zoom. The repository then went public on GitHub, at the developer's request. The developer asked to add the videos in a commit of their own, as a video guide to the setup and demonstrations of the PWA, the test suites and the accessibility features.
+
+**AI did.**
+
+- The videos go into `docs/videos`, encoded again at a lower quality setting that keeps the smallest text as sharp: 13 MB together instead of 24, so the repository and the zip stay light. The originals outside the repository are untouched.
+- A section of the README lists them, says what each one shows, and what in them is drawn rather than filmed. The first two were recorded at `77cd9f5` and show that commit's test counts.
+- How they were made: a headless Chromium films a page that frames the live app, Playwright drives the app, and ffmpeg turns the frames into a video. The terminals replay the commands' real output with its real timing, long waits shortened and marked. The accessibility video reads Chromium's accessibility tree through the DevTools protocol.
+
+**Decided.** Nothing new.
+
+**Checked.** The four videos play at 1080p, 66, 140, 86 and 86 seconds long; the README's links reach them; a crop of the smallest text matched the original by eye.
+
+**Commit.** `docs: videos of the setup, the tests, the offline app and accessibility`

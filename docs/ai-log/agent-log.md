@@ -5,7 +5,7 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 ## Current state
 
 - Phase: the brief is done end to end, with the harder transformations of D10, a one-command start, nine extras beyond the brief (turning a step off, the chain in the URL, example chains, themes, languages, a layout for the whole window, drag and drop, notices, an app that works offline) and the final check. The delivery is a zip of a fresh clone of the last commit (D24).
-- Last commit: `fix(ui): a page opened offline waits for the network, then runs`. Branch `main`, no remote. Commits use the repository's own `user.email`.
+- Last commit: `docs: videos of the setup, the tests, the offline app and accessibility`. Branch `main`, public on GitHub since step 28: https://github.com/sarlackdevelopment/string-pipeline (`origin`). Commits use the repository's own `user.email`.
 - Checks: `./gradlew build` green. In `frontend/`: `npm run format:check && npm run lint && npm run typecheck && npm test && npm run build` green; `npm run test:e2e` green (needs `npx playwright install --only-shell chromium` once). `docker compose up --build` serves the app on 8080, or on `PORT`; `E2E_BASE_URL=http://localhost:<port> npm run test:e2e` runs the features against it.
 - Tests: Java 275 (library 238, server 37); frontend 266 in 33 files (unit 167, component 78, integration 21); end to end 34 scenarios in 9 features.
 - Environment: Gradle needs `JAVA_HOME` pointing at a JDK 17+; the toolchain compiles with JDK 25. Node 24.15+. Docker Desktop with Compose for the image.
@@ -431,6 +431,18 @@ Handoff for agents. Read "Current state" first; every step below uses the same f
 - Read: TanStack Query's `onlineManager` (starts as online; listens to `online` and `offline`; a new document hears no `offline` event) and `refetch({ cancelRefetch: false })`; VueUse's `useOnline` (reads `navigator.onLine` at once, then the events). A throwaway Playwright probe logged an offline reload: `navigator.onLine` false, no `offline` event, two runs failed at once with `net::ERR_INTERNET_DISCONNECTED`, the second 380 ms after the first (the chain from the address, after its pause); after `online`, no run without the fix.
 - Changed: `queries/client.ts` (`isNetworkFailure`; `shouldRetry` takes whether the browser is online, and `createQueryClient` passes `navigator.onLine`), `queries/run.ts` (`waitsForNetwork` also for a network failure while offline, which counts as updating; a watch on `useOnline` sends it again), the controller (no run alert while the run waits for the network). Tests: `client.test.ts`, `run.test.ts`, `PipelineEditor.test.ts` (integration; the failing handler records the inputs, so the test waits for the run of "Hi" itself), `offline.feature` and `steps/offline.ts` (a page opened offline; the step waits for the failed run of the chain's input). Decisions (D57), design (section 7: Offline; section 8), requirements, README (beyond the brief, known issues, the counts), both journals.
 - Verified: 266 Vitest tests in 33 files (unit 167, component 78, integration 21); 34 end-to-end scenarios in 9 features. Five mutations each failed a test: no waiting after a failure, no run again on `online` (at first survived the integration test and the scenario, through the race above; both now kill it), the red notice as well, retries while offline. Format, lint, typecheck, build.
-- Commit: `fix(ui): a page opened offline waits for the network, then runs`.
+- Commit: `b56f445`.
 - Open: none.
 - Next: the video of the PWA again, outside the repository; then a new zip of a fresh clone.
+
+### S28.1 The videos in the repository (2026-10-26)
+
+- Goal: the four videos that the developer had recorded outside the repository in steps 25–27, into the repository, after it went public on GitHub at the developer's request.
+- Requirements: R4.1, R4.2.
+- Decisions: none new.
+- Read: the originals in the developer's folder for the videos; a CRF 23 and a CRF 26 encoding of the largest, compared on a crop of the smallest text.
+- Changed: `docs/videos/` (four MP4s, H.264 at CRF 26, 1080p, no audio, metadata stripped: `setup-from-a-clone.mp4` 2.3 MB, `tests.mp4` 4.3 MB, `install-and-offline.mp4` 3.5 MB, `accessibility.mp4` 2.6 MB), `README.md` (a pointer under the screenshots; a section "Videos" before "Documentation", with what is drawn and the commits they were recorded at), both journals.
+- Verified: the crop at CRF 26 matched CRF 18 by eye, at 55 % of the size; durations 66, 140, 86 and 86 s; the originals untouched.
+- Commit: `docs: videos of the setup, the tests, the offline app and accessibility`.
+- Open: none.
+- Next: none planned; a new zip of a fresh clone.
