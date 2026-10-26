@@ -5,6 +5,7 @@ import { expect } from '@playwright/test'
 import { createBdd } from 'playwright-bdd'
 import {
   addStep,
+  dragStep,
   escapeForRegExp,
   field,
   openEditor,
@@ -47,6 +48,15 @@ When(
 
 When('I turn off step {int}', async ({ page }, position: number) => {
   await runSwitch(page, position).uncheck()
+})
+
+When('I drag step {int} onto step {int}', async ({ page }, from: number, to: number) => {
+  await dragStep(page, from, to)
+})
+
+// The legend names a step by its position and its transformation: "Step 1: Replace".
+Then('step {int} is {string}', async ({ page }, position: number, name: string) => {
+  await expect(step(page, position)).toHaveAccessibleName(new RegExp(`: ${escapeForRegExp(name)}$`))
 })
 
 Then('step {int} shows {string}', async ({ page }, position: number, text: string) => {

@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   focusAfterAdding,
+  focusAfterDragging,
   focusAfterMoving,
   focusAfterRemoving,
 } from '@/components/PipelineEditor/model/focus'
@@ -50,6 +51,10 @@ describe('where the focus goes after an edit (D15)', () => {
       stepId: 'c',
       part: StepPart.card,
     })
+  })
+
+  it('goes to the step that was dragged to another place (D54)', () => {
+    expect(focusAfterDragging('b')).toEqual({ stepId: 'b', part: StepPart.card })
   })
 
   it('asks anew every time, so the same place can be asked for twice in a row', () => {

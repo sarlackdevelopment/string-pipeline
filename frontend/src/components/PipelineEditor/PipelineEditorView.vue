@@ -4,7 +4,7 @@
  * picker that adds a step with the examples. Props in, events out; the controller decides everything.
  */
 import { LoaderCircleIcon, TriangleAlertIcon } from '@lucide/vue'
-import { computed, useId } from 'vue'
+import { computed, useId, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import InputPanel from '@/components/InputPanel.vue'
 import OutputPanel from '@/components/OutputPanel.vue'
@@ -13,6 +13,7 @@ import type { StepPart } from '@/components/StepCard/types'
 import TransformationPicker from '@/components/TransformationPicker/TransformationPicker.vue'
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { useDragToReorder } from '@/composables/useDragToReorder'
 import type { FocusRequest } from '@/composables/useFocusRequest'
 import type { Direction, ParameterValue } from '@/model/chain'
 import type { RunResult } from '@/model/run'
@@ -53,6 +54,7 @@ const emit = defineEmits<{
   addStep: [transformationId: string]
   removeStep: [id: string]
   moveStep: [id: string, direction: Direction]
+  moveStepTo: [id: string, index: number]
   setValue: [id: string, name: string, value: ParameterValue]
   setEnabled: [id: string, enabled: boolean]
 }>()
@@ -69,6 +71,18 @@ function focusOfStep(stepId: string): FocusRequest<StepPart> | null {
 }
 
 const searchFocus = computed(() => (props.focusTarget?.part === SEARCH ? props.focusTarget : null))
+
+// A step dragged by its handle to another place (D54); the list is in the same order as the steps.
+const stepList = useTemplateRef<HTMLOListElement>('stepList')
+useDragToReorder(
+  () => stepList.value,
+  (from, to) => {
+    const step = props.steps[from]
+    if (step !== undefined) {
+      emit('moveStepTo', step.id, to)
+    }
+  },
+)
 </script>
 
 <template>
@@ -129,7 +143,7 @@ const searchFocus = computed(() => (props.focusTarget?.part === SEARCH ? props.f
         <!-- Two columns from lg up; the chain still reads from left to right, row by row (D53). -->
         <section v-if="steps.length > 0" :aria-labelledby="stepsHeadingId">
           <h2 :id="stepsHeadingId" class="sr-only">{{ t('editor.steps') }}</h2>
-          <ol class="grid gap-4 lg:grid-cols-2">
+          <ol ref="stepList" class="grid gap-4 lg:grid-cols-2">
             <li v-for="(step, index) in steps" :key="step.id" class="min-w-0">
               <StepCard
                 class="h-full"

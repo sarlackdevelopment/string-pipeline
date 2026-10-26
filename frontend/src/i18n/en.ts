@@ -46,6 +46,7 @@ export const en = {
     moveUp: 'Move step {number} up',
     moveDown: 'Move step {number} down',
     remove: 'Remove step {number}',
+    drag: 'Drag to move the step',
     output: 'Output of this step',
     off: 'This step is off, so the text passes through it unchanged.',
     waiting: 'This step runs once every step above it has run.',

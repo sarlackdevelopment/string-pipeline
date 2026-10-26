@@ -63,6 +63,16 @@ describe('the pipeline store (D29)', () => {
     })
   })
 
+  it('moves a step to another place, as a drag and drop does (D54)', () => {
+    const store = usePipelineStore()
+    const first = store.addStep(append)
+    const second = store.addStep(append)
+
+    store.moveStepTo(first, 1)
+
+    expect(store.chain.steps.map((step) => step.id)).toEqual([second, first])
+  })
+
   it('replaces the chain with one from a link, giving its steps new ids (D40, D49)', () => {
     const store = usePipelineStore()
     const before = store.addStep(append)

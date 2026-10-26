@@ -79,14 +79,20 @@ export function removeStep(chain: Chain, id: string): Chain {
 
 /** Swaps a step with its neighbour; at either end of the chain nothing changes. */
 export function moveStep(chain: Chain, id: string, direction: Direction): Chain {
+  return moveStepTo(chain, id, chain.steps.findIndex((step) => step.id === id) + direction)
+}
+
+/**
+ * Takes a step out and puts it back at `index`, as a drag and drop does (D54); the steps between move up or down by
+ * one. An index outside the chain changes nothing.
+ */
+export function moveStepTo(chain: Chain, id: string, index: number): Chain {
   const from = chain.steps.findIndex((step) => step.id === id)
-  const to = from + direction
   const moving = chain.steps[from]
-  const neighbour = chain.steps[to]
-  if (moving === undefined || neighbour === undefined) {
+  if (moving === undefined || index === from || chain.steps[index] === undefined) {
     return chain
   }
-  return { ...chain, steps: chain.steps.with(from, neighbour).with(to, moving) }
+  return { ...chain, steps: chain.steps.toSpliced(from, 1).toSpliced(index, 0, moving) }
 }
 
 export function setValue(chain: Chain, id: string, name: string, value: ParameterValue): Chain {

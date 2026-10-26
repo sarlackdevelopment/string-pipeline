@@ -38,6 +38,10 @@ export const usePipelineStore = defineStore('pipeline', () => {
     chain.value = chains.moveStep(chain.value, id, direction)
   }
 
+  function moveStepTo(id: string, index: number): void {
+    chain.value = chains.moveStepTo(chain.value, id, index)
+  }
+
   function setValue(id: string, name: string, value: chains.ParameterValue): void {
     chain.value = chains.setValue(chain.value, id, name, value)
   }
@@ -51,5 +55,5 @@ export const usePipelineStore = defineStore('pipeline', () => {
     chain.value = chains.withIds(content, nextId)
   }
 
-  return { chain, setInput, addStep, removeStep, moveStep, setValue, setEnabled, load }
+  return { chain, setInput, addStep, removeStep, moveStep, moveStepTo, setValue, setEnabled, load }
 })

@@ -47,6 +47,7 @@ export const de: Messages = {
     moveUp: 'Schritt {number} nach oben verschieben',
     moveDown: 'Schritt {number} nach unten verschieben',
     remove: 'Schritt {number} entfernen',
+    drag: 'Ziehen, um den Schritt zu verschieben',
     output: 'Ausgabe dieses Schritts',
     off: 'Dieser Schritt ist ausgeschaltet, der Text geht unverändert hindurch.',
     waiting: 'Dieser Schritt läuft, sobald alle Schritte darüber gelaufen sind.',

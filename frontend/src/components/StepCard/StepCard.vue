@@ -1,9 +1,16 @@
 <script setup lang="ts">
 /**
  * One step of the chain (D2, D12, D13, D15): a fieldset named after the step, its status, a switch that turns it off
- * (D48), buttons to move or remove it, the form of its parameters, and the step's own output.
+ * (D48), a handle to drag it to another place (D54), buttons to move or remove it, the form of its parameters, and the
+ * step's own output.
  */
-import { ArrowDownIcon, ArrowUpIcon, LoaderCircleIcon, Trash2Icon } from '@lucide/vue'
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  GripVerticalIcon,
+  LoaderCircleIcon,
+  Trash2Icon,
+} from '@lucide/vue'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ParameterForm from '@/components/ParameterForm/ParameterForm.vue'
@@ -80,8 +87,8 @@ const toneClasses: Record<Tone, string> = {
 </script>
 
 <template>
-  <!-- tabindex="-1": the card takes the focus only from code, after the step before it was removed or after it moved
-       to an end of the chain. -->
+  <!-- tabindex="-1": the card takes the focus only from code, after the step before it was removed, after it moved to
+       an end of the chain, or after it was dragged (D54). -->
   <!-- A step that is off gets a dashed border: a lighter card would push its text below a 4.5:1 contrast. -->
   <fieldset
     ref="card"
@@ -91,6 +98,17 @@ const toneClasses: Record<Tone, string> = {
       { 'border-dashed': !enabled },
     ]"
   >
+    <!-- For the pointer only, and only while the step can move: the buttons below move it from the keyboard, and with
+         a single tap (D54). -->
+    <span
+      v-if="canMoveUp || canMoveDown"
+      data-drag-handle
+      aria-hidden="true"
+      :title="t('step.drag')"
+      class="float-left -ml-1 flex h-7 w-5 cursor-grab touch-none items-center justify-center text-muted-foreground hover:text-foreground active:cursor-grabbing"
+    >
+      <GripVerticalIcon class="size-4" />
+    </span>
     <!-- Floated, so the legend sits inside the card instead of on its border. -->
     <legend class="float-left text-sm leading-7 font-semibold">
       {{ t('step.legend', { number, name: transformation.name }) }}

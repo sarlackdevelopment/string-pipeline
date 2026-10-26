@@ -1,6 +1,7 @@
 import userEvent from '@testing-library/user-event'
 import { render, screen, within } from '@testing-library/vue'
-import { describe, expect, it, vi } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import PipelineEditorView from '@/components/PipelineEditor/PipelineEditorView.vue'
 import { StepPart } from '@/components/StepCard/types'
 import {
@@ -14,6 +15,10 @@ import {
 import { Direction, type ParameterValue } from '@/model/chain'
 import { StepStatus } from '@/model/run'
 import { contractCatalog, contractTransformation } from '@/tests/helpers/contract'
+import { drag, forgetSortables, sortables } from '@/tests/helpers/sortable'
+
+vi.mock('sortablejs', () => import('@/tests/helpers/sortable'))
+afterEach(forgetSortables)
 
 const ready: CatalogState = { status: CatalogStatus.ready, catalog: contractCatalog() }
 
@@ -55,6 +60,7 @@ function renderView(options: ViewOptions = {}) {
     onAddStep: vi.fn<(transformationId: string) => void>(),
     onRemoveStep: vi.fn<(id: string) => void>(),
     onMoveStep: vi.fn<(id: string, direction: Direction) => void>(),
+    onMoveStepTo: vi.fn<(id: string, index: number) => void>(),
     onSetValue: vi.fn<(id: string, name: string, value: ParameterValue) => void>(),
     onSetEnabled: vi.fn<(id: string, enabled: boolean) => void>(),
   }
@@ -135,6 +141,22 @@ describe('PipelineEditorView (D2, D26)', () => {
       expect(onAddStep).toHaveBeenCalledExactlyOnceWith('prepend')
       expect(onMoveStep).toHaveBeenCalledExactlyOnceWith('s1', Direction.down)
       expect(onRemoveStep).toHaveBeenCalledExactlyOnceWith('s2')
+    })
+
+    it('reports a step dragged to another place, by the id of the step (D54)', async () => {
+      const { onMoveStepTo } = renderView()
+      await flushPromises()
+      const [sortable] = sortables
+      if (sortable === undefined) {
+        throw new Error('The steps cannot be dragged.')
+      }
+
+      drag(sortable, 1, 0)
+
+      expect(sortable.element).toBe(
+        screen.getByRole('region', { name: 'Steps' }).querySelector('ol'),
+      )
+      expect(onMoveStepTo).toHaveBeenCalledExactlyOnceWith('s2', 0)
     })
 
     it('reports turning a step off, with the id of the step (D48)', async () => {

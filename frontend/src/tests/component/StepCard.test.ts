@@ -83,6 +83,17 @@ describe('StepCard', () => {
     expect(screen.getByRole('button', { name: 'Move step 2 down' })).toBeDisabled()
   })
 
+  it('has a handle to drag it by, for the pointer only, while it can move (D54)', () => {
+    const { view } = renderCard({ canMoveUp: false })
+
+    const handle = screen.getByTitle('Drag to move the step')
+    expect(handle).toHaveAttribute('data-drag-handle')
+    expect(handle).toHaveAttribute('aria-hidden', 'true')
+    view.unmount()
+    renderCard({ canMoveUp: false, canMoveDown: false })
+    expect(screen.queryByTitle('Drag to move the step')).not.toBeInTheDocument()
+  })
+
   describe('turning it off (D48)', () => {
     it('turns itself off and on with a switch named after its position', async () => {
       const { user, view, onSetEnabled } = renderCard()

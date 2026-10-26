@@ -7,6 +7,7 @@ import {
   Direction,
   emptyChain,
   moveStep,
+  moveStepTo,
   removeStep,
   setEnabled,
   setInput,
@@ -103,12 +104,22 @@ describe('removing and moving steps', () => {
     expect(ids(moveStep(threeSteps(), 'b', Direction.down))).toEqual(['a', 'c', 'b'])
   })
 
+  it('moves a step to another place, the steps between moving aside, as a drag and drop does (D54)', () => {
+    expect(ids(moveStepTo(threeSteps(), 'a', 2))).toEqual(['b', 'c', 'a'])
+    expect(ids(moveStepTo(threeSteps(), 'c', 0))).toEqual(['c', 'a', 'b'])
+    expect(ids(moveStepTo(threeSteps(), 'c', 1))).toEqual(['a', 'c', 'b'])
+  })
+
   it('returns the same chain when nothing changes', () => {
     const chain = threeSteps()
 
     expect(moveStep(chain, 'a', Direction.up)).toBe(chain)
     expect(moveStep(chain, 'c', Direction.down)).toBe(chain)
     expect(moveStep(chain, 'missing', Direction.down)).toBe(chain)
+    expect(moveStepTo(chain, 'b', 1)).toBe(chain)
+    expect(moveStepTo(chain, 'b', 3)).toBe(chain)
+    expect(moveStepTo(chain, 'b', -1)).toBe(chain)
+    expect(moveStepTo(chain, 'missing', 0)).toBe(chain)
     expect(removeStep(chain, 'missing')).toBe(chain)
   })
 })

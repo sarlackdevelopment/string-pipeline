@@ -115,6 +115,33 @@ describe('the editor controller (D26)', () => {
         ]),
       )
     })
+
+    it('runs a step dragged to another place there, and asks for the focus on it (D54)', async () => {
+      serveCatalog()
+      serveRuns()
+      const editor = setup()
+      await ready(editor)
+      editor.setInput('a')
+      editor.addStep('append')
+      editor.addStep('replace')
+      const [append, replace] = editor.steps.value.map((step) => step.id)
+      if (append === undefined || replace === undefined) {
+        throw new Error('Two steps were added.')
+      }
+      editor.setValue(append, 'text', 'b')
+      editor.setValue(replace, 'old', 'ab')
+      editor.setValue(replace, 'new', 'X')
+
+      editor.moveStepTo(replace, 0)
+
+      expect(editor.focusTarget.value).toEqual({ stepId: replace, part: StepPart.card })
+      await vi.waitFor(() =>
+        expect(editor.steps.value.map((step) => [step.transformation.name, step.result])).toEqual([
+          ['Replace', { status: StepStatus.executed, output: 'a' }],
+          ['Append', { status: StepStatus.executed, output: 'ab' }],
+        ]),
+      )
+    })
   })
 
   describe('a step that is off (D48)', () => {

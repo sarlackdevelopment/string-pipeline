@@ -1,4 +1,4 @@
-# R1.3; D15, D48, D51, D52
+# R1.3; D15, D48, D51, D52, D54
 Feature: Use the editor with a keyboard and a screen reader
   As a person who uses a keyboard or a screen reader
   I want the editor to keep my place and tell me what happened
@@ -17,6 +17,7 @@ Feature: Use the editor with a keyboard and a screen reader
     When I type "Price: 5 EUR" as the input
     And I add the step "Regex replace"
     And I set "Pattern" to "(" in step 1
+    And I add the step "Append"
     And I open the list of transformations
     Then axe finds no accessibility violations
 

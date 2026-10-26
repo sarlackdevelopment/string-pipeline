@@ -504,4 +504,22 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** 244 Vitest tests; 27 end-to-end scenarios, 5 of them new; format, lint, typecheck and build. The first full end-to-end run, before the new feature, timed out in 6 scenarios while the machine was busy, the first one of each worker, on a server that had just started; the next run passed.
 
-**Commit.** `feat(ui): a fixed header and footer, steps in two columns, a favicon`
+**Commit.** `f2de558 feat(ui): a fixed header and footer, steps in two columns, a favicon`
+
+## Step 23.3. Drag and drop (2026-10-26)
+
+**Asked.** The last of the developer's notes from step 23.1: steps that can be dragged to another place.
+
+**AI did.**
+
+- Each step has a handle in its header, shown while the step can move. Dragging it moves the step anywhere in the chain, in one column or in two, and the chain runs in its new order.
+- The library is SortableJS, mature, small, and with no dependencies of its own, inside a composable of the app's own. The AI first installed VueUse's wrapper and read its source: it moves the array it is given, while here only the store changes the chain, so it would have added little but a dependency, and it was removed again.
+- SortableJS moves the element in the page itself, while Vue renders the list from the state. So at the drop the element goes back where it was, the store moves the step, and Vue moves the element. Where exactly it goes back matters: Vue marks the end of a list with an invisible node, and putting an element back by its position, as VueUse does, puts the last item behind that node, where a step added later would show up in the wrong place. A unit test plays SortableJS's part and fails with that way back.
+- The up and down buttons stay: they move a step from the keyboard, and with a single tap, as WCAG asks of anything done by dragging. The handle is hidden from screen readers, and the dragged step gets the focus.
+- An end-to-end scenario drags a step in Chromium and checks the new order and the new output. An axe scenario now has two steps, so it checks the handles too.
+
+**Decided.** D54, drag and drop; D2 revised again.
+
+**Checked.** 253 Vitest tests, 9 of them new; 28 end-to-end scenarios, 1 of them new; format, lint, typecheck, build (the libraries' chunk grew from 442 to 479 kB, still under Vite's warning), and `npm audit` with 0 vulnerabilities.
+
+**Commit.** `feat(ui): drag a step by its handle to another place`

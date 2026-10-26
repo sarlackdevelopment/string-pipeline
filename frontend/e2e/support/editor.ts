@@ -92,6 +92,21 @@ export async function addStep(page: Page, name: string): Promise<void> {
   await expect(added).toBeVisible()
 }
 
+/**
+ * Drags step `from` by its handle onto step `to`, as a mouse does (D54). It lets go over the top left quarter of the
+ * other step, so the dragged one lands in front of it, in one column or in two.
+ */
+export async function dragStep(page: Page, from: number, to: number): Promise<void> {
+  const target = step(page, to)
+  const box = await target.boundingBox()
+  if (box === null) {
+    throw new Error(`Step ${String(to)} is not on the page.`)
+  }
+  await step(page, from)
+    .locator('[data-drag-handle]')
+    .dragTo(target, { targetPosition: { x: box.width / 4, y: box.height / 4 } })
+}
+
 /** Adds a step as a keyboard user does: type the name, then Enter picks the first match. */
 export async function addStepWithKeyboard(page: Page, name: string): Promise<void> {
   const added = await nextStep(page, name)

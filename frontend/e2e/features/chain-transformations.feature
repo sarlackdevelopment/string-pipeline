@@ -1,4 +1,4 @@
-# R1.1, R1.2, R1.3, R2.1; D7, D9, D10, D12, D42, D48
+# R1.1, R1.2, R1.3, R2.1; D7, D9, D10, D12, D42, D48, D54
 Feature: Chain text transformations
   As a person who edits text but does not write code
   I want to chain transformations and set each one up in a form
@@ -28,6 +28,19 @@ Feature: Chain text transformations
     And I turn off step 1
     Then step 1 shows "Off"
     And the output is "Fake Python!"
+
+  Scenario: A step dragged to another place runs there
+    When I type "a" as the input
+    And I add the step "Append"
+    And I set "Text" to "b" in step 1
+    And I add the step "Replace"
+    And I set "Find" to "ab" in step 2
+    And I set "Replace with" to "X" in step 2
+    Then the output is "X"
+    When I drag step 2 onto step 1
+    Then step 1 is "Replace"
+    And step 2 is "Append"
+    And the output is "ab"
 
   Scenario: A pattern that Java cannot read is shown at its field
     When I type "Price: 5 EUR" as the input

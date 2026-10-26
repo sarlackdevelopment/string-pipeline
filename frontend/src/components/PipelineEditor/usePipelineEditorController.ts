@@ -16,7 +16,12 @@ import { useCatalog } from '@/queries/catalog'
 import { ApiFailure } from '@/queries/client'
 import { usePipelineRun } from '@/queries/run'
 import { usePipelineStore } from '@/stores/pipeline'
-import { focusAfterAdding, focusAfterMoving, focusAfterRemoving } from './model/focus'
+import {
+  focusAfterAdding,
+  focusAfterDragging,
+  focusAfterMoving,
+  focusAfterRemoving,
+} from './model/focus'
 import { failureMessage, linkProblemMessage } from './model/messages'
 import { runSummary } from './model/summary'
 import {
@@ -130,6 +135,11 @@ export function usePipelineEditorController() {
     focusTarget.value = focusAfterMoving(store.chain, id, direction)
   }
 
+  function moveStepTo(id: string, index: number): void {
+    store.moveStepTo(id, index)
+    focusTarget.value = focusAfterDragging(id)
+  }
+
   return {
     catalogState,
     input: computed(() => store.chain.input),
@@ -154,6 +164,7 @@ export function usePipelineEditorController() {
     addStep,
     removeStep,
     moveStep,
+    moveStepTo,
     setValue: store.setValue,
     setEnabled: store.setEnabled,
   }

@@ -25,6 +25,7 @@ const {
   addStep,
   removeStep,
   moveStep,
+  moveStepTo,
   setValue,
   setEnabled,
 } = usePipelineEditorController()
@@ -50,6 +51,7 @@ const {
     @add-step="addStep"
     @remove-step="removeStep"
     @move-step="moveStep"
+    @move-step-to="moveStepTo"
     @set-value="setValue"
     @set-enabled="setEnabled"
   />
