@@ -36,6 +36,8 @@ const props = defineProps<{
   steps: readonly StepItem[]
   result: RunResult | undefined
   isUpdating: boolean
+  /** The run waits for the network to come back (D57). */
+  waitsForNetwork: boolean
   runAlert: RunAlert | null
   /** The latest run in one sentence, for the live region (D15). */
   summary: string
@@ -203,6 +205,7 @@ useDragToReorder(
       <EditorNotices
         :run-alert="runAlert"
         :link-problem="linkProblem"
+        :waits-for-network="waitsForNetwork"
         @retry-run="emit('retryRun')"
       />
     </div>
@@ -212,6 +215,7 @@ useDragToReorder(
         <OutputPanel
           :result="result"
           :is-updating="isUpdating"
+          :waits-for-network="waitsForNetwork"
           :summary="summary"
           :link="shareLink"
         />

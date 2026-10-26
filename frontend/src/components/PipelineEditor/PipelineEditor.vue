@@ -13,6 +13,7 @@ const {
   steps,
   result,
   isUpdating,
+  waitsForNetwork,
   runAlert,
   summary,
   focusTarget,
@@ -39,6 +40,7 @@ const {
     :steps="steps"
     :result="result"
     :is-updating="isUpdating"
+    :waits-for-network="waitsForNetwork"
     :run-alert="runAlert"
     :summary="summary"
     :focus-target="focusTarget"

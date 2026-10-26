@@ -122,8 +122,17 @@ Then('the switch of step {int} shows that the step is off', async ({ page }, pos
   expect(colours?.thumb).not.toBe(colours?.card)
 })
 
-// A violation names the elements it found, so a failure says where to look.
+// A violation names the elements it found, so a failure says where to look. axe reads the colours as they are on
+// screen, so it waits until what moves has stopped, such as a notice that fades in; a spinner never stops.
 Then('axe finds no accessibility violations', async ({ page }) => {
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+        .map((animation) => animation.finished.catch(() => animation)),
+    ),
+  )
   const { violations } = await new AxeBuilder({ page }).analyze()
   expect(
     violations.map(

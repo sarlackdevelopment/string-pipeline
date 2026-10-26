@@ -147,6 +147,7 @@ export function usePipelineEditorController() {
     steps,
     result: run.result,
     isUpdating: run.isUpdating,
+    waitsForNetwork: run.waitsForNetwork,
     runAlert,
     summary,
     focusTarget,

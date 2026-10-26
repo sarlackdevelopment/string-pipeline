@@ -1,3 +1,4 @@
+import { onlineManager } from '@tanstack/vue-query'
 import userEvent from '@testing-library/user-event'
 import { screen, waitFor, within } from '@testing-library/vue'
 import { http, HttpResponse } from 'msw'
@@ -253,6 +254,27 @@ describe('the pipeline editor', () => {
     held.open()
     await waitFor(() => expect(step).toHaveTextContent('Executed'))
     expect(output()).not.toHaveTextContent('Updating')
+  })
+
+  it('holds a run while the browser is offline, says so, and runs it once the network is back (D57)', async () => {
+    serveCatalog()
+    serveRuns()
+    const { user } = await renderEditor()
+    await waitFor(() => expect(output()).toHaveTextContent('Empty text'))
+    onlineManager.setOnline(false)
+    onTestFinished(() => {
+      onlineManager.setOnline(true)
+    })
+
+    await user.type(screen.getByRole('textbox', { name: 'Input' }), 'Hi')
+
+    expect(await findNotice()).toHaveTextContent('No network connection')
+    expect(output()).toHaveTextContent('Waiting for the network')
+    expect(output()).not.toHaveTextContent('Hi')
+    onlineManager.setOnline(true)
+    await waitFor(() => expect(output()).toHaveTextContent('Hi'))
+    expect(output()).not.toHaveTextContent('Waiting for the network')
+    await waitFor(() => expect(notices()).toHaveLength(0))
   })
 
   it('says when the chain is full, after as many steps as the catalog allows (D21)', async () => {

@@ -51,6 +51,7 @@ interface ViewOptions {
   readonly catalogState?: CatalogState
   readonly steps?: readonly StepItem[]
   readonly runAlert?: RunAlert | null
+  readonly waitsForNetwork?: boolean
   readonly shareLink?: string | null
   readonly linkProblem?: string | null
   readonly examples?: readonly ExampleLink[]
@@ -77,6 +78,7 @@ function renderView(options: ViewOptions = {}) {
       steps: options.steps ?? steps,
       result: { steps: new Map(), output: 'Real Python!' },
       isUpdating: false,
+      waitsForNetwork: options.waitsForNetwork ?? false,
       runAlert: options.runAlert ?? null,
       summary: 'All 2 steps ran.',
       focusTarget: null,
@@ -305,6 +307,22 @@ describe('PipelineEditorView (D2, D26)', () => {
       await user.click(within(link).getByRole('button', { name: 'Close the message' }))
       expect(await findNotice()).toHaveTextContent('The chain could not run')
       await view.rerender({ runAlert: null })
+      await waitFor(() => expect(notices()).toHaveLength(0))
+    })
+  })
+
+  describe('a run that waits for the network (D57)', () => {
+    it('says so in a notice that is not an error, and closes it once the network is back', async () => {
+      const { view } = renderView({ waitsForNetwork: true })
+
+      const notice = await findNotice()
+      expect(notice).toHaveTextContent('No network connection')
+      expect(notice).toHaveTextContent('The chain runs as soon as the connection is back.')
+      expect(notice).toHaveAttribute('data-status', 'info')
+      expect(screen.getByRole('region', { name: 'Output' })).toHaveTextContent(
+        'Waiting for the network',
+      )
+      await view.rerender({ waitsForNetwork: false })
       await waitFor(() => expect(notices()).toHaveLength(0))
     })
   })

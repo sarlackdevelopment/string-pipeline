@@ -5,6 +5,9 @@
  * aborts the request still running for the old key through its `AbortSignal` and keeps showing the old result until
  * the new one arrives. A run depends on nothing but its request and the language of its messages, so a cached result
  * never goes stale: undoing an edit shows the earlier result at once.
+ *
+ * Once the browser says it went offline, TanStack Query holds a new request, or the retry of one that failed, and sends
+ * it when the browser says it is back (D57).
  */
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 import { watchDebounced } from '@vueuse/core'
@@ -45,8 +48,12 @@ export function usePipelineRun(request: MaybeRefOrGetter<RunRequest>) {
     error: query.error,
     /** The request that the result or the error belongs to. */
     sentRequest: sent,
-    /** From an edit until its result arrives: the pause, then the request. */
-    isUpdating: computed(() => latest.value !== sent.value || query.isFetching.value),
+    /** From an edit until its result arrives: the pause, then the request, which may wait for the network. */
+    isUpdating: computed(
+      () => latest.value !== sent.value || query.isFetching.value || query.isPaused.value,
+    ),
+    /** The run waits for the network: the browser said it went offline, and TanStack Query holds the request (D57). */
+    waitsForNetwork: query.isPaused,
     retry: () => {
       void query.refetch()
     },

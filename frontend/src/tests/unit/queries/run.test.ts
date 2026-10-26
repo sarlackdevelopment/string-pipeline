@@ -1,3 +1,4 @@
+import { onlineManager } from '@tanstack/vue-query'
 import { shallowRef } from 'vue'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import type { RunRequest } from '@/model/run'
@@ -87,6 +88,27 @@ describe('running the chain (D11, D29)', () => {
     chain.value = request('a')
 
     await vi.waitFor(() => expect(run.result.value?.output).toBe('a'))
+    expect(received.map((body) => body.input)).toEqual(['a', 'b'])
+  })
+
+  it('waits while the browser is offline, still updating, and runs once it is back (D57)', async () => {
+    const received = serveRuns(echo)
+    const { chain, run } = setup('a')
+    await vi.waitFor(() => expect(run.result.value?.output).toBe('a'))
+    onlineManager.setOnline(false)
+    onTestFinished(() => {
+      onlineManager.setOnline(true)
+    })
+
+    chain.value = request('b')
+
+    await vi.waitFor(() => expect(run.waitsForNetwork.value).toBe(true))
+    expect(run.isUpdating.value).toBe(true)
+    expect(run.result.value?.output).toBe('a')
+    onlineManager.setOnline(true)
+    await vi.waitFor(() => expect(run.result.value?.output).toBe('b'))
+    expect(run.waitsForNetwork.value).toBe(false)
+    expect(run.isUpdating.value).toBe(false)
     expect(received.map((body) => body.input)).toEqual(['a', 'b'])
   })
 

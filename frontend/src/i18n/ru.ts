@@ -35,6 +35,8 @@ export const ru: Messages = {
     region: 'Уведомления ({hotkey})',
     close: 'Закрыть сообщение',
     retryElsewhere: 'Измените цепочку, чтобы запустить её снова.',
+    offline: 'Нет подключения к сети',
+    offlineDetail: 'Цепочка запустится, как только связь вернётся.',
   },
   input: {
     label: 'Входной текст',
@@ -73,6 +75,7 @@ export const ru: Messages = {
     label: 'Результат',
     summary: 'Итог выполнения',
     updating: 'Обновляется',
+    waitingForNetwork: 'Ждёт подключения к сети',
     copy: 'Копировать',
     copied: 'Скопировано',
     copiedOutput: 'Результат скопирован.',

@@ -37,6 +37,8 @@ export const de: Messages = {
     region: 'Benachrichtigungen ({hotkey})',
     close: 'Meldung schließen',
     retryElsewhere: 'Ändern Sie die Kette, um sie erneut auszuführen.',
+    offline: 'Keine Netzwerkverbindung',
+    offlineDetail: 'Die Kette läuft, sobald die Verbindung wieder da ist.',
   },
   input: {
     label: 'Eingabe',
@@ -75,6 +77,7 @@ export const de: Messages = {
     label: 'Ausgabe',
     summary: 'Zusammenfassung des Laufs',
     updating: 'Wird aktualisiert',
+    waitingForNetwork: 'Wartet auf das Netzwerk',
     copy: 'Kopieren',
     copied: 'Kopiert',
     copiedOutput: 'Die Ausgabe wurde kopiert.',

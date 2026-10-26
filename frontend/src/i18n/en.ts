@@ -35,6 +35,8 @@ export const en = {
     region: 'Notifications ({hotkey})',
     close: 'Close the message',
     retryElsewhere: 'Change the chain to run it again.',
+    offline: 'No network connection',
+    offlineDetail: 'The chain runs as soon as the connection is back.',
   },
   input: {
     label: 'Input',
@@ -73,6 +75,7 @@ export const en = {
     label: 'Output',
     summary: 'Run summary',
     updating: 'Updating',
+    waitingForNetwork: 'Waiting for the network',
     copy: 'Copy',
     copied: 'Copied',
     copiedOutput: 'Copied the output.',

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 /**
  * The chain's final output (D13, D32), with a button that copies it and one that copies a link to the chain (D49).
- * While the next run is on its way, the previous output stays and is marked as updating. A live region under the
- * heading speaks the latest run in one sentence, and another one confirms a copy, which a changed button label alone
- * does not announce (D15). It is the page's footer, always in view (D53), so a long output scrolls inside its own box.
+ * While the next run is on its way, the previous output stays and is marked as updating, or as waiting for the network
+ * while the run waits for it (D57). A live region under the heading speaks the latest run in one sentence, and another
+ * one confirms a copy, which a changed button label alone does not announce (D15). It is the page's footer, always in
+ * view (D53), so a long output scrolls inside its own box.
  */
-import { CheckIcon, CopyIcon, LoaderCircleIcon } from '@lucide/vue'
+import { CheckIcon, CopyIcon, LoaderCircleIcon, WifiOffIcon } from '@lucide/vue'
 import { useClipboard } from '@vueuse/core'
 import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -16,6 +17,8 @@ import type { RunResult } from '@/model/run'
 const props = defineProps<{
   result: RunResult | undefined
   isUpdating: boolean
+  /** The run waits for the network to come back (D57). */
+  waitsForNetwork: boolean
   /** The latest run in one sentence. */
   summary: string
   /** A link to the chain as it is now; `null` while the chain is empty (D49). */
@@ -51,7 +54,14 @@ function copyOutput(): void {
       </div>
       <div class="flex items-center gap-3">
         <span
-          v-if="isUpdating"
+          v-if="waitsForNetwork"
+          class="inline-flex items-center gap-1.5 text-xs text-muted-foreground"
+        >
+          <WifiOffIcon class="size-3.5" />
+          {{ t('output.waitingForNetwork') }}
+        </span>
+        <span
+          v-else-if="isUpdating"
           class="inline-flex items-center gap-1.5 text-xs text-muted-foreground"
         >
           <LoaderCircleIcon class="size-3.5 animate-spin" />

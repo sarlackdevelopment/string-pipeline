@@ -8,12 +8,19 @@ import { grantClipboardWrite } from '@/tests/helpers/clipboard'
 const result = (output: string | null): RunResult => ({ steps: new Map(), output })
 
 function renderPanel(
-  props: { result?: RunResult; isUpdating?: boolean; summary?: string; link?: string } = {},
+  props: {
+    result?: RunResult
+    isUpdating?: boolean
+    waitsForNetwork?: boolean
+    summary?: string
+    link?: string
+  } = {},
 ) {
   render(OutputPanel, {
     props: {
       result: props.result,
       isUpdating: props.isUpdating ?? false,
+      waitsForNetwork: props.waitsForNetwork ?? false,
       summary: props.summary ?? '',
       link: props.link ?? null,
     },
@@ -52,6 +59,18 @@ describe('OutputPanel (D13, D32)', () => {
     const panel = renderPanel({ result: result('Real Python!'), isUpdating: true })
 
     expect(panel).toHaveTextContent('Updating')
+    expect(within(panel).getByText('Real Python!')).toBeInTheDocument()
+  })
+
+  it('says that the next run waits for the network, and keeps the output meanwhile (D57)', () => {
+    const panel = renderPanel({
+      result: result('Real Python!'),
+      isUpdating: true,
+      waitsForNetwork: true,
+    })
+
+    expect(panel).toHaveTextContent('Waiting for the network')
+    expect(panel).not.toHaveTextContent('Updating')
     expect(within(panel).getByText('Real Python!')).toBeInTheDocument()
   })
 

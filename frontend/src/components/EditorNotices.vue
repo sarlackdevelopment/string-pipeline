@@ -5,15 +5,16 @@ export const NOTICE_DURATION = 8000
 
 <script setup lang="ts">
 /**
- * The editor's notices (D55): a run that failed as a whole, and a link that could not be opened. Each pops up as a
- * toast in the stack at the bottom right and closes by itself; hovering or focusing the stack pauses it. Reka UI's
- * toast store, under the view's `ToastProvider`, holds them, and the toasts land in the view's `ToastViewport`.
+ * The editor's notices (D55): a run that failed as a whole, a link that could not be opened, and a run that waits for
+ * the network (D57). Each pops up as a toast in the stack at the bottom right and closes by itself; hovering or
+ * focusing the stack pauses it. Reka UI's toast store, under the view's `ToastProvider`, holds them, and the toasts
+ * land in the view's `ToastViewport`.
  *
  * Each kind has one toast. A different message updates it and starts its time again; the same message again changes
  * nothing, so a server that stays down neither keeps the toast on screen nor a screen reader talking. A run that
- * succeeds closes it, as an edit after a broken link closes that one.
+ * succeeds closes it, as an edit after a broken link closes that one, and the network coming back closes its own.
  */
-import { TriangleAlertIcon, XIcon } from '@lucide/vue'
+import { TriangleAlertIcon, WifiOffIcon, XIcon } from '@lucide/vue'
 import {
   ToastAction,
   ToastClose,
@@ -31,6 +32,7 @@ import type { RunAlert } from './PipelineEditor/types'
 const props = defineProps<{
   runAlert: RunAlert | null
   linkProblem: string | null
+  waitsForNetwork: boolean
 }>()
 
 const emit = defineEmits<{
@@ -41,8 +43,14 @@ const { t } = useI18n()
 const { toasts, add, close } = useToastManager()
 
 type Notice = Pick<ToastAddOptions, 'title' | 'description' | 'actionProps'>
+type Kind = Pick<ToastAddOptions, 'type' | 'status'>
 
-function show(id: string, notice: Notice | null): void {
+// An error is red, and a screen reader says it at once. That the network is gone is news, not an error: it is grey,
+// and a screen reader waits for a pause in what it is saying.
+const ERROR: Kind = { type: 'foreground', status: 'error' }
+const NEWS: Kind = { type: 'background', status: 'info' }
+
+function show(id: string, notice: Notice | null, kind = ERROR): void {
   if (notice === null) {
     close(id)
     return
@@ -55,8 +63,7 @@ function show(id: string, notice: Notice | null): void {
   ) {
     return
   }
-  // Foreground: a screen reader says it at once, as an error needs.
-  add({ id, type: 'foreground', status: 'error', duration: NOTICE_DURATION, ...notice })
+  add({ id, ...kind, duration: NOTICE_DURATION, ...notice })
 }
 
 watch(
@@ -91,6 +98,18 @@ watch(
   },
   { immediate: true },
 )
+
+watch(
+  () => props.waitsForNetwork,
+  (waits) => {
+    show(
+      'offline',
+      waits ? { title: t('notices.offline'), description: t('notices.offlineDetail') } : null,
+      NEWS,
+    )
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -99,12 +118,15 @@ watch(
     v-for="toast in toasts"
     :key="toast.id"
     :toast="toast"
-    class="notice-toast grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2 rounded-xl border border-destructive/40 bg-card p-4 text-card-foreground shadow-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+    class="notice-toast group grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2 rounded-xl border bg-card p-4 text-card-foreground shadow-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-[status=error]:border-destructive/40"
   >
-    <TriangleAlertIcon class="mt-0.5 size-4 text-destructive" />
+    <TriangleAlertIcon v-if="toast.status === 'error'" class="mt-0.5 size-4 text-destructive" />
+    <WifiOffIcon v-else class="mt-0.5 size-4 text-muted-foreground" />
     <div class="grid gap-1">
-      <ToastTitle class="text-sm font-medium text-destructive" />
-      <ToastDescription class="text-sm whitespace-pre-line text-destructive" />
+      <ToastTitle class="text-sm font-medium group-data-[status=error]:text-destructive" />
+      <ToastDescription
+        class="text-sm whitespace-pre-line text-muted-foreground group-data-[status=error]:text-destructive"
+      />
     </div>
     <ToastClose
       :aria-label="t('notices.close')"

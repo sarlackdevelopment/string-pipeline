@@ -595,4 +595,21 @@ What happened at each step, written for people. [agent-log.md](agent-log.md) has
 
 **Checked.** 259 Vitest tests and 32 end-to-end scenarios; three deliberate breaks of the offline setup each failed a scenario; the offline scenarios against the server serving the built app on a spare port; format, lint, typecheck and build.
 
-**Commit.** `feat(pwa): the app installs and opens without the network`
+**Commit.** `9bb8158 feat(pwa): the app installs and opens without the network`
+
+## Step 26.2. A run waits for the network, and says so (2026-10-26)
+
+**Asked.** The second half of the basic PWA: what the editor does when the connection drops while it is open.
+
+**AI did.**
+
+- A run made while the browser is offline waits, and goes on by itself once the network is back. TanStack Query already held such a run, but the editor did not know: a held request does not count as one on its way, so the editor showed the previous result as the current one. A unit test showed this before the fix; a held run now counts as updating.
+- While a run waits, the output says "Waiting for the network" instead of "Updating", and a notice says that the chain runs once the connection is back. It is grey, and polite for a screen reader, since it is not an error; it closes when the network comes back. The errors' notices stay red.
+- A page that opens without the network cannot tell yet: browsers report a lost connection reliably only as an event, so its first run fails as one to a server that is down, with Try again. The README lists this under known issues. Reading the browser's own guess at the start would let that page wait too, but on a machine where the guess is wrong every run would wait for good.
+- The new scenario's accessibility check failed on the notice's grey text, at 3.2:1: it had measured the notice while it was still fading in. The check now waits until such animations end; at full strength the text has 4.7:1.
+
+**Decided.** D57.
+
+**Checked.** 263 Vitest tests and 33 end-to-end scenarios; three deliberate breaks each failed a test: no notice, no waiting in the output, the notice as an error; pictures of the waiting editor in the light and the dark theme; format, lint, typecheck and build.
+
+**Commit.** `feat(ui): a run waits for the network, and the editor says so`
